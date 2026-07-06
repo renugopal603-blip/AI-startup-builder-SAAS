@@ -4,7 +4,6 @@ import { Search, Filter, Cpu, ArrowRight, Bookmark, Target, X, CheckCircle2, Ale
 const InvestorMarketplace: React.FC = () => {
   const [search, setSearch] = useState('');
   const [startups, setStartups] = React.useState<any[]>([]);
-  const [startups, setStartups] = React.useState<any[]>([]);
   const [selectedStartup, setSelectedStartup] = React.useState<any>(null);
 
   React.useEffect(() => {
