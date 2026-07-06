@@ -137,7 +137,7 @@ const AdminStartups: React.FC = () => {
     {/* Modal Overlay */}
     {selectedStartup && (
       <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-white w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-xl animate-fade-in-up">
+        <div className="bg-white w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-xl animate-fade-in-up">
           <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center z-10">
             <div>
               <h2 className="text-xl font-bold text-gray-900">
