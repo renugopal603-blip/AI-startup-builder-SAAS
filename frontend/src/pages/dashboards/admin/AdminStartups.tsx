@@ -93,7 +93,6 @@ const AdminStartups: React.FC = () => {
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Founder</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Industry</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Plan</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Joined</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
             </tr>
@@ -116,15 +115,19 @@ const AdminStartups: React.FC = () => {
                       {s.status === 'generated' ? 'Active' : 'Pending'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-semibold text-gray-700">Seed</td>
                   <td className="px-6 py-4 text-sm text-gray-500">{new Date(s.createdAt).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-right flex justify-end gap-2">
                     <button 
-                      onClick={() => window.alert(`Actions for ${s.startupName}:\n• View Profile\n• Edit Details\n• Change Status\n• Delete Startup`)}
-                      className="p-1.5 text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 rounded-lg transition-colors"
-                      title="More actions"
+                      onClick={() => window.alert('View Details clicked')}
+                      className="px-3 py-1.5 bg-indigo-50 text-[#5B21B6] hover:bg-indigo-100 rounded-lg text-xs font-bold transition-colors"
                     >
-                      <MoreVertical size={16} />
+                      View Details
+                    </button>
+                    <button 
+                      onClick={() => window.alert('Delete clicked')}
+                      className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold transition-colors"
+                    >
+                      Delete
                     </button>
                   </td>
                 </tr>
