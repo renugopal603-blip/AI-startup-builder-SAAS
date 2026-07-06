@@ -28,9 +28,16 @@ const MentorSessions: React.FC = () => {
   const clarificationRequests = startups.filter(s => s.mentorReview?.status === 'Clarification Requested');
 
   const handleAcceptClarification = (startup: any) => {
+    const reply = window.prompt('Enter your reply to the founder:');
+    if (!reply) return;
+
     const updated = {
       ...startup,
-      mentorReview: { ...startup.mentorReview, status: 'Clarification Answered' }
+      mentorReview: { 
+        ...startup.mentorReview, 
+        status: 'Clarification Answered',
+        mentorReply: reply
+      }
     };
     localStorage.setItem(`startup_${updated.startupId}`, JSON.stringify(updated));
     setStartups(prev => prev.map(s => s.startupId === updated.startupId ? updated : s));
@@ -38,12 +45,12 @@ const MentorSessions: React.FC = () => {
     addNotification({
       id: Date.now(),
       title: 'Clarification Answered',
-      message: `Mentor accepted and answered clarification for ${startup.startupName}.`,
+      message: `Mentor replied to your clarification for ${startup.startupName}.`,
       type: 'mentor_review',
       time: 'Just now',
       unread: true
     });
-    window.alert('Clarification accepted! Founder has been notified.');
+    window.alert('Reply sent! Founder has been notified.');
   };
 
   return (

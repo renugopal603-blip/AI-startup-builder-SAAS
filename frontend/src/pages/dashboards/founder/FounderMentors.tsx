@@ -127,6 +127,24 @@ const FounderMentors: React.FC = () => {
                   <p className="text-sm text-gray-700 mb-4 line-clamp-2 italic border-l-4 border-[#5B21B6] pl-3 py-1 bg-gray-50">
                     "{startup.mentorReview.feedback}"
                   </p>
+
+                  {startup.mentorReview.clarificationMessage && (
+                    <div className="mt-4 mb-4 space-y-3 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                      <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                        <p className="text-xs font-bold text-gray-500 mb-1">Your Clarification Request:</p>
+                        <p className="text-sm text-gray-800">"{startup.mentorReview.clarificationMessage}"</p>
+                      </div>
+                      
+                      {startup.mentorReview.mentorReply && (
+                        <div className="bg-purple-50 p-3 rounded-lg border border-purple-100 shadow-sm ml-4 relative">
+                          <div className="absolute top-4 -left-4 w-4 border-t-2 border-purple-200"></div>
+                          <div className="absolute top-0 -left-4 h-4 border-l-2 border-purple-200"></div>
+                          <p className="text-xs font-bold text-[#5B21B6] mb-1">Mentor's Reply:</p>
+                          <p className="text-sm text-purple-900">"{startup.mentorReview.mentorReply}"</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   
                   {/* Action Buttons */}
                   <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
