@@ -1,7 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, Clock, ArrowRight } from 'lucide-react';
 
 const FounderMentors: React.FC = () => {
+  const [startups, setStartups] = useState<any[]>([]);
+
+  useEffect(() => {
+    const keys = Object.keys(localStorage);
+    const locals: any[] = [];
+    keys.forEach(key => {
+      if (key.startsWith('startup_')) {
+        try {
+          locals.push(JSON.parse(localStorage.getItem(key) || ''));
+        } catch (e) {}
+      }
+    });
+    locals.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    setStartups(locals);
+  }, []);
+
+  const reviewedStartups = startups.filter(s => s.mentorReview);
   return (
     <div className="animate-fade-in-up">
       <div className="mb-8">
@@ -15,59 +32,46 @@ const FounderMentors: React.FC = () => {
           <h2 className="text-lg font-bold text-gray-900 mb-6">Recent Feedback</h2>
           
           <div className="space-y-6">
-            <div className="p-5 border border-gray-100 rounded-xl bg-gray-50/50">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">
-                    ER
+            {reviewedStartups.length === 0 ? (
+              <div className="p-5 border border-gray-100 rounded-xl bg-gray-50/50 text-center text-gray-500 text-sm">
+                No mentor feedback received yet.
+              </div>
+            ) : (
+              reviewedStartups.map(startup => (
+                <div key={startup.startupId} className="p-5 border border-gray-100 rounded-xl bg-gray-50/50">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">
+                        {startup.mentorReview.mentorName.split(' ').map((n: string) => n[0]).join('')}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900 text-sm">{startup.mentorReview.mentorName}</p>
+                        <p className="text-xs text-gray-500">Mentor Rating: <span className="font-semibold text-gray-700">{startup.mentorReview.rating}</span></p>
+                      </div>
+                    </div>
+                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">Completed</span>
                   </div>
-                  <div>
-                    <p className="font-bold text-gray-900 text-sm">Elena Rodriguez</p>
-                    <p className="text-xs text-gray-500">Ex-Sequoia Partner</p>
+                  <h4 className="font-bold text-sm text-gray-800 mb-2">{startup.startupName}</h4>
+                  <p className="text-sm text-gray-700 mb-4 whitespace-pre-wrap">
+                    "{startup.mentorReview.feedback}"
+                  </p>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => alert("Opening full review... This feature is coming soon!")}
+                      className="flex-1 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Read Full Review
+                    </button>
+                    <button 
+                      onClick={() => alert(`Booking 1:1 call with ${startup.mentorReview.mentorName}... Integration coming soon!`)}
+                      className="flex-1 py-2 bg-[#5B21B6] hover:bg-[#7C3AED] text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Book 1:1 Call
+                    </button>
                   </div>
                 </div>
-                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">Completed</span>
-              </div>
-              <p className="text-sm text-gray-700 mb-4 line-clamp-3">
-                "EcoPackage Hub has a fantastic premise. The AI generated report correctly identified supply chain constraints as your biggest risk. I recommend narrowing your initial focus exclusively to cosmetic brands—they have the highest margin and pressure for sustainable packaging..."
-              </p>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => alert("Opening full review... This feature is coming soon!")}
-                  className="flex-1 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg text-sm font-medium transition-colors"
-                >
-                  Read Full Review
-                </button>
-                <button 
-                  onClick={() => alert("Booking 1:1 call with Elena... Integration coming soon!")}
-                  className="flex-1 py-2 bg-[#5B21B6] hover:bg-[#7C3AED] text-white rounded-lg text-sm font-medium transition-colors"
-                >
-                  Book 1:1 Call
-                </button>
-              </div>
-            </div>
-
-            <div className="p-5 border border-gray-100 rounded-xl bg-gray-50/50">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm">
-                    MJ
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-900 text-sm">Marcus Johnson</p>
-                    <p className="text-xs text-gray-500">FinTech Founder</p>
-                  </div>
-                </div>
-                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded">In Review</span>
-              </div>
-              <p className="text-sm text-gray-500 mb-4 flex items-center italic">
-                <Clock size={16} className="mr-2" />
-                Reviewing FinFlow AI. Expected completion in 2 days.
-              </p>
-              <button className="w-full py-2 bg-white border border-gray-200 text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed">
-                Read Full Review
-              </button>
-            </div>
+              ))
+            )}
           </div>
         </div>
 
