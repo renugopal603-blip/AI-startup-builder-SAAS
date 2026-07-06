@@ -7,6 +7,7 @@ import FounderPitchDeck from './FounderPitchDeck';
 import FounderMarketResearch from './FounderMarketResearch';
 import FounderReports from './FounderReports';
 import FounderAIChat from './FounderAIChat';
+import { getStartups, getStartupById, updateStartup, generateStartupOutput, generateRoadmapAndTasks, addNotification } from '../../../utils/localStorageHelper';
 
 const tabs = [
   { id: 'idea',     label: 'AI Idea Generator',    icon: Lightbulb,    component: FounderIdeaGenerator },
@@ -31,17 +32,7 @@ const FounderAIBuilder: React.FC = () => {
     const fetchStartup = async () => {
       if (!startupId) {
         // Load all startups if no specific ID is provided
-        const keys = Object.keys(localStorage);
-        const locals: any[] = [];
-        keys.forEach(key => {
-          if (key.startsWith('startup_')) {
-            try {
-              locals.push(JSON.parse(localStorage.getItem(key) || ''));
-            } catch (e) {}
-          }
-        });
-        // Sort by newest first
-        locals.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const locals = getStartups();
         setAllStartups(locals);
         return;
       }
@@ -49,9 +40,9 @@ const FounderAIBuilder: React.FC = () => {
       setLoading(true);
       setError('');
       try {
-        const savedData = localStorage.getItem(startupId);
+        const savedData = getStartupById(startupId);
         if (savedData) {
-          setStartupData(JSON.parse(savedData));
+          setStartupData(savedData);
         } else {
           setError('Could not load startup data. It may not exist.');
         }
@@ -70,39 +61,39 @@ const FounderAIBuilder: React.FC = () => {
     setGenerating(true);
     setError('');
 
-    try {
-      const response = await fetch(`http://localhost:5000/api/ai-builder/generate-stateless`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          startupName: startupData.startupName, 
-          startupIdea: startupData.startupIdea 
-        })
-      });
-      
-      const data = await response.json();
-
-      if (data.success) {
-        const generatedOutput = data.data.aiGenerated;
-        const updatedStartup = {
-          ...startupData,
-          status: 'generated',
-          aiGenerated: generatedOutput
-        };
+    // Simulate API delay for realism
+    setTimeout(() => {
+      try {
+        const aiOutput = generateStartupOutput(startupData);
+        const { roadmap, tasks } = generateRoadmapAndTasks(startupData);
         
-        // Save back to local storage
-        localStorage.setItem(startupId, JSON.stringify(updatedStartup));
+        const updatedStartup = updateStartup(startupId, {
+          status: 'generated',
+          aiGenerated: aiOutput,
+          roadmap,
+          tasks
+        });
+        
         setStartupData(updatedStartup);
-      } else {
-        setError(data.message || 'AI generation failed. Please try again.');
+        
+        // Dispatch notification
+        addNotification({
+          id: `notification_${Date.now()}`,
+          userId: startupData.founderId || "founder_demo_user",
+          title: "Startup Plan Generated Successfully",
+          message: "AI has generated your startup plan, roadmap, tasks, and milestones.",
+          type: "ai_builder",
+          isRead: false,
+          actionUrl: `/dashboard/founder/ai-builder?startupId=${startupId}`,
+          createdAt: new Date().toISOString()
+        });
+      } catch (err) {
+        setError('AI generation failed. Please try again.');
         setStartupData(prev => prev ? { ...prev, status: 'failed' } : null);
+      } finally {
+        setGenerating(false);
       }
-    } catch (err) {
-      setError('AI generation failed. Please try again.');
-      setStartupData(prev => prev ? { ...prev, status: 'failed' } : null);
-    } finally {
-      setGenerating(false);
-    }
+    }, 2000);
   };
 
   const ActiveComponent = tabs.find(t => t.id === active)!.component;

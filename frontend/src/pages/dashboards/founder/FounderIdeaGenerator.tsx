@@ -7,80 +7,40 @@ interface Props {
   setStartupData: (data: any) => void;
 }
 
+import { generateStartupOutput, generateRoadmapAndTasks, updateStartup } from '../../../utils/localStorageHelper';
+
 const FounderIdeaGenerator: React.FC<Props> = ({ startupData, setStartupData }) => {
-  const [startupName, setStartupName] = useState('');
-  const [startupIdea, setStartupIdea] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const generate = async () => {
-    if (!startupName || !startupIdea) return;
-    
-    setLoading(true);
-    setError('');
-    
-    try {
-      const response = await fetch('http://localhost:5000/api/ai-builder/generate-startup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ startupName, startupIdea })
-      });
-
-      const data = await response.json();
-      
-      if (data.success) {
-        setStartupData(data.data);
-        window.alert('Success: Startup generated successfully');
-        
-        // Trigger notification
-        fetch('http://localhost:5000/api/notifications', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            title: 'Startup Generated Successfully', 
-            message: 'Your startup idea has been generated successfully with AI.', 
-            type: 'ai_builder' 
-          })
-        }).catch(e => console.error(e));
-
-        navigate(`?id=${data.data.startupId}`);
-
-      } else {
-        setError(data.message || 'Failed to generate startup');
-      }
-    } catch (err) {
-      setError('Failed to connect to AI server');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const regenerate = async () => {
+  const regenerate = () => {
     if (!startupData) return;
     
     setLoading(true);
     setError('');
     
-    try {
-      const response = await fetch(`http://localhost:5000/api/ai-builder/regenerate/${startupData.startupId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      const data = await response.json();
-      
-      if (data.success) {
-        setStartupData(data.data);
-        window.alert('Success: Startup regenerated successfully');
-      } else {
-        setError(data.message || 'Failed to regenerate startup');
+    setTimeout(() => {
+      try {
+        const aiOutput = generateStartupOutput(startupData);
+        const { roadmap, tasks } = generateRoadmapAndTasks(startupData);
+        
+        const updatedStartup = updateStartup(startupData.id || startupData.startupId, {
+          aiGenerated: aiOutput,
+          roadmap,
+          tasks
+        });
+        
+        if (updatedStartup) {
+          setStartupData(updatedStartup);
+          window.alert('Success: Startup regenerated successfully');
+        }
+      } catch (err) {
+        setError('Failed to regenerate startup');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError('Failed to connect to AI server');
-    } finally {
-      setLoading(false);
-    }
+    }, 1500);
   };
 
   if (startupData) {

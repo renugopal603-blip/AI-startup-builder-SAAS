@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, CheckCircle2, Clock, AlertCircle, MoreVertical } from 'lucide-react';
+import { updateStartup } from '../../../utils/localStorageHelper';
 
 type Task = { id: number; title: string; priority: 'High' | 'Medium' | 'Low'; due: string; status: 'todo' | 'in-progress' | 'done' };
 
@@ -22,17 +23,36 @@ const colConfig = [
   { key: 'done',        label: 'Done',        icon: CheckCircle2,  color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
 ];
 
-const FounderTasks: React.FC = () => {
+interface Props {
+  startupData?: any;
+  setStartupData?: (d: any) => void;
+}
+
+const FounderTasks: React.FC<Props> = ({ startupData, setStartupData }) => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
+  useEffect(() => {
+    if (startupData?.tasks && startupData.tasks.length > 0) {
+      setTasks(startupData.tasks);
+    }
+  }, [startupData]);
+
+  const saveTasks = (newTasks: Task[]) => {
+    setTasks(newTasks);
+    if (startupData && startupData.id && setStartupData) {
+      const updated = updateStartup(startupData.id, { tasks: newTasks });
+      if (updated) setStartupData(updated);
+    }
+  };
+
   const move = (id: number, to: Task['status']) => {
-    setTasks(ts => ts.map(t => t.id === id ? { ...t, status: to } : t));
+    saveTasks(tasks.map(t => t.id === id ? { ...t, status: to } : t));
   };
 
   const handleNewTask = () => {
     const title = window.prompt("Enter new task title:");
     if (title) {
-      setTasks([...tasks, { 
+      saveTasks([...tasks, { 
         id: Date.now(), 
         title, 
         priority: 'Medium', 
@@ -45,7 +65,7 @@ const FounderTasks: React.FC = () => {
   const handleTaskOptions = (id: number) => {
     const confirmDelete = window.confirm("Delete this task?");
     if (confirmDelete) {
-      setTasks(tasks.filter(t => t.id !== id));
+      saveTasks(tasks.filter(t => t.id !== id));
     }
   };
 

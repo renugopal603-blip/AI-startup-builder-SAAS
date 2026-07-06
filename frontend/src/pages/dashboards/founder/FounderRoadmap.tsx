@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle2, Circle, Clock, ChevronRight, Plus, Flag } from 'lucide-react';
+import { updateStartup } from '../../../utils/localStorageHelper';
 
 const initialPhases = [
   {
@@ -51,14 +52,25 @@ const statusLabels: Record<string, string> = {
   upcoming: 'Upcoming',
 };
 
-const FounderRoadmap: React.FC = () => {
+interface Props {
+  startupData?: any;
+  setStartupData?: (d: any) => void;
+}
+
+const FounderRoadmap: React.FC<Props> = ({ startupData, setStartupData }) => {
   const [activePhase, setActivePhase] = useState(2);
   const [phases, setPhases] = useState(initialPhases);
+
+  React.useEffect(() => {
+    if (startupData?.roadmap && startupData.roadmap.length > 0) {
+      setPhases(startupData.roadmap);
+    }
+  }, [startupData]);
 
   const handleAddMilestone = () => {
     const milestoneName = window.prompt("Enter new milestone name:");
     if (milestoneName) {
-      setPhases(currentPhases => currentPhases.map(p => {
+      const updatedPhases = phases.map(p => {
         if (p.id === activePhase || (activePhase === 0 && p.id === 1)) {
           return {
             ...p,
@@ -66,9 +78,34 @@ const FounderRoadmap: React.FC = () => {
           };
         }
         return p;
-      }));
+      });
+      setPhases(updatedPhases);
+      if (startupData && startupData.id && setStartupData) {
+        const updated = updateStartup(startupData.id, { roadmap: updatedPhases });
+        if (updated) setStartupData(updated);
+      }
     }
   };
+  
+  const toggleMilestone = (phaseId: number, msIndex: number) => {
+    const updatedPhases = phases.map(p => {
+      if (p.id === phaseId) {
+        const newMs = [...p.milestones];
+        newMs[msIndex].done = !newMs[msIndex].done;
+        return { ...p, milestones: newMs };
+      }
+      return p;
+    });
+    setPhases(updatedPhases);
+    if (startupData && startupData.id && setStartupData) {
+      const updated = updateStartup(startupData.id, { roadmap: updatedPhases });
+      if (updated) setStartupData(updated);
+    }
+  };
+
+  const total = phases.reduce((acc, p) => acc + p.milestones.length, 0);
+  const done = phases.reduce((acc, p) => acc + p.milestones.filter(m => m.done).length, 0);
+  const progressPercent = total === 0 ? 0 : Math.round((done / total) * 100);
 
   return (
     <div className="animate-fade-in-up">
@@ -86,10 +123,10 @@ const FounderRoadmap: React.FC = () => {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
         <div className="flex justify-between items-center mb-3">
           <p className="text-sm font-bold text-gray-700">Overall Progress</p>
-          <p className="text-sm font-bold text-[#5B21B6]">50%</p>
+          <p className="text-sm font-bold text-[#5B21B6]">{progressPercent}%</p>
         </div>
         <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-3 rounded-full bg-gradient-to-r from-[#5B21B6] to-[#7C3AED] transition-all" style={{ width: '50%' }} />
+          <div className="h-3 rounded-full bg-gradient-to-r from-[#5B21B6] to-[#7C3AED] transition-all" style={{ width: `${progressPercent}%` }} />
         </div>
         <div className="flex justify-between mt-3 text-xs text-gray-400 font-medium">
           <span>Idea</span><span>MVP</span><span>Launch</span><span>Growth</span>
@@ -136,7 +173,11 @@ const FounderRoadmap: React.FC = () => {
                 <div className="border-t border-gray-100 p-5 bg-gray-50/50">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {p.milestones.map((m, mi) => (
-                      <div key={mi} className={`flex items-center gap-3 p-3 rounded-xl bg-white border ${m.done ? 'border-emerald-100' : 'border-gray-100'}`}>
+                      <div 
+                        key={mi} 
+                        onClick={() => toggleMilestone(p.id, mi)}
+                        className={`flex items-center gap-3 p-3 rounded-xl bg-white border cursor-pointer hover:shadow-sm transition-all ${m.done ? 'border-emerald-100' : 'border-gray-100 hover:border-[#5B21B6]/30'}`}
+                      >
                         {m.done
                           ? <CheckCircle2 size={18} className="text-emerald-500 flex-shrink-0" />
                           : <Circle size={18} className="text-gray-300 flex-shrink-0" />

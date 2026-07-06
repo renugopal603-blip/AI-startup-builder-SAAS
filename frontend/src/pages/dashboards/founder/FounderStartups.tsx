@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, MoreVertical, LayoutGrid, List, X, Rocket, Sparkles, RefreshCw } from 'lucide-react';
+import { createStartupDraft, getStartups } from '../../../utils/localStorageHelper';
 
 type Startup = {
   id: string;
@@ -52,29 +53,17 @@ const FounderStartups: React.FC = () => {
   useEffect(() => {
     // Load startups from localStorage on mount
     const loadLocalStartups = () => {
-      const keys = Object.keys(localStorage);
-      const localStartups: Startup[] = [];
-      
-      keys.forEach(key => {
-        if (key.startsWith('startup_')) {
-          try {
-            const data = JSON.parse(localStorage.getItem(key) || '');
-            localStartups.push({
-              id: data.startupId,
-              name: data.startupName,
-              description: data.startupIdea,
-              status: data.status === 'pending_analysis' ? 'Draft' : data.status,
-              score: data.aiGenerated?.aiReport?.investmentReadinessScore || 0,
-              stage: 'Idea Phase',
-              color: 'bg-gray-100 text-gray-600'
-            });
-          } catch (e) {
-            // ignore
-          }
-        }
-      });
-      
-      setStartups([...initialStartups, ...localStartups]);
+      const localData = getStartups();
+      const mappedStartups = localData.map(data => ({
+        id: data.startupId || data.id,
+        name: data.startupName,
+        description: data.startupIdea,
+        status: data.status === 'pending_analysis' ? 'Draft' : data.status,
+        score: data.aiGenerated?.aiReport?.investmentReadinessScore || 0,
+        stage: 'Idea Phase',
+        color: 'bg-gray-100 text-gray-600'
+      }));
+      setStartups([...initialStartups, ...mappedStartups]);
     };
     loadLocalStartups();
   }, []);
@@ -87,22 +76,13 @@ const FounderStartups: React.FC = () => {
     setError('');
 
     try {
-      const startupId = `startup_${Date.now()}`;
-      const newStartupData = {
-        startupId,
-        startupName: newStartupName,
-        startupIdea: newStartupDesc,
-        status: 'pending_analysis',
-        createdAt: new Date().toISOString()
-      };
-      
-      localStorage.setItem(startupId, JSON.stringify(newStartupData));
+      const newStartupData = createStartupDraft(newStartupName, newStartupDesc);
 
       setIsModalOpen(false);
       setNewStartupName('');
       setNewStartupDesc('');
       
-      navigate(`/dashboard/founder/ai-builder?startupId=${startupId}`);
+      navigate(`/dashboard/founder/ai-builder?startupId=${newStartupData.id}`);
     } catch (err) {
       setError('Failed to save to local storage');
     } finally {

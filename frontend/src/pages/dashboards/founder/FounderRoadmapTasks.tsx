@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Map, ListChecks } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import FounderRoadmap from './FounderRoadmap';
 import FounderTasks from './FounderTasks';
+import { getStartups, getStartupById } from '../../../utils/localStorageHelper';
 
 const tabs = [
   { id: 'roadmap', label: 'Startup Roadmap', icon: Map, component: FounderRoadmap },
@@ -10,6 +12,21 @@ const tabs = [
 
 const FounderRoadmapTasks: React.FC = () => {
   const [active, setActive] = useState('roadmap');
+  const [startupData, setStartupData] = useState<any>(null);
+  const [searchParams] = useSearchParams();
+  const startupId = searchParams.get('startupId') || searchParams.get('id');
+
+  useEffect(() => {
+    if (startupId) {
+      setStartupData(getStartupById(startupId));
+    } else {
+      const all = getStartups().filter(s => s.status === 'generated');
+      if (all.length > 0) {
+        setStartupData(all[0]);
+      }
+    }
+  }, [startupId]);
+
   const ActiveComponent = tabs.find(t => t.id === active)!.component;
 
   return (
@@ -33,7 +50,7 @@ const FounderRoadmapTasks: React.FC = () => {
         ))}
       </div>
 
-      <ActiveComponent />
+      <ActiveComponent startupData={startupData} setStartupData={setStartupData} />
     </div>
   );
 };
