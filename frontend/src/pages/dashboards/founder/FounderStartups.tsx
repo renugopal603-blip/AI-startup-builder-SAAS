@@ -49,6 +49,36 @@ const FounderStartups: React.FC = () => {
     s.description.toLowerCase().includes(search.toLowerCase())
   );
 
+  useEffect(() => {
+    // Load startups from localStorage on mount
+    const loadLocalStartups = () => {
+      const keys = Object.keys(localStorage);
+      const localStartups: Startup[] = [];
+      
+      keys.forEach(key => {
+        if (key.startsWith('startup_')) {
+          try {
+            const data = JSON.parse(localStorage.getItem(key) || '');
+            localStartups.push({
+              id: data.startupId,
+              name: data.startupName,
+              description: data.startupIdea,
+              status: data.status === 'pending_analysis' ? 'Draft' : data.status,
+              score: data.aiGenerated?.aiReport?.investmentReadinessScore || 0,
+              stage: 'Idea Phase',
+              color: 'bg-gray-100 text-gray-600'
+            });
+          } catch (e) {
+            // ignore
+          }
+        }
+      });
+      
+      setStartups([...initialStartups, ...localStartups]);
+    };
+    loadLocalStartups();
+  }, []);
+
   const handleAddStartup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStartupName.trim() || !newStartupDesc.trim()) return;
@@ -57,28 +87,24 @@ const FounderStartups: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/startups/create-draft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          startupName: newStartupName, 
-          startupIdea: newStartupDesc 
-        })
-      });
-
-      const data = await response.json();
+      const startupId = `startup_${Date.now()}`;
+      const newStartupData = {
+        startupId,
+        startupName: newStartupName,
+        startupIdea: newStartupDesc,
+        status: 'pending_analysis',
+        createdAt: new Date().toISOString()
+      };
       
-      if (data.success) {
-        setIsModalOpen(false);
-        setNewStartupName('');
-        setNewStartupDesc('');
-        
-        navigate(`/dashboard/founder/ai-builder?id=${data.data.startupId}`);
-      } else {
-        setError(data.message || 'Failed to save startup idea');
-      }
+      localStorage.setItem(startupId, JSON.stringify(newStartupData));
+
+      setIsModalOpen(false);
+      setNewStartupName('');
+      setNewStartupDesc('');
+      
+      navigate(`/dashboard/founder/ai-builder?startupId=${startupId}`);
     } catch (err) {
-      setError('Failed to connect to server');
+      setError('Failed to save to local storage');
     } finally {
       setLoading(false);
     }
@@ -170,7 +196,7 @@ const FounderStartups: React.FC = () => {
                   </div>
 
                   <button 
-                    onClick={() => navigate('/dashboard/founder/ai-builder')}
+                    onClick={() => navigate(`/dashboard/founder/ai-builder?startupId=${startup.id}`)}
                     className="w-full py-2.5 bg-gray-50 group-hover:bg-[#5B21B6] text-gray-700 group-hover:text-white rounded-lg font-bold text-sm transition-all duration-200 border border-gray-200 group-hover:border-[#5B21B6] shadow-sm group-hover:shadow"
                   >
                     Manage Startup
@@ -215,7 +241,7 @@ const FounderStartups: React.FC = () => {
                       </td>
                       <td className="px-4 py-4 text-right">
                         <button 
-                          onClick={() => navigate('/dashboard/founder/ai-builder')}
+                          onClick={() => navigate(`/dashboard/founder/ai-builder?startupId=${startup.id}`)}
                           className="px-4 py-1.5 bg-white border border-gray-200 group-hover:border-[#5B21B6] group-hover:text-[#5B21B6] rounded-lg font-bold text-xs transition-colors shadow-sm text-gray-700"
                         >
                           Manage

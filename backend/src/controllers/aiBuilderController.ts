@@ -197,49 +197,26 @@ export const createDraft = async (req: Request, res: Response) => {
   }
 };
 
-export const generateStartup = async (req: Request, res: Response) => {
+export const generateStateless = async (req: Request, res: Response) => {
   try {
-    const { startupId } = req.params;
+    const { startupName, startupIdea } = req.body;
 
-    if (!startupId) {
-      return res.status(400).json({ success: false, message: 'Startup ID is required.' });
+    if (!startupName || !startupIdea) {
+      return res.status(400).json({ success: false, message: 'Startup name and idea are required.' });
     }
 
-    const startup = await Startup.findById(startupId);
-
-    if (!startup) {
-      return res.status(404).json({ success: false, message: 'Startup not found.' });
-    }
-
-    startup.status = 'generating';
-    await startup.save();
-
-    const aiData = await callAI(startup.startupName, startup.startupIdea);
-
-    startup.aiGenerated = aiData;
-    startup.status = 'generated';
-    await startup.save();
+    const aiData = await callAI(startupName, startupIdea);
 
     res.status(200).json({
       success: true,
       message: 'Startup analyzed and generated successfully',
       data: {
-        startupId: startup._id,
-        status: startup.status,
-        aiGenerated: startup.aiGenerated,
+        aiGenerated: aiData,
       }
     });
 
   } catch (error: any) {
-    console.error('Error generating startup:', error);
-    try {
-      const { startupId } = req.params;
-      if (startupId) {
-        await Startup.findByIdAndUpdate(startupId, { status: 'failed' });
-      }
-    } catch (e) {
-      console.error('Failed to update status to failed', e);
-    }
+    console.error('Error generating startup statelessly:', error);
     res.status(500).json({ success: false, message: error.message || 'Failed to generate startup.' });
   }
 };
