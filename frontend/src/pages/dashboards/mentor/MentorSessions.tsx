@@ -54,6 +54,7 @@ const MentorSessions: React.FC = () => {
       message: action === 'reply' 
         ? `Mentor replied to your clarification for ${startup.startupName}.`
         : `Mentor accepted your clarification for ${startup.startupName}.`,
+      details: replyText || undefined,
       type: 'mentor_review',
       time: 'Just now',
       unread: true
