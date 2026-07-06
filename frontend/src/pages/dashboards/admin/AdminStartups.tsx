@@ -137,23 +137,23 @@ const AdminStartups: React.FC = () => {
     {/* Modal Overlay */}
     {selectedStartup && (
       <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-white w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-xl animate-fade-in-up">
-          <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center z-10">
+        <div className="bg-white w-[95%] lg:w-full max-w-[1200px] max-h-[90vh] flex flex-col rounded-[24px] shadow-xl animate-fade-in-up overflow-hidden">
+          <div className="sticky top-0 bg-white border-b border-gray-100 p-8 flex justify-between items-center shrink-0 z-10">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-[22px] font-bold text-gray-900">
                 Startup Details
               </h2>
-              <p className="text-sm text-gray-500 mt-1">{selectedStartup.startupName}</p>
+              <p className="text-[15px] text-gray-500 mt-1">{selectedStartup.startupName}</p>
             </div>
             <button 
               onClick={() => setSelectedStartup(null)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2.5 hover:bg-gray-100 rounded-full transition-colors"
             >
               <X size={20} className="text-gray-500" />
             </button>
           </div>
           
-          <div className="p-6 space-y-6">
+          <div className="p-8 overflow-y-auto flex-1 space-y-8">
             <SharedStartupDetailsTabs startupData={selectedStartup} />
           </div>
         </div>

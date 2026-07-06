@@ -46,64 +46,68 @@ const FounderIdeaGenerator: React.FC<Props> = ({ startupData, setStartupData }) 
   if (startupData) {
     const ai = startupData.aiGenerated?.ideaAnalysis || {};
     return (
-      <div className="animate-fade-in-up space-y-6">
+      <div className="animate-fade-in-up space-y-8">
         {error && <div className="p-4 bg-red-50 text-red-600 rounded-xl font-bold">{error}</div>}
         
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 bg-purple-100 text-[#5B21B6] text-[10px] font-black uppercase px-3 py-1.5 rounded-bl-xl shadow-sm z-10 flex items-center gap-1">
-            <Sparkles size={10} /> AI Generated
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{startupData.startupName}</h2>
-          <p className="text-[#5B21B6] font-bold mb-6">{ai.refinedStartupIdea || ai.refinedIdea || startupData.startupIdea}</p>
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-8">
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-              <h3 className="font-bold text-gray-900 mb-2 text-sm uppercase tracking-wide">Problem</h3>
-              <p className="text-gray-700 text-sm">{ai.problemStatement}</p>
+          <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+            <h2 className="text-[32px] font-bold text-gray-900 leading-tight">{startupData.startupName}</h2>
+            <span className="bg-purple-100 text-[#5B21B6] text-xs font-black uppercase px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1 shrink-0 w-fit">
+              <Sparkles size={12} /> AI Generated
+            </span>
+          </div>
+          
+          <p className="text-[#5B21B6] font-bold text-[15px] leading-[1.7] mb-8">{ai.refinedStartupIdea || ai.refinedIdea || startupData.startupIdea}</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-gray-50 p-6 rounded-[20px] border border-gray-100 h-full flex flex-col">
+              <h3 className="font-semibold text-[18px] text-gray-900 mb-4 tracking-wide uppercase">Problem</h3>
+              <p className="text-gray-700 text-[15px] leading-[1.7] break-words">{ai.problemStatement}</p>
             </div>
-            <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100/50">
-              <h3 className="font-bold text-[#5B21B6] mb-2 text-sm uppercase tracking-wide">Solution</h3>
-              <p className="text-gray-700 text-sm">{ai.solution}</p>
+            <div className="bg-purple-50/50 p-6 rounded-[20px] border border-purple-100/50 h-full flex flex-col">
+              <h3 className="font-semibold text-[18px] text-[#5B21B6] mb-4 tracking-wide uppercase">Solution</h3>
+              <p className="text-gray-700 text-[15px] leading-[1.7] break-words">{ai.solution}</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="border border-gray-100 rounded-xl p-4">
-              <h3 className="font-bold text-gray-900 mb-2 text-sm uppercase tracking-wide flex items-center gap-2"><Target size={14} /> Target Customers</h3>
-              <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="border border-gray-100 rounded-[20px] p-6 h-full flex flex-col">
+              <h3 className="font-semibold text-[18px] text-gray-900 mb-4 flex items-center gap-2 tracking-wide"><Target size={18} /> Target Customers</h3>
+              <ul className="list-disc pl-5 text-[15px] leading-[1.7] text-gray-700 space-y-3 break-words">
                 {ai.targetCustomers?.map((c: string, i: number) => <li key={i}>{c}</li>)}
               </ul>
             </div>
-            <div className="border border-gray-100 rounded-xl p-4">
-              <h3 className="font-bold text-gray-900 mb-2 text-sm uppercase tracking-wide flex items-center gap-2"><Briefcase size={14} /> Business Model</h3>
-              <p className="text-sm text-gray-700 mb-2 font-bold">{ai.businessModel}</p>
-              <p className="text-sm text-gray-500">{ai.revenueModel}</p>
+            <div className="border border-gray-100 rounded-[20px] p-6 h-full flex flex-col">
+              <h3 className="font-semibold text-[18px] text-gray-900 mb-4 flex items-center gap-2 tracking-wide"><Briefcase size={18} /> Business Model</h3>
+              <p className="text-[15px] leading-[1.7] text-gray-700 mb-3 font-bold break-words">{ai.businessModel}</p>
+              <p className="text-[15px] leading-[1.7] text-gray-500 break-words">{ai.revenueModel}</p>
             </div>
-            <div className="border border-gray-100 rounded-xl p-4">
-              <h3 className="font-bold text-gray-900 mb-2 text-sm uppercase tracking-wide flex items-center gap-2"><Rocket size={14} /> Core Features</h3>
-              <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+            <div className="border border-gray-100 rounded-[20px] p-6 h-full flex flex-col">
+              <h3 className="font-semibold text-[18px] text-gray-900 mb-4 flex items-center gap-2 tracking-wide"><Rocket size={18} /> Core Features</h3>
+              <ul className="list-disc pl-5 text-[15px] leading-[1.7] text-gray-700 space-y-3 break-words">
                 {ai.coreFeatures?.map((f: string, i: number) => <li key={i}>{f}</li>)}
               </ul>
             </div>
           </div>
           
-          <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 mb-6">
-              <h3 className="font-bold text-gray-900 mb-2 text-sm uppercase tracking-wide">Unique Value Proposition</h3>
-              <p className="text-sm text-gray-700">{ai.uniqueValueProposition}</p>
+          <div className="bg-gray-50 rounded-[20px] border border-gray-100 p-6 mb-8">
+              <h3 className="font-semibold text-[18px] text-gray-900 mb-4 tracking-wide uppercase">Unique Value Proposition</h3>
+              <p className="text-[15px] leading-[1.7] text-gray-700 break-words">{ai.uniqueValueProposition}</p>
           </div>
 
-          <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-50 hide-in-read-only">
-            <button onClick={() => { window.alert('Saved successfully!'); navigate('/dashboard/founder/startups'); }} className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors">
-              <Save size={14} /> Save to My Startups
+          <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-100 hide-in-read-only">
+            <button onClick={() => { window.alert('Saved successfully!'); navigate('/dashboard/founder/startups'); }} className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors">
+              <Save size={16} /> Save to My Startups
             </button>
-            <button onClick={regenerate} disabled={loading} className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors disabled:opacity-50">
-              {loading ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />} Regenerate
+            <button onClick={regenerate} disabled={loading} className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors disabled:opacity-50">
+              {loading ? <RefreshCw size={16} className="animate-spin" /> : <RefreshCw size={16} />} Regenerate
             </button>
-            <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors ml-auto">
-              <Download size={14} /> Export PDF
+            <button onClick={() => window.print()} className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors ml-auto">
+              <Download size={16} /> Export PDF
             </button>
-            <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-lg text-sm transition-colors shadow">
-              <FileText size={14} /> Export Pitch Deck
+            <button onClick={() => window.print()} className="flex items-center gap-2 px-5 py-2.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-lg text-sm transition-colors shadow">
+              <FileText size={16} /> Export Pitch Deck
             </button>
           </div>
         </div>
