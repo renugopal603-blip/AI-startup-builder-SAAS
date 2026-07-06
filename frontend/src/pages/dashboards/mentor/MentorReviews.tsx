@@ -151,14 +151,14 @@ const MentorReviews: React.FC = () => {
 
       {reportModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col md:flex-row shadow-2xl border border-gray-100">
+          <div className="bg-white rounded-3xl w-full max-w-5xl max-h-[90vh] overflow-hidden grid md:grid-cols-5 shadow-2xl border border-gray-100 isolate">
             
             {/* Left Side: Image */}
-            <div className="hidden md:block md:w-2/5 relative shrink-0">
-              <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80" alt="Data Analytics" className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#5B21B6] via-[#5B21B6]/50 to-transparent flex items-end p-8">
-                <div className="text-white relative z-10">
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center mb-6">
+            <div className="hidden md:block md:col-span-2 relative bg-[#5B21B6] h-full min-h-[400px]">
+              <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80" alt="Data Analytics" className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-80" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#5B21B6] via-[#5B21B6]/80 to-[#5B21B6]/20 flex items-end p-8">
+                <div className="text-white relative z-10 w-full">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center mb-6 shadow-sm border border-white/10">
                     <Cpu size={24} className="text-white" />
                   </div>
                   <h3 className="text-3xl font-bold mb-3 leading-tight">AI-Powered Insights</h3>
@@ -168,8 +168,8 @@ const MentorReviews: React.FC = () => {
             </div>
 
             {/* Right Side: Content */}
-            <div className="w-full md:w-3/5 overflow-y-auto bg-gray-50/50">
-              <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-100 p-6 flex justify-between items-center z-10">
+            <div className="md:col-span-3 overflow-y-auto bg-gray-50/50 flex flex-col max-h-[90vh]">
+              <div className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-gray-100 p-6 flex justify-between items-center z-20">
                 <h2 className="text-xl font-bold text-gray-900">AI Report: <span className="text-[#5B21B6]">{reportModal.startupName}</span></h2>
                 <button onClick={() => setReportModal(null)} className="p-2 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900 rounded-full transition-colors"><X size={20} /></button>
               </div>
@@ -212,14 +212,14 @@ const MentorReviews: React.FC = () => {
 
       {reviewModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col md:flex-row shadow-2xl border border-gray-100">
+          <div className="bg-white rounded-3xl w-full max-w-5xl max-h-[90vh] overflow-hidden grid md:grid-cols-2 shadow-2xl border border-gray-100 isolate">
             
             {/* Left Side: Image */}
-            <div className="hidden md:block md:w-1/2 relative shrink-0">
-              <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=800&q=80" alt="Business Review" className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent flex items-end p-10">
-                <div className="text-white">
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center mb-6">
+            <div className="hidden md:block relative bg-gray-900 h-full min-h-[400px]">
+              <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=800&q=80" alt="Business Review" className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-60" />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent flex items-end p-10">
+                <div className="text-white relative z-10 w-full">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center mb-6 shadow-sm border border-white/10">
                     <CheckCircle2 size={24} className="text-white" />
                   </div>
                   <h3 className="text-3xl font-bold mb-3 leading-tight">Expert Evaluation</h3>
@@ -229,16 +229,16 @@ const MentorReviews: React.FC = () => {
             </div>
 
             {/* Right Side: Content */}
-            <div className="w-full md:w-1/2 flex flex-col max-h-[90vh]">
-              <div className="border-b border-gray-100 p-6 flex justify-between items-center bg-white">
+            <div className="flex flex-col max-h-[90vh] bg-gray-50/50">
+              <div className="border-b border-gray-100 p-6 flex justify-between items-center bg-white/90 backdrop-blur-md sticky top-0 z-20">
                 <div>
                   <p className="text-xs font-bold text-[#5B21B6] uppercase tracking-wider mb-1">Mentor Review</p>
-                  <h2 className="text-xl font-bold text-gray-900">{reviewModal.startupName}</h2>
+                  <h2 className="text-xl font-bold text-gray-900 line-clamp-1">{reviewModal.startupName}</h2>
                 </div>
                 <button onClick={() => setReviewModal(null)} className="p-2 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900 rounded-full transition-colors"><X size={20} /></button>
               </div>
               
-              <div className="p-8 space-y-6 overflow-y-auto bg-gray-50/50 flex-1">
+              <div className="p-8 space-y-6 overflow-y-auto flex-1">
                 <div>
                   <label className="block text-sm font-bold text-gray-900 mb-2">Constructive Feedback</label>
                   <p className="text-xs text-gray-500 mb-3">What are they missing? What should they focus on next?</p>
@@ -266,7 +266,7 @@ const MentorReviews: React.FC = () => {
                 </div>
               </div>
               
-              <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-white mt-auto">
+              <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-white mt-auto shrink-0 sticky bottom-0 z-20">
                 <button onClick={() => setReviewModal(null)} className="px-6 py-3 bg-gray-100 text-gray-700 hover:bg-gray-200 font-bold rounded-xl text-sm transition-colors">Cancel</button>
                 <button onClick={submitReview} disabled={!reviewText} className="px-6 py-3 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg">Submit Review</button>
               </div>
