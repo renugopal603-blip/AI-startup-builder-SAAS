@@ -22,17 +22,14 @@ const FounderMentors: React.FC = () => {
   }, []);
 
   const handleFeedbackAction = (startup: any, action: 'accept' | 'reject' | 'clarify') => {
-    const updated = {
-      ...startup,
-      mentorReview: {
-        ...startup.mentorReview,
-        status: action === 'accept' ? 'Accepted' : action === 'reject' ? 'Rejected' : 'Clarification Requested'
-      }
-    };
-    localStorage.setItem(`startup_${updated.startupId}`, JSON.stringify(updated));
-    setStartups(prev => prev.map(s => s.startupId === updated.startupId ? updated : s));
-
     if (action === 'accept') {
+      const updated = {
+        ...startup,
+        mentorReview: { ...startup.mentorReview, status: 'Accepted' }
+      };
+      localStorage.setItem(`startup_${updated.startupId}`, JSON.stringify(updated));
+      setStartups(prev => prev.map(s => s.startupId === updated.startupId ? updated : s));
+
       addNotification({
         id: Date.now(),
         title: 'Feedback Accepted',
@@ -43,6 +40,13 @@ const FounderMentors: React.FC = () => {
       });
       window.alert('Feedback accepted! Mentor and Admin have been notified.');
     } else if (action === 'reject') {
+      const updated = {
+        ...startup,
+        mentorReview: { ...startup.mentorReview, status: 'Rejected' }
+      };
+      localStorage.setItem(`startup_${updated.startupId}`, JSON.stringify(updated));
+      setStartups(prev => prev.map(s => s.startupId === updated.startupId ? updated : s));
+
       addNotification({
         id: Date.now(),
         title: 'Feedback Rejected',
@@ -53,8 +57,29 @@ const FounderMentors: React.FC = () => {
       });
       window.alert('Feedback rejected. Mentor has been notified.');
     } else if (action === 'clarify') {
-      window.alert('Navigating to mentor chat...');
-      navigate('/dashboard/founder/inbox');
+      const msg = window.prompt('Enter your clarification question for the mentor:');
+      if (!msg) return;
+
+      const updated = {
+        ...startup,
+        mentorReview: { 
+          ...startup.mentorReview, 
+          status: 'Clarification Requested',
+          clarificationMessage: msg
+        }
+      };
+      localStorage.setItem(`startup_${updated.startupId}`, JSON.stringify(updated));
+      setStartups(prev => prev.map(s => s.startupId === updated.startupId ? updated : s));
+
+      addNotification({
+        id: Date.now(),
+        title: 'Clarification Requested',
+        message: `Founder asked for clarification on ${startup.startupName}.`,
+        type: 'mentor_review',
+        time: 'Just now',
+        unread: true
+      });
+      window.alert('Clarification request sent to mentor session!');
     }
   };
 
