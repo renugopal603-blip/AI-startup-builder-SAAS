@@ -1,24 +1,19 @@
 import React, { useState } from 'react';
-import { Search, MoreVertical, Building2 } from 'lucide-react';
-
-const startups = [
-  { id: 1, name: 'EcoPackage Hub', founder: 'Sarah Jenkins', industry: 'ClimateTech', status: 'Active', plan: 'Growth', joined: 'Jan 15, 2026' },
-  { id: 2, name: 'AI Legal Reviewer', founder: 'James Park', industry: 'LegalTech', status: 'Under Review', plan: 'Starter', joined: 'Jun 28, 2026' },
-  { id: 3, name: 'Fintech Micro-SaaS', founder: 'Tom Chen', industry: 'FinTech', status: 'Active', plan: 'Scale', joined: 'Mar 10, 2026' },
-  { id: 4, name: 'DataSync Pro', founder: 'Mark Voltas', industry: 'SaaS', status: 'Suspended', plan: 'Starter', joined: 'May 05, 2026' },
-];
-
-const statusStyles: Record<string, string> = {
-  Active: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
-  'Under Review': 'bg-amber-50 text-amber-600 border border-amber-100',
-  Suspended: 'bg-red-50 text-red-600 border border-red-100',
-};
+import { Search, MoreVertical, Building2, X, Cpu, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 const AdminStartups: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   const [industryFilter, setIndustryFilter] = useState('All Industries');
   const [startups, setStartups] = React.useState<any[]>([]);
+  const [selectedStartup, setSelectedStartup] = React.useState<any>(null);
+
+  const handleDelete = (startupId: string) => {
+    if (window.confirm('Are you sure you want to delete this startup?')) {
+      localStorage.removeItem(`startup_${startupId}`);
+      setStartups(prev => prev.filter(s => s.startupId !== startupId));
+    }
+  };
 
   React.useEffect(() => {
     const keys = Object.keys(localStorage);
@@ -118,13 +113,13 @@ const AdminStartups: React.FC = () => {
                   <td className="px-6 py-4 text-sm text-gray-500">{new Date(s.createdAt).toLocaleDateString()}</td>
                   <td className="px-6 py-4 text-right flex justify-end gap-2">
                     <button 
-                      onClick={() => window.alert('View Details clicked')}
+                      onClick={() => setSelectedStartup(s)}
                       className="px-3 py-1.5 bg-indigo-50 text-[#5B21B6] hover:bg-indigo-100 rounded-lg text-xs font-bold transition-colors"
                     >
                       View Details
                     </button>
                     <button 
-                      onClick={() => window.alert('Delete clicked')}
+                      onClick={() => handleDelete(s.startupId)}
                       className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold transition-colors"
                     >
                       Delete
@@ -137,6 +132,80 @@ const AdminStartups: React.FC = () => {
         </table>
       </div>
     </div>
+    
+    {/* Modal Overlay */}
+    {selectedStartup && (
+      <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-xl animate-fade-in-up">
+          <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center z-10">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">
+                Startup Details
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">{selectedStartup.startupName}</p>
+            </div>
+            <button 
+              onClick={() => setSelectedStartup(null)}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X size={20} className="text-gray-500" />
+            </button>
+          </div>
+          
+          <div className="p-6 space-y-6">
+            <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
+              <p className="text-sm text-gray-700 italic border-l-2 border-[#5B21B6] pl-3">"{selectedStartup.startupIdea}"</p>
+            </div>
+            
+            {/* Score Section */}
+            <div className="flex items-center gap-6 p-6 bg-gray-50 rounded-xl border border-gray-100">
+              <div className={`w-20 h-20 rounded-full border-4 flex items-center justify-center bg-white shadow-sm shrink-0 ${selectedStartup.aiGenerated?.aiReport?.investmentReadinessScore >= 80 ? 'border-green-500 text-green-600' : 'border-yellow-500 text-yellow-600'}`}>
+                <span className="text-2xl font-bold text-gray-900">{selectedStartup.aiGenerated?.aiReport?.investmentReadinessScore || '85'}</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Investment Readiness Score</h3>
+                <p className="text-sm text-gray-600">AI evaluation of overall viability, market size, and structural robustness.</p>
+              </div>
+            </div>
+
+            {/* Strengths & Weaknesses */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-bold text-gray-900 mb-3 flex items-center text-green-700">
+                  <CheckCircle2 size={18} className="mr-2" /> Key Strengths
+                </h3>
+                <ul className="space-y-3">
+                  {Array.isArray(selectedStartup.aiGenerated?.aiReport?.keyStrengths) 
+                    ? selectedStartup.aiGenerated.aiReport.keyStrengths.map((s: any, i: number) => (
+                      <li key={i} className="flex items-start text-sm text-gray-600 bg-green-50 p-3 rounded-xl border border-green-100">
+                        <span className="font-bold mr-2 text-green-700">{i + 1}.</span> {typeof s === 'string' ? s : JSON.stringify(s)}
+                      </li>
+                    ))
+                    : <li className="text-sm text-gray-500 bg-green-50 p-3 rounded-xl border border-green-100">Strong founder background and clear market need.</li>
+                  }
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 mb-3 flex items-center text-orange-600">
+                  <AlertTriangle size={18} className="mr-2" /> Risk Factors
+                </h3>
+                <ul className="space-y-3">
+                  {Array.isArray(selectedStartup.aiGenerated?.aiReport?.riskFactors)
+                    ? selectedStartup.aiGenerated.aiReport.riskFactors.map((r: any, i: number) => (
+                      <li key={i} className="flex items-start text-sm text-gray-600 bg-orange-50 p-3 rounded-xl border border-orange-100">
+                        <span className="font-bold mr-2 text-orange-700">{i + 1}.</span> {typeof r === 'string' ? r : JSON.stringify(r)}
+                      </li>
+                    ))
+                    : <li className="text-sm text-gray-500 bg-orange-50 p-3 rounded-xl border border-orange-100">High competition in the current market sector.</li>
+                  }
+                </ul>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    )}
   </div>
   );
 };
