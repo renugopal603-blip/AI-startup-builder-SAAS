@@ -11,6 +11,11 @@ const FounderMarketResearch: React.FC<Props> = ({ startupData }) => {
 
   const mr = startupData?.aiGenerated?.marketResearch;
 
+  const getArray = (items: any) => {
+    if (!items) return [];
+    return Array.isArray(items) ? items : [items];
+  };
+
   return (
     <div className="animate-fade-in-up">
       <div className="mb-8">
@@ -57,7 +62,7 @@ const FounderMarketResearch: React.FC<Props> = ({ startupData }) => {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
               <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2"><TrendingUp size={16} className="text-[#5B21B6]" /> Market Trends</h2>
               <ul className="space-y-3">
-                {mr?.marketTrends?.map((ins: string, i: number) => (
+                {getArray(mr?.marketTrends).map((ins: string, i: number) => (
                   <li key={i} className="flex items-start gap-3 text-sm">
                     <span className="w-5 h-5 rounded-full bg-purple-100 text-[#5B21B6] flex items-center justify-center text-[10px] font-black flex-shrink-0 mt-0.5">{i + 1}</span>
                     <span className="text-gray-700">{ins}</span>
@@ -68,7 +73,7 @@ const FounderMarketResearch: React.FC<Props> = ({ startupData }) => {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
               <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2"><Target size={16} className="text-[#5B21B6]" /> Competitor Analysis</h2>
               <ul className="space-y-3">
-                {mr?.competitors?.map((ins: string, i: number) => (
+                {getArray(mr?.competitors).map((ins: string, i: number) => (
                   <li key={i} className="flex items-start gap-3 text-sm">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#5B21B6] flex-shrink-0 mt-1.5" />
                     <span className="text-gray-700">{ins}</span>
@@ -82,7 +87,7 @@ const FounderMarketResearch: React.FC<Props> = ({ startupData }) => {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
               <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2"><DollarSign size={16} className="text-emerald-500" /> Opportunities</h2>
               <ul className="space-y-3">
-                {mr?.opportunities?.map((ins: string, i: number) => (
+                {getArray(mr?.opportunities).map((ins: string, i: number) => (
                   <li key={i} className="flex items-start gap-3 text-sm">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0 mt-1.5" />
                     <span className="text-gray-700">{ins}</span>
@@ -93,7 +98,7 @@ const FounderMarketResearch: React.FC<Props> = ({ startupData }) => {
               <div className="mt-6 pt-6 border-t border-gray-100">
                   <h3 className="text-sm font-bold text-gray-900 mb-2">Pricing Suggestions</h3>
                   <ul className="space-y-2">
-                    {mr?.pricingSuggestions?.map((ins: string, i: number) => (
+                    {getArray(mr?.pricingSuggestions).map((ins: string, i: number) => (
                       <li key={i} className="text-sm text-gray-600 leading-relaxed">• {ins}</li>
                     ))}
                   </ul>
@@ -103,7 +108,7 @@ const FounderMarketResearch: React.FC<Props> = ({ startupData }) => {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
               <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2"><AlertTriangle size={16} className="text-red-500" /> Risks & Threats</h2>
               <ul className="space-y-3">
-                {mr?.risks?.map((ins: string, i: number) => (
+                {getArray(mr?.risks).map((ins: string, i: number) => (
                   <li key={i} className="flex items-start gap-3 text-sm">
                     <div className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0 mt-1.5" />
                     <span className="text-gray-700">{ins}</span>
