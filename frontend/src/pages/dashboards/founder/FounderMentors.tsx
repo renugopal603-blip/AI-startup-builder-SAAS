@@ -147,44 +147,41 @@ const FounderMentors: React.FC = () => {
                   )}
                   
                   {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
+                  <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100 justify-between items-center">
+                    <div className="flex flex-wrap gap-2">
+                      <button 
+                        onClick={() => alert(`Full Review:\n\n${startup.mentorReview.feedback}`)}
+                        className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-xs font-semibold transition-colors"
+                      >
+                        Read Full Review
+                      </button>
+                      {!startup.mentorReview.status && (
+                        <>
+                          <button 
+                            onClick={() => handleFeedbackAction(startup, 'accept')}
+                            className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 rounded-md text-xs font-semibold transition-colors"
+                          >
+                            Accept Suggestion
+                          </button>
+                          <button 
+                            onClick={() => handleFeedbackAction(startup, 'reject')}
+                            className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-md text-xs font-semibold transition-colors"
+                          >
+                            Reject
+                          </button>
+                          <button 
+                            onClick={() => handleFeedbackAction(startup, 'clarify')}
+                            className="px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border border-yellow-200 rounded-md text-xs font-semibold transition-colors"
+                          >
+                            Ask Clarification
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    
                     <button 
-                      onClick={() => alert(`Full Review:\n\n${startup.mentorReview.feedback}`)}
-                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-xs font-semibold transition-colors"
-                    >
-                      Read Full Review
-                    </button>
-                    {!startup.mentorReview.status && (
-                      <>
-                        <button 
-                          onClick={() => handleFeedbackAction(startup, 'accept')}
-                          className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 rounded-md text-xs font-semibold transition-colors"
-                        >
-                          Accept Suggestion
-                        </button>
-                        <button 
-                          onClick={() => handleFeedbackAction(startup, 'reject')}
-                          className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-md text-xs font-semibold transition-colors"
-                        >
-                          Reject
-                        </button>
-                        <button 
-                          onClick={() => handleFeedbackAction(startup, 'clarify')}
-                          className="px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border border-yellow-200 rounded-md text-xs font-semibold transition-colors"
-                        >
-                          Ask Clarification
-                        </button>
-                      </>
-                    )}
-                    <button 
-                      onClick={() => { window.alert('Navigating to mentor chat...'); navigate('/dashboard/founder/inbox'); }}
-                      className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-md text-xs font-semibold transition-colors"
-                    >
-                      Message Mentor
-                    </button>
-                    <button 
-                      onClick={() => alert(`Booking 1:1 call with ${startup.mentorReview.mentorName}... Integration coming soon!`)}
-                      className="px-3 py-1.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white rounded-md text-xs font-semibold transition-colors ml-auto"
+                      onClick={() => window.alert('Opening calendar integration...')}
+                      className="px-3 py-1.5 bg-[#5B21B6] hover:bg-[#4C1D95] text-white rounded-md text-xs font-bold transition-colors ml-auto"
                     >
                       Book 1:1 Call
                     </button>
