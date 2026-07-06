@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Clock, X, Cpu, CheckCircle2, AlertTriangle, MessageSquare, Send } from 'lucide-react';
+import { Search, Clock, X, Cpu, CheckCircle2, AlertTriangle, MessageSquare, Send, ArrowLeft } from 'lucide-react';
 import { addNotification } from '../../../utils/localStorageHelper';
 import SharedStartupDetailsTabs from '../../../components/shared/SharedStartupDetailsTabs';
 
@@ -152,8 +152,14 @@ const MentorReviews: React.FC = () => {
       {modalMode && selectedStartup && (
         <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white w-[95%] lg:w-full max-w-[1200px] max-h-[90vh] flex flex-col rounded-[24px] shadow-xl animate-fade-in-up overflow-hidden">
-            <div className="sticky top-0 bg-white border-b border-gray-100 p-8 flex justify-between items-center shrink-0 z-10">
-              <div>
+            <div className="sticky top-0 bg-white border-b border-gray-100 p-8 flex items-center gap-4 shrink-0 z-10">
+              <button 
+                onClick={() => { setModalMode(null); setSelectedStartup(null); setFeedback(''); }}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors shrink-0"
+              >
+                <ArrowLeft size={20} className="text-gray-600" />
+              </button>
+              <div className="flex-1">
                 <h2 className="text-[22px] font-bold text-gray-900">
                   {modalMode === 'review' ? 'Provide Expert Review' : 'AI Analysis Report'}
                 </h2>
@@ -161,7 +167,7 @@ const MentorReviews: React.FC = () => {
               </div>
               <button 
                 onClick={() => { setModalMode(null); setSelectedStartup(null); setFeedback(''); }}
-                className="p-2.5 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2.5 hover:bg-gray-100 rounded-full transition-colors shrink-0"
               >
                 <X size={20} className="text-gray-500" />
               </button>
@@ -172,7 +178,13 @@ const MentorReviews: React.FC = () => {
                 <div className="space-y-8">
                   <SharedStartupDetailsTabs startupData={selectedStartup} />
                   
-                  <div className="pt-6 mt-6 border-t border-gray-100 flex justify-end gap-3">
+                  <div className="pt-6 mt-6 border-t border-gray-100 flex justify-between gap-3">
+                    <button 
+                      onClick={() => { setModalMode(null); setSelectedStartup(null); setFeedback(''); }}
+                      className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-bold text-sm transition-colors flex items-center"
+                    >
+                      <ArrowLeft size={16} className="mr-2" /> Back
+                    </button>
                     <button 
                       onClick={() => setModalMode('review')}
                       className="px-6 py-2.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white rounded-lg font-bold text-sm transition-colors shadow-sm flex items-center"
