@@ -97,7 +97,7 @@ const FounderBusinessPlan: React.FC<Props> = ({ startupData }) => {
                     placeholder={`Write your ${s.title} here, or generate it with AI...`}
                     className="w-full flex-1 min-h-[400px] px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6] resize-none"
                   />
-                  <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
+                  <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100 hide-in-read-only">
                     <button onClick={() => window.alert('Section saved successfully!')} className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-colors">
                       Save Section
                     </button>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Briefcase, TrendingUp, Search, Filter, X, Cpu, CheckCircle2, AlertTriangle } from 'lucide-react';
+import SharedStartupDetailsTabs from '../../components/shared/SharedStartupDetailsTabs';
 
 const InvestorDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -133,55 +134,8 @@ const InvestorDashboard: React.FC = () => {
             </div>
             
             <div className="p-6 space-y-6">
-              <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
-                <p className="text-sm text-gray-700 italic border-l-2 border-[#10B981] pl-3">"{selectedStartup.startupIdea}"</p>
-              </div>
-              
-              {/* Score Section */}
-              <div className="flex items-center gap-6 p-6 bg-gray-50 rounded-xl border border-gray-100">
-                <div className={`w-20 h-20 rounded-full border-4 flex items-center justify-center bg-white shadow-sm shrink-0 ${selectedStartup.aiGenerated?.aiReport?.investmentReadinessScore >= 80 ? 'border-green-500 text-green-600' : 'border-yellow-500 text-yellow-600'}`}>
-                  <span className="text-2xl font-bold text-gray-900">{selectedStartup.aiGenerated?.aiReport?.investmentReadinessScore || '85'}</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">Investment Readiness Score</h3>
-                  <p className="text-sm text-gray-600">AI evaluation of overall viability, market size, and structural robustness.</p>
-                </div>
-              </div>
-
-              {/* Strengths & Weaknesses */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-3 flex items-center text-green-700">
-                    <CheckCircle2 size={18} className="mr-2" /> Key Strengths
-                  </h3>
-                  <ul className="space-y-3">
-                    {Array.isArray(selectedStartup.aiGenerated?.aiReport?.keyStrengths) 
-                      ? selectedStartup.aiGenerated.aiReport.keyStrengths.map((s: any, i: number) => (
-                        <li key={i} className="flex items-start text-sm text-gray-600 bg-green-50 p-3 rounded-xl border border-green-100">
-                          <span className="font-bold mr-2 text-green-700">{i + 1}.</span> {typeof s === 'string' ? s : JSON.stringify(s)}
-                        </li>
-                      ))
-                      : <li className="text-sm text-gray-500 bg-green-50 p-3 rounded-xl border border-green-100">Strong founder background and clear market need.</li>
-                    }
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-3 flex items-center text-orange-600">
-                    <AlertTriangle size={18} className="mr-2" /> Risk Factors
-                  </h3>
-                  <ul className="space-y-3">
-                    {Array.isArray(selectedStartup.aiGenerated?.aiReport?.riskFactors)
-                      ? selectedStartup.aiGenerated.aiReport.riskFactors.map((r: any, i: number) => (
-                        <li key={i} className="flex items-start text-sm text-gray-600 bg-orange-50 p-3 rounded-xl border border-orange-100">
-                          <span className="font-bold mr-2 text-orange-700">{i + 1}.</span> {typeof r === 'string' ? r : JSON.stringify(r)}
-                        </li>
-                      ))
-                      : <li className="text-sm text-gray-500 bg-orange-50 p-3 rounded-xl border border-orange-100">High competition in the current market sector.</li>
-                    }
-                  </ul>
-                </div>
-              </div>
-              
+              <SharedStartupDetailsTabs startupData={selectedStartup} />
+                
               <div className="pt-6 mt-6 border-t border-gray-100 flex justify-end gap-3">
                 <button 
                   onClick={() => { window.alert('Interest expressed to the founders!'); setSelectedStartup(null); }}

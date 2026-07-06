@@ -92,7 +92,7 @@ const FounderIdeaGenerator: React.FC<Props> = ({ startupData, setStartupData }) 
               <p className="text-sm text-gray-700">{ai.uniqueValueProposition}</p>
           </div>
 
-          <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-50">
+          <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-50 hide-in-read-only">
             <button onClick={() => { window.alert('Saved successfully!'); navigate('/dashboard/founder/startups'); }} className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors">
               <Save size={14} /> Save to My Startups
             </button>
