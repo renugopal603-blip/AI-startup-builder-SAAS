@@ -133,19 +133,16 @@ const FounderIdeaGenerator: React.FC<Props> = ({ startupData, setStartupData }) 
           </div>
 
           <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-50">
-            <button onClick={() => window.alert('Saved to My Startups')} className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors">
+            <button onClick={() => { window.alert('Saved successfully!'); navigate('/dashboard/founder/startups'); }} className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors">
               <Save size={14} /> Save to My Startups
             </button>
             <button onClick={regenerate} disabled={loading} className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors disabled:opacity-50">
               {loading ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />} Regenerate
             </button>
-            <button onClick={() => window.alert('Copied to clipboard')} className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors">
-              <Copy size={14} /> Copy
-            </button>
-            <button onClick={() => window.alert('Exporting PDF...')} className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors ml-auto">
+            <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors ml-auto">
               <Download size={14} /> Export PDF
             </button>
-            <button onClick={() => window.alert('Exporting Pitch Deck...')} className="flex items-center gap-2 px-4 py-2 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-lg text-sm transition-colors shadow">
+            <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-lg text-sm transition-colors shadow">
               <FileText size={14} /> Export Pitch Deck
             </button>
           </div>

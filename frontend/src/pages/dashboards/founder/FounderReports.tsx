@@ -35,7 +35,7 @@ const FounderReports: React.FC<Props> = ({ startupData }) => {
                   </div>
                   <p className="text-gray-500">Comprehensive Business Analysis • Generated Recently</p>
                 </div>
-                <button className="flex items-center px-4 py-2 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 font-medium rounded-lg transition-colors">
+                <button onClick={() => window.print()} className="flex items-center px-4 py-2 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 font-medium rounded-lg transition-colors">
                   <Download size={18} className="mr-2" />
                   Export PDF
                 </button>

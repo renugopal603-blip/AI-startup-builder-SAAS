@@ -51,7 +51,7 @@ const FounderPitchDeck: React.FC<Props> = ({ startupData }) => {
           <h1 className="text-2xl font-bold text-gray-900">Pitch Deck Builder</h1>
           <p className="text-gray-500 mt-1">Create a stunning investor-ready pitch deck with AI-generated content.</p>
         </div>
-        <button className="flex items-center px-4 py-2.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl shadow text-sm transition-colors">
+        <button onClick={() => window.print()} className="flex items-center px-4 py-2.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl shadow text-sm transition-colors">
           <Download size={16} className="mr-2" /> Export PDF
         </button>
       </div>
