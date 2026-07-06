@@ -27,16 +27,21 @@ const MentorSessions: React.FC = () => {
 
   const clarificationRequests = startups.filter(s => s.mentorReview?.status === 'Clarification Requested');
 
-  const handleAcceptClarification = (startup: any) => {
-    const reply = window.prompt('Enter your reply to the founder:');
-    if (!reply) return;
+  const handleClarificationAction = (startup: any, action: 'accept' | 'reply') => {
+    let replyText = '';
+    
+    if (action === 'reply') {
+      const reply = window.prompt('Enter your reply to the founder:');
+      if (!reply) return;
+      replyText = reply;
+    }
 
     const updated = {
       ...startup,
       mentorReview: { 
         ...startup.mentorReview, 
         status: 'Clarification Answered',
-        mentorReply: reply
+        ...(replyText ? { mentorReply: replyText } : {})
       }
     };
     localStorage.setItem(`startup_${updated.startupId}`, JSON.stringify(updated));
@@ -45,12 +50,14 @@ const MentorSessions: React.FC = () => {
     addNotification({
       id: Date.now(),
       title: 'Clarification Answered',
-      message: `Mentor replied to your clarification for ${startup.startupName}.`,
+      message: action === 'reply' 
+        ? `Mentor replied to your clarification for ${startup.startupName}.`
+        : `Mentor accepted your clarification for ${startup.startupName}.`,
       type: 'mentor_review',
       time: 'Just now',
       unread: true
     });
-    window.alert('Reply sent! Founder has been notified.');
+    window.alert(action === 'reply' ? 'Reply sent! Founder has been notified.' : 'Clarification accepted! Founder has been notified.');
   };
 
   return (
@@ -87,10 +94,16 @@ const MentorSessions: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button 
-                    onClick={() => handleAcceptClarification(startup)}
+                    onClick={() => handleClarificationAction(startup, 'accept')}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-green-500 text-white font-bold rounded-lg text-sm hover:bg-green-600 transition-colors shadow-sm"
+                  >
+                    <CheckCircle size={16} /> Accept
+                  </button>
+                  <button 
+                    onClick={() => handleClarificationAction(startup, 'reply')}
                     className="flex items-center gap-1.5 px-4 py-2 bg-yellow-500 text-white font-bold rounded-lg text-sm hover:bg-yellow-600 transition-colors shadow-sm"
                   >
-                    <CheckCircle size={16} /> Accept & Reply
+                    <MessageSquare size={16} /> Reply
                   </button>
                 </div>
               </div>
