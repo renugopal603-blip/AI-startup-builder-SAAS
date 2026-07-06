@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Search, Clock, X, Cpu, CheckCircle2, AlertTriangle, MessageSquare, Send } from 'lucide-react';
 
 const MentorReviews: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('Pending');
   const [search, setSearch] = useState('');
   const [startups, setStartups] = useState<any[]>([]);
   const [selectedStartup, setSelectedStartup] = useState<any>(null);
@@ -44,18 +43,6 @@ const MentorReviews: React.FC = () => {
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div className="flex gap-2 w-full sm:w-auto">
-          <button 
-            onClick={() => setActiveTab('Pending')}
-            className={`px-4 py-2 text-sm font-medium rounded-lg ${activeTab === 'Pending' ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-          >
-            Pending (3)
-          </button>
-          <button 
-            onClick={() => setActiveTab('Completed')}
-            className={`px-4 py-2 text-sm font-medium rounded-lg ${activeTab === 'Completed' ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-          >
-            Completed (12)
-          </button>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
           <div className="relative w-full sm:w-64">
@@ -79,8 +66,6 @@ const MentorReviews: React.FC = () => {
           </div>
         ) : (
           startups.filter(s => {
-            if (activeTab === 'Completed' && s.status !== 'reviewed') return false;
-            if (activeTab === 'Pending' && s.status === 'reviewed') return false;
             if (search && !s.startupName.toLowerCase().includes(search.toLowerCase()) && !s.startupIdea.toLowerCase().includes(search.toLowerCase())) return false;
             return true;
           }).map((startup, idx) => (
