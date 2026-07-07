@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Clock, X, Cpu, CheckCircle2, AlertTriangle, MessageSquare, Send, ArrowLeft } from 'lucide-react';
-import { addNotification } from '../../../utils/localStorageHelper';
 import SharedStartupDetailsTabs from '../../../components/shared/SharedStartupDetailsTabs';
+import { getDocuments, addNotification } from '../../../utils/localStorageHelper';
 
 const MentorReviews: React.FC = () => {
   const [search, setSearch] = useState('');
   const [startups, setStartups] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
   const [selectedStartup, setSelectedStartup] = useState<any>(null);
   const [modalMode, setModalMode] = useState<'review' | 'report' | null>(null);
   const [feedback, setFeedback] = useState('');
@@ -23,6 +24,7 @@ const MentorReviews: React.FC = () => {
     });
     locals.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     setStartups(locals);
+    setDocuments(getDocuments());
   }, []);
 
   const handleReviewSubmit = () => {
@@ -176,6 +178,26 @@ const MentorReviews: React.FC = () => {
             <div className="p-8 overflow-y-auto flex-1">
               {modalMode === 'report' ? (
                 <div className="space-y-8">
+                  {/* Shared Documents Section */}
+                  {documents.filter(d => d.startupId === selectedStartup.startupId && d.sharedWith?.includes('mentor')).length > 0 && (
+                    <div className="bg-purple-50 rounded-2xl p-6 border border-purple-100">
+                      <h3 className="text-lg font-bold text-gray-900 mb-4">Shared Documents</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {documents.filter(d => d.startupId === selectedStartup.startupId && d.sharedWith?.includes('mentor')).map((doc: any) => (
+                          <div key={doc.id} className="bg-white p-4 rounded-xl border border-gray-200 flex justify-between items-center hover:shadow-md transition-shadow">
+                            <div>
+                              <p className="font-bold text-sm text-gray-800 line-clamp-1">{doc.fileName}</p>
+                              <p className="text-xs text-gray-500 mt-0.5">{doc.category} • {doc.fileSize}</p>
+                            </div>
+                            <button onClick={() => window.alert(`Downloading ${doc.fileName}...`)} className="px-3 py-1.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white text-xs font-bold rounded-lg transition-colors">
+                              Download
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <SharedStartupDetailsTabs startupData={selectedStartup} />
                   
                   <div className="pt-6 mt-6 border-t border-gray-100 flex justify-between gap-3">

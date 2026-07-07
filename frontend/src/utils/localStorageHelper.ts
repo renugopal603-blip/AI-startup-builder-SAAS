@@ -262,3 +262,47 @@ export const generateRoadmapAndTasks = (startup: any) => {
 
   return { roadmap, tasks };
 };
+
+export const getDocuments = () => {
+  try {
+    const data = localStorage.getItem('ai_startup_builder_documents');
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    return [];
+  }
+};
+
+export const saveDocument = (document: any) => {
+  const current = getDocuments();
+  const updated = [document, ...current];
+  localStorage.setItem('ai_startup_builder_documents', JSON.stringify(updated));
+  return updated;
+};
+
+export const getDocumentById = (id: string) => {
+  const docs = getDocuments();
+  return docs.find((d: any) => d.id === id) || null;
+};
+
+export const updateDocument = (id: string, updatedData: any) => {
+  let docs = getDocuments();
+  let updatedDoc = null;
+  docs = docs.map((d: any) => {
+    if (d.id === id) {
+      updatedDoc = { ...d, ...updatedData };
+      return updatedDoc;
+    }
+    return d;
+  });
+  if (updatedDoc) {
+    localStorage.setItem('ai_startup_builder_documents', JSON.stringify(docs));
+  }
+  return updatedDoc;
+};
+
+export const deleteDocument = (id: string) => {
+  const docs = getDocuments();
+  const filtered = docs.filter((d: any) => d.id !== id);
+  localStorage.setItem('ai_startup_builder_documents', JSON.stringify(filtered));
+  return filtered;
+};

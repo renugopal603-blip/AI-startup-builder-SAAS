@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { Search, MoreVertical, Building2, X, Cpu, CheckCircle2, AlertTriangle, ArrowLeft } from 'lucide-react';
 import SharedStartupDetailsTabs from '../../../components/shared/SharedStartupDetailsTabs';
+import { getDocuments } from '../../../utils/localStorageHelper';
 
 const AdminStartups: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   const [industryFilter, setIndustryFilter] = useState('All Industries');
   const [startups, setStartups] = React.useState<any[]>([]);
+  const [documents, setDocuments] = React.useState<any[]>([]);
   const [selectedStartup, setSelectedStartup] = React.useState<any>(null);
+  const [viewMode, setViewMode] = useState<'details' | 'documents'>('details');
 
   const handleDelete = (startupId: string) => {
     if (window.confirm('Are you sure you want to delete this startup?')) {
@@ -28,6 +31,7 @@ const AdminStartups: React.FC = () => {
     });
     locals.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     setStartups(locals);
+    setDocuments(getDocuments());
   }, []);
 
   const filtered = startups.filter(s => {
@@ -112,12 +116,27 @@ const AdminStartups: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">{new Date(s.createdAt).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 text-right flex justify-end gap-2">
+                  <td className="px-6 py-4 text-right flex justify-end gap-2 relative">
+                    <div className="relative inline-block text-left group">
+                      <button 
+                        className="px-3 py-1.5 bg-purple-50 text-[#5B21B6] hover:bg-purple-100 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                      >
+                        Documents <span className="text-[10px]">▼</span>
+                      </button>
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 hidden group-hover:block">
+                        <button onClick={() => { setSelectedStartup(s); setViewMode('documents'); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">View Documents</button>
+                        <button onClick={() => window.alert('Downloading PDF...')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Download PDF</button>
+                        <button onClick={() => window.alert('Downloading Word...')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Download Word</button>
+                        <button onClick={() => window.alert('Downloading Pitch Deck...')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Download Pitch Deck</button>
+                        <button onClick={() => window.alert('Downloading ZIP...')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Download ZIP</button>
+                        <button onClick={() => window.alert('Previewing Documents...')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview Documents</button>
+                      </div>
+                    </div>
                     <button 
-                      onClick={() => setSelectedStartup(s)}
-                      className="px-3 py-1.5 bg-indigo-50 text-[#5B21B6] hover:bg-indigo-100 rounded-lg text-xs font-bold transition-colors"
+                      onClick={() => { setSelectedStartup(s); setViewMode('details'); }}
+                      className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-xs font-bold transition-colors"
                     >
-                      View Details
+                      Details
                     </button>
                     <button 
                       onClick={() => handleDelete(s.startupId)}
@@ -147,7 +166,7 @@ const AdminStartups: React.FC = () => {
             </button>
             <div className="flex-1">
               <h2 className="text-[22px] font-bold text-gray-900">
-                Startup Details
+                {viewMode === 'documents' ? 'Startup Documents' : 'Startup Details'}
               </h2>
               <p className="text-[15px] text-gray-500 mt-1">{selectedStartup.startupName}</p>
             </div>
@@ -160,7 +179,51 @@ const AdminStartups: React.FC = () => {
           </div>
           
           <div className="p-8 overflow-y-auto flex-1 space-y-8">
-            <SharedStartupDetailsTabs startupData={selectedStartup} />
+            {viewMode === 'details' ? (
+              <SharedStartupDetailsTabs startupData={selectedStartup} />
+            ) : (
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-6">All Documents & Exports</h3>
+                {documents.filter(d => d.startupId === selectedStartup.startupId).length === 0 ? (
+                  <div className="text-center p-8 bg-gray-50 rounded-xl border border-gray-200 text-gray-500">
+                    No documents found for this startup.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {documents.filter(d => d.startupId === selectedStartup.startupId).map((doc: any) => (
+                      <div key={doc.id} className="bg-white p-5 rounded-xl border border-gray-200 flex justify-between items-center hover:shadow-md transition-shadow">
+                        <div>
+                          <p className="font-bold text-sm text-gray-800">{doc.fileName}</p>
+                          <div className="flex gap-3 mt-1.5">
+                            <span className="text-xs text-gray-500">{doc.category}</span>
+                            <span className="text-xs text-gray-400">•</span>
+                            <span className="text-xs text-gray-500">{doc.fileType}</span>
+                            <span className="text-xs text-gray-400">•</span>
+                            <span className="text-xs text-gray-500">{doc.fileSize}</span>
+                          </div>
+                          <div className="mt-2">
+                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${doc.status === 'shared' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+                              {doc.status}
+                            </span>
+                            {doc.status === 'shared' && doc.sharedWith?.length > 0 && (
+                              <span className="text-xs text-gray-500 ml-2">Shared with: {doc.sharedWith.join(', ')}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => window.alert(`Previewing ${doc.fileName}...`)} className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors">
+                            Preview
+                          </button>
+                          <button onClick={() => window.alert(`Downloading ${doc.fileName}...`)} className="px-3 py-1.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white text-xs font-bold rounded-lg transition-colors">
+                            Download
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             
             <div className="pt-6 mt-6 border-t border-gray-100 flex justify-start">
               <button 

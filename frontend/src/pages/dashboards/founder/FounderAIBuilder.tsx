@@ -7,7 +7,8 @@ import FounderPitchDeck from './FounderPitchDeck';
 import FounderMarketResearch from './FounderMarketResearch';
 import FounderReports from './FounderReports';
 import FounderAIChat from './FounderAIChat';
-import { getStartups, getStartupById, updateStartup, generateStartupOutput, generateRoadmapAndTasks, addNotification } from '../../../utils/localStorageHelper';
+import { getStartups, getStartupById, updateStartup, generateStartupOutput, generateRoadmapAndTasks, addNotification, saveDocument } from '../../../utils/localStorageHelper';
+import { ChevronDown, FileText, Download, File as FileIcon } from 'lucide-react';
 
 const tabs = [
   { id: 'idea',     label: 'AI Idea Generator',    icon: Lightbulb,    component: FounderIdeaGenerator },
@@ -24,6 +25,8 @@ const FounderAIBuilder: React.FC = () => {
   const [allStartups, setAllStartups] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const [error, setError] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
   const startupId = searchParams.get('id') || searchParams.get('startupId');
@@ -76,6 +79,33 @@ const FounderAIBuilder: React.FC = () => {
         
         setStartupData(updatedStartup);
         
+        // Generate automatic documents
+        const generatedDocs = [
+          { category: 'AI Report', type: 'PDF' },
+          { category: 'Business Plan', type: 'WORD' },
+          { category: 'Pitch Deck', type: 'PPT' },
+          { category: 'Market Research', type: 'PDF' },
+          { category: 'Roadmap', type: 'PDF' },
+          { category: 'Full Package', type: 'ZIP' }
+        ];
+
+        generatedDocs.forEach(doc => {
+          saveDocument({
+            id: `doc_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+            startupId: startupId,
+            founderId: startupData.founderId || "founder_demo_user",
+            fileName: `${startupData.startupName.replace(/\s+/g, '_')}_${doc.category.replace(/\s+/g, '_')}.${doc.type.toLowerCase()}`,
+            fileType: doc.type,
+            fileSize: `${(Math.random() * 2 + 0.5).toFixed(1)} MB`,
+            fileData: "base64_or_blob_url",
+            category: doc.category,
+            status: "private",
+            sharedWith: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+        });
+
         // Dispatch notification
         addNotification({
           id: `notification_${Date.now()}`,
@@ -94,6 +124,48 @@ const FounderAIBuilder: React.FC = () => {
         setGenerating(false);
       }
     }, 2000);
+  };
+
+  const handleExport = (format: string, category: string, fileType: string) => {
+    if (!startupId || !startupData) return;
+    setExporting(true);
+    setShowExportMenu(false);
+    
+    // Simulate generation time
+    setTimeout(() => {
+      const fileName = `${startupData.startupName.replace(/\s+/g, '_')}_${category.replace(/\s+/g, '_')}.${fileType.toLowerCase()}`;
+      
+      const newDoc = {
+        id: `doc_${Date.now()}`,
+        startupId: startupId,
+        founderId: startupData.founderId || "founder_demo_user",
+        fileName: fileName,
+        fileType: fileType,
+        fileSize: `${(Math.random() * 2 + 0.5).toFixed(1)} MB`,
+        fileData: "base64_or_blob_url",
+        category: category,
+        status: "private",
+        sharedWith: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      saveDocument(newDoc);
+      
+      addNotification({
+        id: `notification_${Date.now()}`,
+        userId: startupData.founderId || "founder_demo_user",
+        title: "Document generated successfully.",
+        message: `Your ${category} has been exported as ${fileType}.`,
+        type: "document_export",
+        isRead: false,
+        actionUrl: `/dashboard/founder/documents`,
+        createdAt: new Date().toISOString()
+      });
+      
+      setExporting(false);
+      window.alert("Document generated successfully.");
+    }, 1500);
   };
 
   const ActiveComponent = tabs.find(t => t.id === active)!.component;
@@ -220,9 +292,55 @@ const FounderAIBuilder: React.FC = () => {
 
   return (
     <div className="animate-fade-in-up">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">AI Builder</h1>
-        <p className="text-gray-500 mt-1">All your AI-powered startup tools in one place.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">AI Builder</h1>
+          <p className="text-gray-500 mt-1">All your AI-powered startup tools in one place.</p>
+        </div>
+        
+        {startupData && startupData.status === 'generated' && (
+          <div className="relative">
+            <button 
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              disabled={exporting}
+              className="flex items-center px-4 py-2.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl shadow text-sm transition-colors disabled:opacity-50"
+            >
+              {exporting ? <RefreshCw size={16} className="animate-spin mr-2" /> : <Download size={16} className="mr-2" />}
+              {exporting ? 'Exporting...' : 'Export'}
+              <ChevronDown size={16} className="ml-2" />
+            </button>
+            
+            {showExportMenu && (
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-fade-in-up">
+                <button 
+                  onClick={() => handleExport('PDF', 'AI Report', 'PDF')}
+                  className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
+                >
+                  <FileText size={16} className="mr-3 text-red-500" /> Export as PDF
+                </button>
+                <button 
+                  onClick={() => handleExport('Word', 'Business Plan', 'WORD')}
+                  className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
+                >
+                  <FileIcon size={16} className="mr-3 text-blue-500" /> Export as Word
+                </button>
+                <button 
+                  onClick={() => handleExport('Pitch Deck', 'Pitch Deck', 'PPT')}
+                  className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
+                >
+                  <BarChart3 size={16} className="mr-3 text-orange-500" /> Export Pitch Deck
+                </button>
+                <div className="border-t border-gray-100 my-1"></div>
+                <button 
+                  onClick={() => handleExport('ZIP', 'Startup Bundle', 'ZIP')}
+                  className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
+                >
+                  <Download size={16} className="mr-3 text-purple-500" /> Download All as ZIP
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
       {error && <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-xl font-bold text-sm">{error}</div>}

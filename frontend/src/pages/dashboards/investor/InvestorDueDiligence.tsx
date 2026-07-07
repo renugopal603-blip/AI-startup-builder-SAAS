@@ -1,22 +1,73 @@
-import React, { useState } from 'react';
-import { Search, FolderOpen, FileText, Download, ShieldCheck, Activity, Lock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, FolderOpen, FileText, Download, ShieldCheck, Activity, Lock, Image, File } from 'lucide-react';
+import { getDocuments, getStartups } from '../../../utils/localStorageHelper';
 
-const dataroomData = [
-  { company: 'EcoPackage Hub', filesCount: 12, updated: 'Today', status: 'Active Review', access: 'Access granted until Dec 31, 2026', docs: [
-    { name: 'Financial Model 2026.pdf', date: 'Uploaded 2 days ago', size: '1.2 MB', bg: 'bg-red-100 text-red-600' },
-    { name: 'Cap Table (Current).xlsx', date: 'Uploaded 1 week ago', size: '0.5 MB', bg: 'bg-blue-100 text-blue-600' },
-    { name: 'Customer LOIs.pdf', date: 'Uploaded yesterday', size: '3.4 MB', bg: 'bg-purple-100 text-purple-600' },
-  ]},
-  { company: 'AI Legal Reviewer', filesCount: 5, updated: '2 days ago', status: 'Pending Access', access: 'Access pending founder approval', docs: [] },
-  { company: 'DataSync Pro', filesCount: 24, updated: '1 week ago', status: 'Completed', access: 'Access granted indefinitely', docs: [
-    { name: 'Technical Architecture.pdf', date: 'Uploaded 2 weeks ago', size: '2.1 MB', bg: 'bg-blue-100 text-blue-600' },
-    { name: 'Due Diligence Report.pdf', date: 'Uploaded 1 week ago', size: '5.4 MB', bg: 'bg-emerald-100 text-emerald-600' }
-  ]},
-];
+const getFileIcon = (type: string) => {
+  switch (type.toLowerCase()) {
+    case 'pdf': return <FileText size={24} />;
+    case 'zip': return <Image size={24} />;
+    case 'ppt': case 'pptx': return <File size={24} />;
+    case 'xls': case 'xlsx': return <File size={24} />;
+    case 'word': case 'doc': case 'docx': return <File size={24} />;
+    default: return <File size={24} />;
+  }
+};
+
+const getFileColor = (type: string) => {
+  switch (type.toLowerCase()) {
+    case 'pdf': return 'bg-red-100 text-red-600';
+    case 'zip': return 'bg-blue-100 text-blue-600';
+    case 'ppt': case 'pptx': return 'bg-orange-100 text-orange-600';
+    case 'xls': case 'xlsx': return 'bg-green-100 text-green-600';
+    case 'word': case 'doc': case 'docx': return 'bg-blue-100 text-blue-600';
+    default: return 'bg-gray-100 text-gray-600';
+  }
+};
 
 const InvestorDueDiligence: React.FC = () => {
   const [search, setSearch] = useState('');
-  const [activeRoom, setActiveRoom] = useState(dataroomData[0]);
+  const [dataroomData, setDataroomData] = useState<any[]>([]);
+  const [activeRoom, setActiveRoom] = useState<any>(null);
+
+  useEffect(() => {
+    const allDocs = getDocuments();
+    const startups = getStartups();
+    
+    // Find documents shared with investor
+    const investorDocs = allDocs.filter((d: any) => d.sharedWith?.includes('investor'));
+    
+    // Group by startup
+    const roomsMap: any = {};
+    investorDocs.forEach((doc: any) => {
+      if (!roomsMap[doc.startupId]) {
+        const startup = startups.find((s: any) => s.startupId === doc.startupId);
+        roomsMap[doc.startupId] = {
+          id: doc.startupId,
+          company: startup ? startup.startupName : 'Unknown Startup',
+          filesCount: 0,
+          updated: 'Recently',
+          status: 'Active Review',
+          access: 'Access granted by founder',
+          docs: []
+        };
+      }
+      roomsMap[doc.startupId].filesCount++;
+      roomsMap[doc.startupId].docs.push({
+        name: doc.fileName,
+        date: new Date(doc.createdAt).toLocaleDateString(),
+        size: doc.fileSize,
+        type: doc.fileType,
+        bg: getFileColor(doc.fileType),
+        icon: getFileIcon(doc.fileType)
+      });
+    });
+    
+    const rooms = Object.values(roomsMap);
+    setDataroomData(rooms);
+    if (rooms.length > 0) {
+      setActiveRoom(rooms[0]);
+    }
+  }, []);
 
   const filteredRooms = dataroomData.filter(d => d.company.toLowerCase().includes(search.toLowerCase()));
 
@@ -69,18 +120,23 @@ const InvestorDueDiligence: React.FC = () => {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col h-full">
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">{activeRoom.company}</h2>
-              <p className="text-sm text-gray-500 mt-1">Data Room • {activeRoom.access}</p>
+              <h2 className="text-xl font-bold text-gray-900">{activeRoom?.company || 'No Data Room Selected'}</h2>
+              {activeRoom && <p className="text-sm text-gray-500 mt-1">Data Room • {activeRoom.access}</p>}
             </div>
-            {activeRoom.status === 'Pending Access' ? (
+            {activeRoom?.status === 'Pending Access' ? (
               <Lock size={32} className="text-amber-500" />
-            ) : (
+            ) : activeRoom ? (
               <ShieldCheck size={32} className="text-emerald-500" />
-            )}
+            ) : null}
           </div>
 
           <div className="flex-grow">
-            {activeRoom.status === 'Pending Access' ? (
+            {!activeRoom ? (
+               <div className="flex flex-col items-center justify-center h-48 text-center bg-gray-50 rounded-xl border border-gray-100 border-dashed">
+                 <Lock size={40} className="text-gray-300 mb-3" />
+                 <p className="text-gray-500 font-medium text-sm">Select a data room to view documents</p>
+               </div>
+            ) : activeRoom.status === 'Pending Access' ? (
               <div className="flex flex-col items-center justify-center h-48 text-center bg-gray-50 rounded-xl border border-gray-100 border-dashed">
                 <Lock size={40} className="text-gray-300 mb-3" />
                 <p className="text-gray-500 font-medium text-sm">Access pending founder approval</p>
@@ -93,13 +149,13 @@ const InvestorDueDiligence: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                {activeRoom.docs.map(doc => (
+                {activeRoom.docs.map((doc: any) => (
                   <div 
                     key={doc.name}
                     onClick={() => window.alert(`Downloading ${doc.name}...`)}
                     className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer"
                   >
-                    <div className={`p-3 rounded-lg ${doc.bg}`}><FileText size={24} /></div>
+                    <div className={`p-3 rounded-lg ${doc.bg}`}>{doc.icon}</div>
                     <div>
                       <p className="font-bold text-gray-800 text-sm truncate w-36 sm:w-auto">{doc.name}</p>
                       <p className="text-xs text-gray-500 mt-1">{doc.date} • {doc.size}</p>
@@ -110,16 +166,31 @@ const InvestorDueDiligence: React.FC = () => {
             )}
           </div>
 
-          <div className="flex justify-end gap-3 border-t border-gray-100 pt-6 mt-6">
+          <div className="flex justify-end gap-3 border-t border-gray-100 pt-6 mt-6 flex-wrap">
             <button 
-              onClick={() => window.alert(`Downloading all files for ${activeRoom.company}...`)}
-              disabled={activeRoom.status === 'Pending Access'}
+              onClick={() => window.alert(`Downloading PDF report for ${activeRoom?.company}...`)}
+              disabled={!activeRoom || activeRoom.status === 'Pending Access'}
+              className="flex items-center px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FileText size={16} className="mr-2" /> Download PDF
+            </button>
+            <button 
+              onClick={() => window.alert(`Downloading Word report for ${activeRoom?.company}...`)}
+              disabled={!activeRoom || activeRoom.status === 'Pending Access'}
+              className="flex items-center px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <File size={16} className="mr-2" /> Download Word
+            </button>
+            <button 
+              onClick={() => window.alert(`Downloading all files for ${activeRoom?.company}...`)}
+              disabled={!activeRoom || activeRoom.status === 'Pending Access'}
               className="flex items-center px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Download size={16} className="mr-2" /> Download All (.zip)
             </button>
             <button 
-              onClick={() => window.alert(`Requesting more information for ${activeRoom.company}...`)}
+              onClick={() => window.alert(`Requesting more information for ${activeRoom?.company}...`)}
+              disabled={!activeRoom}
               className="flex items-center px-4 py-2.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl text-sm transition-colors shadow"
             >
               <Activity size={16} className="mr-2" /> Request More Info
