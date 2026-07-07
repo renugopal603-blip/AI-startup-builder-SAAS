@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, FileText, CheckCircle2, AlertTriangle, Cpu } from 'lucide-react';
+import { Download, FileText, CheckCircle2, AlertTriangle, Cpu, MessageSquare } from 'lucide-react';
 
 interface Props {
   startupData: any;

@@ -132,8 +132,8 @@ const FounderIdeaGenerator: React.FC<Props> = ({ startupData, setStartupData }) 
             </label>
             <input 
               type="text"
-              value={startupName}
-              onChange={(e) => setStartupName(e.target.value)}
+              value={startupData?.startupName || ''}
+              onChange={(e) => setStartupData({...startupData, startupName: e.target.value})}
               placeholder="e.g. Hotel AI Platform"
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6] bg-gray-50 focus:bg-white transition-colors"
             />
@@ -144,8 +144,8 @@ const FounderIdeaGenerator: React.FC<Props> = ({ startupData, setStartupData }) 
               <Lightbulb size={16} className="text-[#5B21B6]" /> Startup Idea / Short Description
             </label>
             <textarea
-              value={startupIdea}
-              onChange={e => setStartupIdea(e.target.value)}
+              value={startupData?.startupIdea || ''}
+              onChange={e => setStartupData({...startupData, startupIdea: e.target.value})}
               placeholder="e.g. I want to build a luxury hotel management and booking platform using AI."
               className="w-full h-32 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6] bg-gray-50 focus:bg-white transition-colors resize-none"
             />
@@ -154,8 +154,8 @@ const FounderIdeaGenerator: React.FC<Props> = ({ startupData, setStartupData }) 
 
         <div className="pt-2">
           <button
-            onClick={generate}
-            disabled={loading || (!startupName || !startupIdea)}
+            onClick={regenerate}
+            disabled={loading || (!startupData?.startupName || !startupData?.startupIdea)}
             className="flex items-center px-6 py-3 bg-gradient-to-r from-[#5B21B6] to-[#7C3AED] hover:from-[#4C1D95] hover:to-[#6D28D9] text-white font-bold rounded-xl shadow-md transition-all disabled:opacity-50 active:scale-95 w-full justify-center"
           >
             {loading ? <RefreshCw size={18} className="mr-2 animate-spin" /> : <Sparkles size={18} className="mr-2" />}

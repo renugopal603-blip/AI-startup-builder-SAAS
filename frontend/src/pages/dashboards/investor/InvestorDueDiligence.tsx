@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Search, FolderOpen, FileText, Download, ShieldCheck, Activity, Lock, Image, File } from 'lucide-react';
 import { getDocuments, getStartups } from '../../../utils/localStorageHelper';
+import jsPDF from 'jspdf';
+import { Document as DocxDocument, Packer, Paragraph, TextRun } from 'docx';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 const getFileIcon = (type: string) => {
   switch (type.toLowerCase()) {
@@ -33,8 +37,8 @@ const InvestorDueDiligence: React.FC = () => {
     const allDocs = getDocuments();
     const startups = getStartups();
     
-    // Find documents shared with investor
-    const investorDocs = allDocs.filter((d: any) => d.sharedWith?.includes('investor'));
+    // Find all documents (since sharing was removed)
+    const investorDocs = allDocs;
     
     // Group by startup
     const roomsMap: any = {};
@@ -69,7 +73,61 @@ const InvestorDueDiligence: React.FC = () => {
     }
   }, []);
 
-  const filteredRooms = dataroomData.filter(d => d.company.toLowerCase().includes(search.toLowerCase()));
+  const filteredRooms = dataroomData.filter(d => 
+    d.company.toLowerCase().includes(search.toLowerCase()) || 
+    d.docs.some((doc: any) => doc.name.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  const handleDownload = async (name: string, format?: string) => {
+    const finalFormat = format ? format.toLowerCase() : name.split('.').pop()?.toLowerCase() || 'txt';
+    const baseName = name.replace(/\.[^/.]+$/, "");
+    const finalName = `${baseName}.${finalFormat}`;
+    
+    try {
+      if (finalFormat === 'pdf') {
+        const doc = new jsPDF();
+        doc.setFontSize(22);
+        doc.text(`Startup Document: ${baseName.replace(/_/g, ' ')}`, 20, 20);
+        doc.setFontSize(12);
+        doc.text("This is an automatically generated document by AI Startup Builder.", 20, 30);
+        doc.text("Contains full strategic planning, market analysis, and AI roadmap.", 20, 40);
+        doc.save(finalName);
+      } else if (finalFormat === 'word' || finalFormat === 'docx' || finalFormat === 'doc') {
+        const docx = new DocxDocument({
+          sections: [{
+            properties: {},
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({ text: `Startup Document: ${baseName.replace(/_/g, ' ')}`, bold: true, size: 28 }),
+                ],
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({ text: "This is an automatically generated document by AI Startup Builder.", size: 24 }),
+                ],
+              }),
+            ],
+          }],
+        });
+        const blob = await Packer.toBlob(docx);
+        saveAs(blob, `${baseName}.docx`);
+      } else if (finalFormat === 'zip') {
+        const zip = new JSZip();
+        zip.file("readme.txt", "This ZIP contains the startup package documents.");
+        zip.file(`${baseName}.txt`, `Startup Document: ${baseName.replace(/_/g, ' ')}\nThis is an automatically generated document.`);
+        const content = await zip.generateAsync({ type: "blob" });
+        saveAs(content, finalName);
+      } else {
+        const content = `Mock content for ${finalName}`;
+        const blob = new Blob([content], { type: 'text/plain' });
+        saveAs(blob, finalName);
+      }
+    } catch (error) {
+      console.error("Error generating document:", error);
+      window.alert(`Failed to generate ${finalFormat.toUpperCase()} file.`);
+    }
+  };
 
   return (
     <div className="animate-fade-in-up pb-10">
@@ -97,22 +155,24 @@ const InvestorDueDiligence: React.FC = () => {
             <div 
               key={d.company} 
               onClick={() => setActiveRoom(d)}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer ${activeRoom.company === d.company ? 'bg-[#5B21B6] text-white shadow-lg shadow-purple-900/20 border-transparent' : 'bg-white border-gray-100 hover:border-gray-300 text-gray-900'}`}
+              className={`p-4 rounded-2xl border transition-all cursor-pointer ${activeRoom?.company === d.company ? 'bg-[#5B21B6] text-white shadow-lg shadow-purple-900/20 border-transparent' : 'bg-white border-gray-100 hover:border-gray-300 text-gray-900'}`}
             >
               <h3 className="font-bold text-base mb-1">{d.company}</h3>
-              <div className={`flex items-center justify-between text-xs font-medium ${activeRoom.company === d.company ? 'text-white/70' : 'text-gray-500'}`}>
+              <div className={`flex items-center justify-between text-xs font-medium ${activeRoom?.company === d.company ? 'text-white/70' : 'text-gray-500'}`}>
                 <span className="flex items-center gap-1.5"><FolderOpen size={14} /> {d.filesCount} Files</span>
                 <span>{d.updated}</span>
               </div>
               <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between">
-                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${activeRoom.company === d.company ? 'bg-white/20 text-white' : d.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${activeRoom?.company === d.company ? 'bg-white/20 text-white' : d.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
                   {d.status}
                 </span>
               </div>
             </div>
           ))}
           {filteredRooms.length === 0 && (
-            <p className="text-sm text-gray-500 py-4">No data rooms match your search.</p>
+            <p className="text-sm text-gray-500 py-4">
+              {search ? 'No data rooms match your search.' : 'No data rooms available.'}
+            </p>
           )}
         </div>
 
@@ -152,7 +212,7 @@ const InvestorDueDiligence: React.FC = () => {
                 {activeRoom.docs.map((doc: any) => (
                   <div 
                     key={doc.name}
-                    onClick={() => window.alert(`Downloading ${doc.name}...`)}
+                    onClick={() => handleDownload(doc.name)}
                     className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer"
                   >
                     <div className={`p-3 rounded-lg ${doc.bg}`}>{doc.icon}</div>
@@ -168,32 +228,25 @@ const InvestorDueDiligence: React.FC = () => {
 
           <div className="flex justify-end gap-3 border-t border-gray-100 pt-6 mt-6 flex-wrap">
             <button 
-              onClick={() => window.alert(`Downloading PDF report for ${activeRoom?.company}...`)}
+              onClick={() => handleDownload(`${activeRoom?.company.replace(/\s+/g, '_')}_Report`, 'PDF')}
               disabled={!activeRoom || activeRoom.status === 'Pending Access'}
               className="flex items-center px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <FileText size={16} className="mr-2" /> Download PDF
             </button>
             <button 
-              onClick={() => window.alert(`Downloading Word report for ${activeRoom?.company}...`)}
+              onClick={() => handleDownload(`${activeRoom?.company.replace(/\s+/g, '_')}_Report`, 'WORD')}
               disabled={!activeRoom || activeRoom.status === 'Pending Access'}
               className="flex items-center px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <File size={16} className="mr-2" /> Download Word
             </button>
             <button 
-              onClick={() => window.alert(`Downloading all files for ${activeRoom?.company}...`)}
+              onClick={() => handleDownload(`${activeRoom?.company.replace(/\s+/g, '_')}_Full_Package`, 'ZIP')}
               disabled={!activeRoom || activeRoom.status === 'Pending Access'}
               className="flex items-center px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Download size={16} className="mr-2" /> Download All (.zip)
-            </button>
-            <button 
-              onClick={() => window.alert(`Requesting more information for ${activeRoom?.company}...`)}
-              disabled={!activeRoom}
-              className="flex items-center px-4 py-2.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl text-sm transition-colors shadow"
-            >
-              <Activity size={16} className="mr-2" /> Request More Info
             </button>
           </div>
         </div>

@@ -1,20 +1,16 @@
 import React, { useState } from 'react';
-import { KeyRound, Cpu, Database, Settings } from 'lucide-react';
+import { KeyRound, DollarSign } from 'lucide-react';
 import AdminRoles from './AdminRoles';
-import AdminAISettings from './AdminAISettings';
-import AdminLogs from './AdminLogs';
-import AdminSettings from './AdminSettings';
+import AdminMentorPaymentSettings from './AdminMentorPaymentSettings';
 
 const tabs = [
   { id: 'roles', label: 'Roles & Permissions', icon: KeyRound, component: AdminRoles },
-  { id: 'ai', label: 'AI Model Settings', icon: Cpu, component: AdminAISettings },
-  { id: 'logs', label: 'System Logs', icon: Database, component: AdminLogs },
-  { id: 'general', label: 'General Settings', icon: Settings, component: AdminSettings },
+  { id: 'payments', label: 'Mentor Payment Settings', icon: DollarSign, component: AdminMentorPaymentSettings },
 ];
 
 const AdminPlatformSettings: React.FC = () => {
   const [active, setActive] = useState('roles');
-  const ActiveComponent = tabs.find(t => t.id === active)!.component;
+  const ActiveComponent = tabs.find(t => t.id === active)?.component || tabs[0].component;
 
   return (
     <div className="animate-fade-in-up">

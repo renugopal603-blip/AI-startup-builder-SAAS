@@ -306,3 +306,35 @@ export const deleteDocument = (id: string) => {
   localStorage.setItem('ai_startup_builder_documents', JSON.stringify(filtered));
   return filtered;
 };
+
+// Mentor Payment Settings
+const defaultMentorPaymentSettings = {
+  externalPaymentType: 'Per Task',
+  internalPaymentType: 'Monthly Salary',
+  basicReviewAmount: 50,
+  detailedReviewAmount: 150,
+  call30MinAmount: 100,
+  call45MinAmount: 150,
+  call60MinAmount: 200,
+  platformCommission: 20,
+  mentorShare: 80,
+  weeklySalaryAmount: 1000,
+  monthlySalaryAmount: 4000,
+  minWeeklyTarget: 10,
+  minMonthlyTarget: 40,
+  payoutCycle: 'Monthly'
+};
+
+export const getMentorPaymentSettings = () => {
+  try {
+    const data = localStorage.getItem('ai_startup_builder_mentor_payment_settings');
+    return data ? { ...defaultMentorPaymentSettings, ...JSON.parse(data) } : defaultMentorPaymentSettings;
+  } catch (e) {
+    return defaultMentorPaymentSettings;
+  }
+};
+
+export const saveMentorPaymentSettings = (settings: any) => {
+  localStorage.setItem('ai_startup_builder_mentor_payment_settings', JSON.stringify(settings));
+  return settings;
+};

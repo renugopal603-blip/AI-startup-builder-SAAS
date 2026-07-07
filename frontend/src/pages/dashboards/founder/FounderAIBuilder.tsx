@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Lightbulb, FileText, BarChart3, Search, ClipboardList, MessageSquare, RefreshCw, Play } from 'lucide-react';
+import { Lightbulb, FileText, BarChart3, Search, ClipboardList, MessageSquare, RefreshCw, Play, ChevronDown, Download, File as FileIcon } from 'lucide-react';
 import FounderIdeaGenerator from './FounderIdeaGenerator';
 import FounderBusinessPlan from './FounderBusinessPlan';
 import FounderPitchDeck from './FounderPitchDeck';
 import FounderMarketResearch from './FounderMarketResearch';
 import FounderReports from './FounderReports';
 import FounderAIChat from './FounderAIChat';
-import { getStartups, getStartupById, updateStartup, generateStartupOutput, generateRoadmapAndTasks, addNotification, saveDocument } from '../../../utils/localStorageHelper';
-import { ChevronDown, FileText, Download, File as FileIcon } from 'lucide-react';
+import { getStartups, getStartupById, updateStartup, generateStartupOutput, generateRoadmapAndTasks, addNotification, saveDocument, getDocuments, deleteDocument } from '../../../utils/localStorageHelper';
 
 const tabs = [
   { id: 'idea',     label: 'AI Idea Generator',    icon: Lightbulb,    component: FounderIdeaGenerator },
@@ -79,14 +78,14 @@ const FounderAIBuilder: React.FC = () => {
         
         setStartupData(updatedStartup);
         
-        // Generate automatic documents
+        // Generate automatic documents all in PDF initially
         const generatedDocs = [
           { category: 'AI Report', type: 'PDF' },
-          { category: 'Business Plan', type: 'WORD' },
-          { category: 'Pitch Deck', type: 'PPT' },
+          { category: 'Business Plan', type: 'PDF' },
+          { category: 'Pitch Deck', type: 'PDF' },
           { category: 'Market Research', type: 'PDF' },
           { category: 'Roadmap', type: 'PDF' },
-          { category: 'Full Package', type: 'ZIP' }
+          { category: 'Full Package', type: 'PDF' }
         ];
 
         generatedDocs.forEach(doc => {
@@ -126,37 +125,47 @@ const FounderAIBuilder: React.FC = () => {
     }, 2000);
   };
 
-  const handleExport = (format: string, category: string, fileType: string) => {
+  const handleExport = (fileType: string) => {
     if (!startupId || !startupData) return;
     setExporting(true);
     setShowExportMenu(false);
     
     // Simulate generation time
     setTimeout(() => {
-      const fileName = `${startupData.startupName.replace(/\s+/g, '_')}_${category.replace(/\s+/g, '_')}.${fileType.toLowerCase()}`;
+      // Delete existing documents for this startup to replace them with new format
+      const existingDocs = getDocuments().filter((d: any) => d.startupId === startupId);
+      existingDocs.forEach((doc: any) => {
+        deleteDocument(doc.id);
+      });
+
+      const categories = ['AI Report', 'Business Plan', 'Pitch Deck', 'Market Research', 'Roadmap', 'Full Package'];
       
-      const newDoc = {
-        id: `doc_${Date.now()}`,
-        startupId: startupId,
-        founderId: startupData.founderId || "founder_demo_user",
-        fileName: fileName,
-        fileType: fileType,
-        fileSize: `${(Math.random() * 2 + 0.5).toFixed(1)} MB`,
-        fileData: "base64_or_blob_url",
-        category: category,
-        status: "private",
-        sharedWith: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      saveDocument(newDoc);
+      categories.forEach(category => {
+        const fileName = `${startupData.startupName.replace(/\s+/g, '_')}_${category.replace(/\s+/g, '_')}.${fileType.toLowerCase()}`;
+        
+        const newDoc = {
+          id: `doc_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+          startupId: startupId,
+          founderId: startupData.founderId || "founder_demo_user",
+          fileName: fileName,
+          fileType: fileType,
+          fileSize: `${(Math.random() * 2 + 0.5).toFixed(1)} MB`,
+          fileData: "base64_or_blob_url",
+          category: category,
+          status: "private",
+          sharedWith: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        saveDocument(newDoc);
+      });
       
       addNotification({
         id: `notification_${Date.now()}`,
         userId: startupData.founderId || "founder_demo_user",
-        title: "Document generated successfully.",
-        message: `Your ${category} has been exported as ${fileType}.`,
+        title: "Documents exported successfully.",
+        message: `All startup documents have been exported as ${fileType}.`,
         type: "document_export",
         isRead: false,
         actionUrl: `/dashboard/founder/documents`,
@@ -164,8 +173,8 @@ const FounderAIBuilder: React.FC = () => {
       });
       
       setExporting(false);
-      window.alert("Document generated successfully.");
-    }, 1500);
+      window.alert(`All documents successfully exported as ${fileType}!`);
+    }, 2000);
   };
 
   const ActiveComponent = tabs.find(t => t.id === active)!.component;
@@ -313,26 +322,20 @@ const FounderAIBuilder: React.FC = () => {
             {showExportMenu && (
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-fade-in-up">
                 <button 
-                  onClick={() => handleExport('PDF', 'AI Report', 'PDF')}
+                  onClick={() => handleExport('PDF')}
                   className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
                 >
                   <FileText size={16} className="mr-3 text-red-500" /> Export as PDF
                 </button>
                 <button 
-                  onClick={() => handleExport('Word', 'Business Plan', 'WORD')}
+                  onClick={() => handleExport('WORD')}
                   className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
                 >
                   <FileIcon size={16} className="mr-3 text-blue-500" /> Export as Word
                 </button>
-                <button 
-                  onClick={() => handleExport('Pitch Deck', 'Pitch Deck', 'PPT')}
-                  className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
-                >
-                  <BarChart3 size={16} className="mr-3 text-orange-500" /> Export Pitch Deck
-                </button>
                 <div className="border-t border-gray-100 my-1"></div>
                 <button 
-                  onClick={() => handleExport('ZIP', 'Startup Bundle', 'ZIP')}
+                  onClick={() => handleExport('ZIP')}
                   className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
                 >
                   <Download size={16} className="mr-3 text-purple-500" /> Download All as ZIP

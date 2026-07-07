@@ -58,29 +58,25 @@ const Hero: React.FC = () => {
           
           {/* Right Column - Image Mockup */}
           <div className="relative z-10 animate-fade-in-scale delay-200 lg:ml-8 mt-10 lg:mt-0">
-            <div className="relative rounded-2xl bg-white border border-[#E5E7EB] shadow-2xl p-2 animate-float">
-              {/* Window Controls */}
-              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-[#F3F4F6] bg-gray-50/80 rounded-t-xl mb-2">
-                <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                <div className="w-3 h-3 rounded-full bg-green-400"></div>
+            <div className="relative rounded-3xl bg-gradient-to-tr from-[#5B21B6]/10 to-[#FBBF24]/10 shadow-2xl p-1 animate-float">
+              <div className="rounded-2xl overflow-hidden relative bg-white">
+                <img 
+                  src="/assets/ai_startup_illustration.png" 
+                  alt="AI Startup Builder Idea Transformation" 
+                  className="w-full h-auto object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://placehold.co/800x600/111827/ffffff?text=AI+Startup+Transformation";
+                  }}
+                />
               </div>
-              
-              <img 
-                src="/assets/hero-dashboard.png" 
-                alt="AI Startup Builder Dashboard" 
-                className="w-full rounded-b-xl"
-                onError={(e) => {
-                  // Fallback if image doesn't exist yet
-                  e.currentTarget.src = "https://placehold.co/800x600/111827/ffffff?text=Dashboard+Preview";
-                }}
-              />
               
               {/* Floating element 1 */}
               <div className="absolute -left-8 top-1/4 glass px-4 py-3 rounded-xl shadow-lg animate-float-delayed flex items-center gap-3">
-                <div className="bg-[#10B981]/20 p-2 rounded-full text-[#10B981]">
-                  <CheckCircle2 size={24} />
-                </div>
+                <img 
+                  src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=100&h=100&fit=crop" 
+                  alt="AI Score" 
+                  className="w-10 h-10 rounded-full border-2 border-[#10B981] object-cover"
+                />
                 <div>
                   <div className="text-xs text-[#6B7280] font-medium">Startup Score</div>
                   <div className="text-lg font-bold text-[#1F2937]">92/100</div>
@@ -89,9 +85,11 @@ const Hero: React.FC = () => {
               
               {/* Floating element 2 */}
               <div className="absolute -right-6 bottom-1/4 glass px-4 py-3 rounded-xl shadow-lg animate-float delay-500 flex items-center gap-3">
-                <div className="bg-[#5B21B6]/20 p-2 rounded-full text-[#5B21B6]">
-                  <ArrowRight size={24} />
-                </div>
+                <img 
+                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop" 
+                  alt="Investor" 
+                  className="w-10 h-10 rounded-full border-2 border-[#5B21B6] object-cover"
+                />
                 <div>
                   <div className="text-xs text-[#6B7280] font-medium">New Offer</div>
                   <div className="text-sm font-bold text-[#1F2937]">$250k for 10%</div>

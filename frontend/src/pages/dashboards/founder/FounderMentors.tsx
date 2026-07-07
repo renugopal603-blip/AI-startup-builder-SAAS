@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, Clock, ArrowRight, Video, Calendar, MoreVertical } from 'lucide-react';
+import { Star, Clock, ArrowRight, Video, Calendar, MoreVertical, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { addNotification } from '../../../utils/localStorageHelper';
 import VideoCallModal from '../../../components/shared/VideoCallModal';
@@ -9,6 +9,9 @@ const FounderMentors: React.FC = () => {
   const [startups, setStartups] = useState<any[]>([]);
   const [videoSessions, setVideoSessions] = useState<any[]>([]);
   const [activeCallRoom, setActiveCallRoom] = useState<string | null>(null);
+  const [ratingModalStartup, setRatingModalStartup] = useState<any>(null);
+  const [rating, setRating] = useState<number>(0);
+  const [reviewText, setReviewText] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -100,13 +103,44 @@ const FounderMentors: React.FC = () => {
       addNotification({
         id: Date.now(),
         title: 'Clarification Requested',
-        message: `Founder asked for clarification on ${startup.startupName}: "${msg}"`,
+        message: `You requested clarification from mentor on ${startup.startupName}.`,
         type: 'mentor_review',
         time: 'Just now',
         unread: true
       });
-      window.alert('Clarification request sent to mentor session!');
+      window.alert('Clarification request sent to mentor!');
     }
+  };
+
+  const handleSubmitRating = () => {
+    if (!ratingModalStartup || rating === 0) return;
+    
+    const updated = {
+      ...ratingModalStartup,
+      mentorReview: {
+        ...ratingModalStartup.mentorReview,
+        founderRating: rating,
+        founderReview: reviewText,
+        founderReviewDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      }
+    };
+    
+    localStorage.setItem(`startup_${updated.startupId}`, JSON.stringify(updated));
+    setStartups(prev => prev.map(s => s.startupId === updated.startupId ? updated : s));
+    
+    addNotification({
+      id: Date.now(),
+      title: 'Review Submitted',
+      message: `Your rating and review for ${ratingModalStartup.mentorReview.mentorName} has been submitted.`,
+      type: 'mentor_review',
+      time: 'Just now',
+      unread: true
+    });
+    
+    setRatingModalStartup(null);
+    setRating(0);
+    setReviewText('');
+    window.alert('Thank you for submitting your review!');
   };
 
   const reviewedStartups = startups.filter(s => s.mentorReview);
@@ -202,6 +236,18 @@ const FounderMentors: React.FC = () => {
                             Ask Clarification
                           </button>
                         </>
+                      )}
+                      {!startup.mentorReview.founderRating ? (
+                        <button 
+                          onClick={() => setRatingModalStartup(startup)}
+                          className="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-[#5B21B6] border border-purple-200 rounded-md text-xs font-semibold transition-colors flex items-center gap-1"
+                        >
+                          <Star size={12} className="fill-[#5B21B6]" /> Rate & Review
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-xs font-semibold text-gray-500">
+                           <Star size={12} className="fill-yellow-400 text-yellow-400" /> Rated {startup.mentorReview.founderRating}/5
+                        </div>
                       )}
                     </div>
                     
@@ -321,11 +367,63 @@ const FounderMentors: React.FC = () => {
         </div>
       </div>
       
+      {/* Video Call Modal */}
       {activeCallRoom && (
         <VideoCallModal 
           roomName={activeCallRoom} 
           onClose={() => setActiveCallRoom(null)} 
         />
+      )}
+
+      {/* Rating Modal */}
+      {ratingModalStartup && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h2 className="font-bold text-gray-900">Rate Mentor</h2>
+              <button onClick={() => { setRatingModalStartup(null); setRating(0); setReviewText(''); }} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-gray-600 mb-4">How was your experience with <strong>{ratingModalStartup.mentorReview.mentorName}</strong>?</p>
+              
+              <div className="flex justify-center gap-2 mb-6">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button key={star} onClick={() => setRating(star)} className="focus:outline-none transition-transform hover:scale-110">
+                    <Star size={32} className={star <= rating ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-100 text-gray-200'} />
+                  </button>
+                ))}
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Write a review (Optional)</label>
+                <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/20 transition-all outline-none resize-none h-24 text-sm"
+                  placeholder="Share your thoughts about the feedback..."
+                ></textarea>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => { setRatingModalStartup(null); setRating(0); setReviewText(''); }}
+                  className="px-5 py-2.5 text-gray-600 font-bold hover:bg-gray-50 rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitRating}
+                  disabled={rating === 0}
+                  className="px-5 py-2.5 bg-[#5B21B6] text-white font-bold rounded-xl hover:bg-[#4C1D95] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Submit Review
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

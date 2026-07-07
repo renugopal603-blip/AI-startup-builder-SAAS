@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, MoreVertical, LayoutGrid, List, X, Rocket, Sparkles, RefreshCw } from 'lucide-react';
+import { Plus, Search, MoreVertical, LayoutGrid, List, X, Rocket, Sparkles, RefreshCw, Trash2 } from 'lucide-react';
 import { createStartupDraft, getStartups } from '../../../utils/localStorageHelper';
 
 type Startup = {
@@ -53,6 +53,9 @@ const FounderStartups: React.FC = () => {
   useEffect(() => {
     // Load startups from localStorage on mount
     const loadLocalStartups = () => {
+      const deletedDummies = JSON.parse(localStorage.getItem('deleted_dummies') || '[]');
+      const filteredInitial = initialStartups.filter(s => !deletedDummies.includes(s.id));
+
       const localData = getStartups();
       const mappedStartups = localData.map(data => ({
         id: data.startupId || data.id,
@@ -63,7 +66,7 @@ const FounderStartups: React.FC = () => {
         stage: 'Idea Phase',
         color: 'bg-gray-100 text-gray-600'
       }));
-      setStartups([...initialStartups, ...mappedStartups]);
+      setStartups([...filteredInitial, ...mappedStartups]);
     };
     loadLocalStartups();
   }, []);
@@ -87,6 +90,19 @@ const FounderStartups: React.FC = () => {
       setError('Failed to save to local storage');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = (startupId: string) => {
+    if (window.confirm('Are you sure you want to delete this startup?')) {
+      if (startupId.startsWith('startup_')) {
+        localStorage.removeItem(startupId);
+      } else {
+        const deletedDummies = JSON.parse(localStorage.getItem('deleted_dummies') || '[]');
+        deletedDummies.push(startupId);
+        localStorage.setItem('deleted_dummies', JSON.stringify(deletedDummies));
+      }
+      setStartups(prev => prev.filter(s => s.id !== startupId));
     }
   };
 
@@ -155,7 +171,6 @@ const FounderStartups: React.FC = () => {
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-xl shadow-sm ${startup.color}`}>
                       {startup.name.charAt(0)}
                     </div>
-                    <button className="text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 p-1.5 rounded-lg transition-colors"><MoreVertical size={16} /></button>
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-1">{startup.name}</h3>
                   <p className="text-sm text-gray-500 mb-6 flex-1 line-clamp-3">{startup.description}</p>
@@ -175,12 +190,21 @@ const FounderStartups: React.FC = () => {
                     </div>
                   </div>
 
-                  <button 
-                    onClick={() => navigate(`/dashboard/founder/ai-builder?startupId=${startup.id}`)}
-                    className="w-full py-2.5 bg-gray-50 group-hover:bg-[#5B21B6] text-gray-700 group-hover:text-white rounded-lg font-bold text-sm transition-all duration-200 border border-gray-200 group-hover:border-[#5B21B6] shadow-sm group-hover:shadow"
-                  >
-                    Manage Startup
-                  </button>
+                  <div className="flex items-center gap-2 mt-auto">
+                    <button 
+                      onClick={() => navigate(`/dashboard/founder/ai-builder?startupId=${startup.id}`)}
+                      className="flex-1 py-2.5 bg-gray-50 group-hover:bg-[#5B21B6] text-gray-700 group-hover:text-white rounded-lg font-bold text-sm transition-all duration-200 border border-gray-200 group-hover:border-[#5B21B6] shadow-sm group-hover:shadow"
+                    >
+                      Manage Startup
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleDelete(startup.id); }}
+                      className="p-2.5 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors border border-red-100 shadow-sm"
+                      title="Delete Startup"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -220,12 +244,21 @@ const FounderStartups: React.FC = () => {
                         <span className="font-bold text-gray-900 text-sm">{startup.stage}</span>
                       </td>
                       <td className="px-4 py-4 text-right">
-                        <button 
-                          onClick={() => navigate(`/dashboard/founder/ai-builder?startupId=${startup.id}`)}
-                          className="px-4 py-1.5 bg-white border border-gray-200 group-hover:border-[#5B21B6] group-hover:text-[#5B21B6] rounded-lg font-bold text-xs transition-colors shadow-sm text-gray-700"
-                        >
-                          Manage
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button 
+                            onClick={() => navigate(`/dashboard/founder/ai-builder?startupId=${startup.id}`)}
+                            className="px-4 py-1.5 bg-white border border-gray-200 group-hover:border-[#5B21B6] group-hover:text-[#5B21B6] rounded-lg font-bold text-xs transition-colors shadow-sm text-gray-700"
+                          >
+                            Manage
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDelete(startup.id); }}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                            title="Delete Startup"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

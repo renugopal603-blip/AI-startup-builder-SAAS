@@ -2,20 +2,75 @@ import React, { useState } from 'react';
 import { Search, MoreVertical, Building2, X, Cpu, CheckCircle2, AlertTriangle, ArrowLeft } from 'lucide-react';
 import SharedStartupDetailsTabs from '../../../components/shared/SharedStartupDetailsTabs';
 import { getDocuments } from '../../../utils/localStorageHelper';
+import jsPDF from 'jspdf';
+import { Document as DocxDocument, Packer, Paragraph, TextRun } from 'docx';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 const AdminStartups: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
-  const [industryFilter, setIndustryFilter] = useState('All Industries');
   const [startups, setStartups] = React.useState<any[]>([]);
   const [documents, setDocuments] = React.useState<any[]>([]);
   const [selectedStartup, setSelectedStartup] = React.useState<any>(null);
   const [viewMode, setViewMode] = useState<'details' | 'documents'>('details');
+  const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
 
   const handleDelete = (startupId: string) => {
     if (window.confirm('Are you sure you want to delete this startup?')) {
       localStorage.removeItem(`startup_${startupId}`);
       setStartups(prev => prev.filter(s => s.startupId !== startupId));
+    }
+  };
+
+  const handleDownload = async (name: string, format?: string) => {
+    const finalFormat = format ? format.toLowerCase() : name.split('.').pop()?.toLowerCase() || 'txt';
+    const baseName = name.replace(/\.[^/.]+$/, "");
+    const finalName = `${baseName}.${finalFormat}`;
+    
+    try {
+      if (finalFormat === 'pdf') {
+        const doc = new jsPDF();
+        doc.setFontSize(22);
+        doc.text(`Startup Document: ${baseName.replace(/_/g, ' ')}`, 20, 20);
+        doc.setFontSize(12);
+        doc.text("This is an automatically generated document by AI Startup Builder.", 20, 30);
+        doc.text("Contains full strategic planning, market analysis, and AI roadmap.", 20, 40);
+        doc.save(finalName);
+      } else if (finalFormat === 'word' || finalFormat === 'docx' || finalFormat === 'doc') {
+        const docx = new DocxDocument({
+          sections: [{
+            properties: {},
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({ text: `Startup Document: ${baseName.replace(/_/g, ' ')}`, bold: true, size: 28 }),
+                ],
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({ text: "This is an automatically generated document by AI Startup Builder.", size: 24 }),
+                ],
+              }),
+            ],
+          }],
+        });
+        const blob = await Packer.toBlob(docx);
+        saveAs(blob, `${baseName}.docx`);
+      } else if (finalFormat === 'zip') {
+        const zip = new JSZip();
+        zip.file("readme.txt", "This ZIP contains the startup package documents.");
+        zip.file(`${baseName}.txt`, `Startup Document: ${baseName.replace(/_/g, ' ')}\nThis is an automatically generated document.`);
+        const content = await zip.generateAsync({ type: "blob" });
+        saveAs(content, finalName);
+      } else {
+        const content = `Mock content for ${finalName}`;
+        const blob = new Blob([content], { type: 'text/plain' });
+        saveAs(blob, finalName);
+      }
+    } catch (error) {
+      console.error("Error generating document:", error);
+      window.alert(`Failed to generate ${finalFormat.toUpperCase()} file.`);
     }
   };
 
@@ -71,21 +126,10 @@ const AdminStartups: React.FC = () => {
             <option>Under Review</option>
             <option>Suspended</option>
           </select>
-          <select 
-            value={industryFilter}
-            onChange={e => setIndustryFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5B21B6]"
-          >
-            <option>All Industries</option>
-            <option>ClimateTech</option>
-            <option>LegalTech</option>
-            <option>FinTech</option>
-            <option>SaaS</option>
-          </select>
         </div>
       </div>
       
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto pb-48 min-h-[500px]">
         <table className="w-full text-left whitespace-nowrap">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
@@ -117,20 +161,29 @@ const AdminStartups: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">{new Date(s.createdAt).toLocaleDateString()}</td>
                   <td className="px-6 py-4 text-right flex justify-end gap-2 relative">
-                    <div className="relative inline-block text-left group">
+                    <div className="relative inline-block text-left">
                       <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDropdownOpen(dropdownOpen === s.startupId ? null : s.startupId);
+                        }}
                         className="px-3 py-1.5 bg-purple-50 text-[#5B21B6] hover:bg-purple-100 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
                       >
                         Documents <span className="text-[10px]">▼</span>
                       </button>
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 hidden group-hover:block">
-                        <button onClick={() => { setSelectedStartup(s); setViewMode('documents'); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">View Documents</button>
-                        <button onClick={() => window.alert('Downloading PDF...')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Download PDF</button>
-                        <button onClick={() => window.alert('Downloading Word...')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Download Word</button>
-                        <button onClick={() => window.alert('Downloading Pitch Deck...')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Download Pitch Deck</button>
-                        <button onClick={() => window.alert('Downloading ZIP...')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Download ZIP</button>
-                        <button onClick={() => window.alert('Previewing Documents...')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview Documents</button>
-                      </div>
+                      {dropdownOpen === s.startupId && (
+                        <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-[100] animate-fade-in-up flex flex-col">
+                          <button onClick={() => { handleDownload(`${s.startupName.replace(/\s+/g, '_')}_Report`, 'PDF'); setDropdownOpen(null); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                            <span className="font-bold text-gray-800">PDF Document</span>
+                          </button>
+                          <button onClick={() => { handleDownload(`${s.startupName.replace(/\s+/g, '_')}_Report`, 'WORD'); setDropdownOpen(null); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                            <span className="font-bold text-gray-800">Word Document</span>
+                          </button>
+                          <button onClick={() => { handleDownload(`${s.startupName.replace(/\s+/g, '_')}_Full_Package`, 'ZIP'); setDropdownOpen(null); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                            <span className="font-bold text-gray-800">ZIP Package</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                     <button 
                       onClick={() => { setSelectedStartup(s); setViewMode('details'); }}

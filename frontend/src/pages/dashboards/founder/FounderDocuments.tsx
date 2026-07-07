@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, FileText, File, Image, Search, Plus, Download, Trash2, Share2, X, Eye } from 'lucide-react';
-import { getDocuments, saveDocument, deleteDocument, updateDocument, addNotification, getStartups } from '../../../utils/localStorageHelper';
+import { Upload, FileText, File, Image, Search, Plus, Download, Trash2, X, Eye } from 'lucide-react';
+import { getDocuments, saveDocument, deleteDocument, getStartups } from '../../../utils/localStorageHelper';
+import jsPDF from 'jspdf';
+import { Document as DocxDocument, Packer, Paragraph, TextRun } from 'docx';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 const getFileIcon = (type: string) => {
   switch (type.toLowerCase()) {
@@ -27,9 +31,8 @@ const getFileColor = (type: string) => {
 const FounderDocuments: React.FC = () => {
   const [documents, setDocuments] = useState<any[]>([]);
   const [search, setSearch] = useState('');
-  const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
-  const [shareRole, setShareRole] = useState('investor');
+  const [previewDoc, setPreviewDoc] = useState<any>(null);
+  const [downloadDropdown, setDownloadDropdown] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,62 +76,60 @@ const FounderDocuments: React.FC = () => {
     }
   };
 
-  const handleDownload = (name: string) => {
-    window.alert(`Downloading ${name}...`);
+  const handleDownload = async (name: string, format?: string) => {
+    const finalFormat = format ? format.toLowerCase() : name.split('.').pop()?.toLowerCase() || 'txt';
+    const baseName = name.replace(/\.[^/.]+$/, "");
+    const finalName = `${baseName}.${finalFormat}`;
+    
+    try {
+      if (finalFormat === 'pdf') {
+        const doc = new jsPDF();
+        doc.setFontSize(22);
+        doc.text(`Startup Document: ${baseName.replace(/_/g, ' ')}`, 20, 20);
+        doc.setFontSize(12);
+        doc.text("This is an automatically generated document by AI Startup Builder.", 20, 30);
+        doc.text("Contains full strategic planning, market analysis, and AI roadmap.", 20, 40);
+        doc.save(finalName);
+      } else if (finalFormat === 'word' || finalFormat === 'docx' || finalFormat === 'doc') {
+        const docx = new DocxDocument({
+          sections: [{
+            properties: {},
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({ text: `Startup Document: ${baseName.replace(/_/g, ' ')}`, bold: true, size: 28 }),
+                ],
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({ text: "This is an automatically generated document by AI Startup Builder.", size: 24 }),
+                ],
+              }),
+            ],
+          }],
+        });
+        const blob = await Packer.toBlob(docx);
+        saveAs(blob, `${baseName}.docx`);
+      } else if (finalFormat === 'zip') {
+        const zip = new JSZip();
+        zip.file("readme.txt", "This ZIP contains the startup package documents.");
+        zip.file(`${baseName}.txt`, `Startup Document: ${baseName.replace(/_/g, ' ')}\nThis is an automatically generated document.`);
+        const content = await zip.generateAsync({ type: "blob" });
+        saveAs(content, finalName);
+      } else {
+        // Fallback
+        const content = `Mock content for ${finalName}`;
+        const blob = new Blob([content], { type: 'text/plain' });
+        saveAs(blob, finalName);
+      }
+    } catch (error) {
+      console.error("Error generating document:", error);
+      window.alert(`Failed to generate ${finalFormat.toUpperCase()} file.`);
+    }
   };
   
-  const handlePreview = (name: string) => {
-    window.alert(`Previewing ${name}...`);
-  };
-
-  const openShareModal = (id: string) => {
-    setSelectedDocId(id);
-    setShareModalOpen(true);
-  };
-
-  const handleShare = () => {
-    if (!selectedDocId) return;
-    
-    const doc = documents.find(d => d.id === selectedDocId);
-    if (!doc) return;
-    
-    const updatedSharedWith = [...new Set([...(doc.sharedWith || []), shareRole])];
-    
-    updateDocument(selectedDocId, {
-      status: 'shared',
-      sharedWith: updatedSharedWith
-    });
-    
-    // Add Notification
-    let title = "Document Shared";
-    let message = "A document was shared.";
-    let actionUrl = "/dashboard";
-    
-    if (shareRole === 'investor') {
-      title = "New Due Diligence Document Shared";
-      message = "Founder shared startup documents for your review.";
-      actionUrl = "/dashboard/investor/due-diligence";
-    } else if (shareRole === 'mentor') {
-      title = "New Startup Document Shared";
-      message = "Founder shared documents for mentor review.";
-      actionUrl = "/dashboard/mentor/reviews";
-    }
-
-    addNotification({
-      id: `notification_${Date.now()}`,
-      userId: `${shareRole}_demo_user`,
-      title,
-      message,
-      type: "document_share",
-      isRead: false,
-      actionUrl,
-      createdAt: new Date().toISOString()
-    });
-    
-    setDocuments(getDocuments());
-    setShareModalOpen(false);
-    setSelectedDocId(null);
-    window.alert(`Document successfully shared with ${shareRole}.`);
+  const handlePreview = (doc: any) => {
+    setPreviewDoc(doc);
   };
 
   const filteredDocs = documents.filter(d => 
@@ -150,9 +151,6 @@ const FounderDocuments: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Documents</h1>
           <p className="text-gray-500 mt-1">Upload and manage all your startup documents securely.</p>
         </div>
-        <button onClick={handleUploadClick} className="flex items-center px-4 py-2.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl shadow text-sm transition-colors">
-          <Plus size={16} className="mr-2" /> Upload File
-        </button>
       </div>
 
     {/* Upload Drop Zone */}
@@ -186,7 +184,6 @@ const FounderDocuments: React.FC = () => {
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">File</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Type</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Size</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
@@ -195,7 +192,7 @@ const FounderDocuments: React.FC = () => {
           <tbody className="divide-y divide-gray-100">
             {filteredDocs.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">No documents found.</td>
+                <td colSpan={4} className="px-6 py-10 text-center text-gray-400 text-sm">No documents found.</td>
               </tr>
             ) : (
               filteredDocs.map((doc) => (
@@ -211,9 +208,6 @@ const FounderDocuments: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="text-xs font-bold uppercase px-2 py-1 bg-gray-100 text-gray-600 rounded-md">{doc.fileType}</span>
-                  </td>
                   <td className="px-6 py-4 text-sm text-gray-500">{doc.fileSize}</td>
                   <td className="px-6 py-4">
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
@@ -226,9 +220,25 @@ const FounderDocuments: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => handlePreview(doc.fileName)} title="Preview" className="p-1.5 text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 rounded-lg transition-colors"><Eye size={16} /></button>
-                      <button onClick={() => openShareModal(doc.id)} title="Share" className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Share2 size={16} /></button>
-                      <button onClick={() => handleDownload(doc.fileName)} title="Download" className="p-1.5 text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 rounded-lg transition-colors"><Download size={16} /></button>
+                      <button onClick={() => handlePreview(doc)} title="Preview" className="p-1.5 text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 rounded-lg transition-colors"><Eye size={16} /></button>
+                      
+                      <div className="relative">
+                        <button 
+                          onClick={() => setDownloadDropdown(downloadDropdown === doc.id ? null : doc.id)} 
+                          title="Download Options" 
+                          className="p-1.5 text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 rounded-lg transition-colors"
+                        >
+                          <Download size={16} />
+                        </button>
+                        {downloadDropdown === doc.id && (
+                          <div className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-100 shadow-xl rounded-xl z-10 overflow-hidden animate-fade-in-up">
+                            <button onClick={() => { handleDownload(doc.fileName, 'PDF'); setDownloadDropdown(null); }} className="w-full text-left px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors">Download PDF</button>
+                            <button onClick={() => { handleDownload(doc.fileName, 'WORD'); setDownloadDropdown(null); }} className="w-full text-left px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors">Download Word</button>
+                            <button onClick={() => { handleDownload(doc.fileName, 'ZIP'); setDownloadDropdown(null); }} className="w-full text-left px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition-colors border-t border-gray-100">Download ZIP</button>
+                          </div>
+                        )}
+                      </div>
+
                       <button onClick={() => handleDelete(doc.id)} title="Delete" className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
                     </div>
                   </td>
@@ -241,47 +251,49 @@ const FounderDocuments: React.FC = () => {
       </div>
     </div>
     
-    {/* Share Modal */}
-    {shareModalOpen && (
-      <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
-          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="text-lg font-bold text-gray-900">Share Document</h3>
-            <button onClick={() => setShareModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+    {/* Preview Modal */}
+    {previewDoc && (
+      <div className="fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-3xl rounded-2xl shadow-xl overflow-hidden animate-fade-in-up flex flex-col h-[80vh]">
+          <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${getFileColor(previewDoc.fileType)}`}>
+                {getFileIcon(previewDoc.fileType)}
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-gray-900">{previewDoc.fileName}</h3>
+                <p className="text-xs text-gray-500">{previewDoc.fileSize} • {previewDoc.category}</p>
+              </div>
+            </div>
+            <button onClick={() => setPreviewDoc(null)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
               <X size={20} />
             </button>
           </div>
-          <div className="p-6">
-            <p className="text-sm text-gray-500 mb-4">Select who you want to share this document with:</p>
-            <div className="space-y-3 mb-6">
-              <label className={`flex items-center p-3 rounded-xl border cursor-pointer transition-colors ${shareRole === 'mentor' ? 'border-[#5B21B6] bg-purple-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                <input type="radio" name="role" value="mentor" checked={shareRole === 'mentor'} onChange={() => setShareRole('mentor')} className="mr-3" />
-                <div>
-                  <div className="font-bold text-gray-900 text-sm">Mentor</div>
-                  <div className="text-xs text-gray-500">For review and expert feedback</div>
-                </div>
-              </label>
-              <label className={`flex items-center p-3 rounded-xl border cursor-pointer transition-colors ${shareRole === 'investor' ? 'border-[#5B21B6] bg-purple-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                <input type="radio" name="role" value="investor" checked={shareRole === 'investor'} onChange={() => setShareRole('investor')} className="mr-3" />
-                <div>
-                  <div className="font-bold text-gray-900 text-sm">Investor</div>
-                  <div className="text-xs text-gray-500">For due diligence and funding</div>
-                </div>
-              </label>
-              <label className={`flex items-center p-3 rounded-xl border cursor-pointer transition-colors ${shareRole === 'admin' ? 'border-[#5B21B6] bg-purple-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                <input type="radio" name="role" value="admin" checked={shareRole === 'admin'} onChange={() => setShareRole('admin')} className="mr-3" />
-                <div>
-                  <div className="font-bold text-gray-900 text-sm">Admin</div>
-                  <div className="text-xs text-gray-500">For platform compliance</div>
-                </div>
-              </label>
+          <div className="flex-1 p-8 bg-gray-100 overflow-y-auto">
+            <div className="bg-white mx-auto max-w-2xl min-h-[400px] shadow-sm border border-gray-200 rounded-lg p-10">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">{previewDoc.fileName}</h2>
+              <div className="space-y-4 text-gray-600">
+                <p>This is a simulated preview of the document. In a production environment, this would render the actual {previewDoc.fileType} file content.</p>
+                <div className="h-4 bg-gray-100 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-100 rounded w-full"></div>
+                <div className="h-4 bg-gray-100 rounded w-5/6"></div>
+                <div className="h-4 bg-gray-100 rounded w-full"></div>
+                <div className="h-4 bg-gray-100 rounded w-4/5"></div>
+              </div>
             </div>
-            
+          </div>
+          <div className="p-4 border-t border-gray-100 flex justify-end gap-3 bg-white">
             <button 
-              onClick={handleShare}
-              className="w-full py-3 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl transition-colors shadow-md"
+              onClick={() => setPreviewDoc(null)} 
+              className="px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 font-bold rounded-xl transition-colors"
             >
-              Share Document
+              Close
+            </button>
+            <button 
+              onClick={() => { handleDownload(previewDoc.fileName); setPreviewDoc(null); }} 
+              className="px-4 py-2 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl transition-colors flex items-center gap-2"
+            >
+              <Download size={16} /> Download
             </button>
           </div>
         </div>
