@@ -95,14 +95,16 @@ const FounderStartups: React.FC = () => {
 
   const handleDelete = (startupId: string) => {
     if (window.confirm('Are you sure you want to delete this startup?')) {
+      localStorage.removeItem(startupId);
+      localStorage.removeItem(`startup_${startupId}`);
       if (startupId.startsWith('startup_')) {
-        localStorage.removeItem(startupId);
+        localStorage.removeItem(startupId.replace('startup_', ''));
       } else {
         const deletedDummies = JSON.parse(localStorage.getItem('deleted_dummies') || '[]');
         deletedDummies.push(startupId);
         localStorage.setItem('deleted_dummies', JSON.stringify(deletedDummies));
       }
-      setStartups(prev => prev.filter(s => s.id !== startupId));
+      setStartups(prev => prev.filter(s => s.id !== startupId && `startup_${s.id}` !== startupId));
     }
   };
 

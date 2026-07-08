@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, MoreVertical, Building2, X, Cpu, CheckCircle2, AlertTriangle, ArrowLeft, FileText } from 'lucide-react';
+import { Search, MoreVertical, Building2, X, Cpu, CheckCircle2, AlertTriangle, ArrowLeft, FileText, Eye, Trash2, DollarSign, Download } from 'lucide-react';
 import SharedStartupDetailsTabs from '../../../components/shared/SharedStartupDetailsTabs';
 import { useFunding } from '../../../context/FundingContext';
 import type { FundingOffer } from '../../../context/FundingContext';
@@ -27,10 +27,40 @@ const AdminStartups: React.FC = () => {
   const [editableNote, setEditableNote] = useState('');
 
   const handleDelete = (startupId: string) => {
-    if (window.confirm('Are you sure you want to delete this startup?')) {
+    if (window.confirm('Are you sure you want to delete this startup completely?')) {
       localStorage.removeItem(`startup_${startupId}`);
-      setStartups(prev => prev.filter(s => s.startupId !== startupId));
+      localStorage.removeItem(startupId);
+      localStorage.removeItem(startupId.replace(/^startup_/, ''));
+      setStartups(prev => prev.filter(s => s.startupId !== startupId && s.id !== startupId && `startup_${s.id}` !== startupId));
+      if (selectedStartup?.startupId === startupId || selectedStartup?.id === startupId) {
+        setSelectedStartup(null);
+      }
     }
+  };
+
+  const handleExportCSV = () => {
+    if (startups.length === 0) {
+      window.alert("No startups data available to export.");
+      return;
+    }
+    const headers = ["Startup ID", "Startup Name", "Founder ID", "Business Model", "Status", "Created Date"];
+    const rows = startups.map(s => [
+      s.startupId || s.id,
+      s.startupName,
+      s.founderId || "Local Founder",
+      s.aiGenerated?.ideaAnalysis?.businessModel || 'Tech',
+      s.status,
+      new Date(s.createdAt || Date.now()).toLocaleDateString()
+    ]);
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.map(val => `"${(val || '').replace(/"/g, '""')}"`).join(","))].join("\r\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `platform_startups_export_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleDownload = async (name: string, format?: string) => {
@@ -126,6 +156,12 @@ const AdminStartups: React.FC = () => {
           />
         </div>
         <div className="flex gap-2">
+          <button 
+            onClick={handleExportCSV}
+            className="flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold rounded-lg border border-gray-200 text-sm transition-colors shadow-sm"
+          >
+            <Download size={15} className="mr-2 text-gray-600" /> Export CSV
+          </button>
           <select 
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
@@ -170,59 +206,63 @@ const AdminStartups: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">{new Date(s.createdAt).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 text-right relative">
-                    <div className="inline-block text-left relative">
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
                       <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDropdownOpen(dropdownOpen === s.startupId ? null : s.startupId);
-                        }}
-                        className="p-1.5 hover:bg-gray-100 rounded-full transition-colors inline-flex items-center justify-center"
+                        onClick={() => { setSelectedStartup(s); setViewMode('details'); }}
+                        className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-lg text-xs transition-colors inline-flex items-center gap-1"
+                        title="View Details"
                       >
-                        <MoreVertical size={18} className="text-gray-500" />
+                        <Eye size={14} /> View Details
                       </button>
-                      {dropdownOpen === s.startupId && (
-                        <div className="absolute right-0 mt-1 w-52 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-[100] animate-fade-in-up text-left">
-                          <button 
-                            onClick={() => { setSelectedStartup(s); setViewMode('details'); setDropdownOpen(null); }} 
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 font-bold transition-colors"
-                          >
-                            View Details
-                          </button>
-                          <button 
-                            onClick={() => { setSelectedStartup(s); setViewMode('funding'); setDropdownOpen(null); }} 
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 font-bold transition-colors"
-                          >
-                            Funding Offers
-                          </button>
-                          <hr className="my-1 border-gray-100" />
-                          <button 
-                            onClick={() => { handleDownload(`${s.startupName.replace(/\s+/g, '_')}_Report`, 'PDF'); setDropdownOpen(null); }} 
-                            className="w-full text-left px-4 py-2 text-xs text-gray-600 hover:bg-gray-50 font-semibold transition-colors"
-                          >
-                            Download PDF Report
-                          </button>
-                          <button 
-                            onClick={() => { handleDownload(`${s.startupName.replace(/\s+/g, '_')}_Report`, 'WORD'); setDropdownOpen(null); }} 
-                            className="w-full text-left px-4 py-2 text-xs text-gray-600 hover:bg-gray-50 font-semibold transition-colors"
-                          >
-                            Download Word Report
-                          </button>
-                          <button 
-                            onClick={() => { handleDownload(`${s.startupName.replace(/\s+/g, '_')}_Full_Package`, 'ZIP'); setDropdownOpen(null); }} 
-                            className="w-full text-left px-4 py-2 text-xs text-gray-600 hover:bg-gray-50 font-semibold transition-colors"
-                          >
-                            Download ZIP Package
-                          </button>
-                          <hr className="my-1 border-gray-100" />
-                          <button 
-                            onClick={() => { handleDelete(s.startupId); setDropdownOpen(null); }} 
-                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-bold transition-colors"
-                          >
-                            Delete Startup
-                          </button>
-                        </div>
-                      )}
+                      <button 
+                        onClick={() => { setSelectedStartup(s); setViewMode('funding'); }}
+                        className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-lg text-xs transition-colors inline-flex items-center gap-1"
+                        title="Funding Offers"
+                      >
+                        <DollarSign size={14} /> Funding
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(s.startupId || s.id)}
+                        className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-xs transition-colors inline-flex items-center gap-1"
+                        title="Delete Startup"
+                      >
+                        <Trash2 size={14} /> Delete
+                      </button>
+                      <div className="inline-block text-left relative">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDropdownOpen(dropdownOpen === s.startupId ? null : s.startupId);
+                          }}
+                          className="p-1.5 hover:bg-gray-100 rounded-full transition-colors inline-flex items-center justify-center text-gray-500"
+                          title="More Downloads & Reports"
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+                        {dropdownOpen === s.startupId && (
+                          <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-[100] animate-fade-in-up text-left">
+                            <button 
+                              onClick={() => { handleDownload(`${s.startupName.replace(/\s+/g, '_')}_Report`, 'PDF'); setDropdownOpen(null); }} 
+                              className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 font-bold transition-colors"
+                            >
+                              Download PDF Report
+                            </button>
+                            <button 
+                              onClick={() => { handleDownload(`${s.startupName.replace(/\s+/g, '_')}_Report`, 'WORD'); setDropdownOpen(null); }} 
+                              className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 font-bold transition-colors"
+                            >
+                              Download Word Report
+                            </button>
+                            <button 
+                              onClick={() => { handleDownload(`${s.startupName.replace(/\s+/g, '_')}_Full_Package`, 'ZIP'); setDropdownOpen(null); }} 
+                              className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 font-bold transition-colors"
+                            >
+                              Download ZIP Package
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </td>
                 </tr>
