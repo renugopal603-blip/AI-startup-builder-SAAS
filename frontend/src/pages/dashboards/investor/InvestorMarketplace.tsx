@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Cpu, ArrowRight, Bookmark, Target, X, CheckCircle2, AlertTriangle, Briefcase, ArrowLeft, DollarSign } from 'lucide-react';
 import SharedStartupDetailsTabs from '../../../components/shared/SharedStartupDetailsTabs';
 import { useAuth } from '../../../context/AuthContext';
@@ -7,6 +8,40 @@ import { useFunding } from '../../../context/FundingContext';
 const InvestorMarketplace: React.FC = () => {
   const { user } = useAuth();
   const { sendOffer } = useFunding();
+  const navigate = useNavigate();
+
+  const handleSaveStartup = (startup: any) => {
+    const savedKey = 'investor_saved_startups';
+    const stored = localStorage.getItem(savedKey);
+    let list: any[] = [];
+    if (stored) {
+      try {
+        list = JSON.parse(stored);
+      } catch (e) {}
+    }
+
+    if (list.some(item => item.id === startup.startupId)) {
+      navigate('/dashboard/investor/portfolio-hub', { state: { activeTab: 'saved' } });
+      return;
+    }
+
+    const newSaved = {
+      id: startup.startupId,
+      name: startup.startupName || 'Unknown Startup',
+      sector: startup.aiGenerated?.ideaAnalysis?.businessModel || 'Tech',
+      stage: startup.status === 'generated' ? 'Seed' : 'Idea Stage',
+      traction: 'Idea Stage',
+      team: 1,
+      location: 'Global',
+      rating: startup.aiGenerated?.aiReport?.investmentReadinessScore || 85,
+      logo: 'from-purple-500 to-indigo-600',
+      startupData: startup
+    };
+
+    const updated = [newSaved, ...list];
+    localStorage.setItem(savedKey, JSON.stringify(updated));
+    navigate('/dashboard/investor/portfolio-hub', { state: { activeTab: 'saved' } });
+  };
 
   const [search, setSearch] = useState('');
   const [startups, setStartups] = React.useState<any[]>([]);
@@ -154,10 +189,17 @@ const InvestorMarketplace: React.FC = () => {
               <div className="flex gap-3">
                 <button 
                   onClick={() => setSelectedStartup(startup)}
-                  className="w-full py-3 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center group-hover:shadow-lg bg-[#5B21B6] hover:bg-[#7C3AED]"
+                  className="flex-1 py-3 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center group-hover:shadow-lg bg-[#5B21B6] hover:bg-[#7C3AED]"
                 >
                   View Details
                   <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                </button>
+                <button 
+                  onClick={() => handleSaveStartup(startup)}
+                  className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition-all flex items-center justify-center border border-gray-200"
+                  title="Save Startup"
+                >
+                  <Bookmark size={18} />
                 </button>
               </div>
             </div>

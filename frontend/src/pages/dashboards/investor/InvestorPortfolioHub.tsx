@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Star, Briefcase, PieChart, Plus } from 'lucide-react';
 import InvestorSavedStartups from './InvestorSaved';
 import InvestorPortfolio from './InvestorPortfolio';
@@ -12,7 +13,9 @@ const tabs = [
 ];
 
 const InvestorPortfolioHub: React.FC = () => {
-  const [active, setActive] = useState('investments');
+  const location = useLocation();
+  const defaultTab = (location.state as any)?.activeTab || 'investments';
+  const [active, setActive] = useState(defaultTab);
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const ActiveComponent = tabs.find(t => t.id === active)!.component;
 
