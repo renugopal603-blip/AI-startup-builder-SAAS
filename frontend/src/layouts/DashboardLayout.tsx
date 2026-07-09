@@ -6,8 +6,8 @@ import {
   LayoutDashboard, FolderKanban, TrendingUp, Users, Wallet,
   File, Lightbulb, CalendarClock, Handshake, ClipboardList,
   Briefcase, Building2, UserCog, Inbox, CreditCard,
-  BarChart2, Settings, Ticket, CheckSquare, ShieldCheck,
-  Map, DollarSign, MessageSquare,
+  BarChart2, Settings, CheckSquare, ShieldCheck,
+  Map, IndianRupee,
 } from 'lucide-react';
 import NotificationDropdown from '../components/shared/NotificationDropdown';
 
@@ -56,7 +56,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarSection[]> = {
         { name: 'Investment Requests',icon: Handshake,       path: '/dashboard/investor/requests' },
         { name: 'Due Diligence',      icon: ClipboardList,   path: '/dashboard/investor/due-diligence' },
         { name: 'Meetings',           icon: CalendarClock,   path: '/dashboard/investor/meetings' },
-        { name: 'Transactions',       icon: DollarSign,      path: '/dashboard/investor/transactions' },
+        { name: 'Transactions',       icon: IndianRupee,     path: '/dashboard/investor/transactions' },
         { name: 'Investor Support',   icon: Inbox,           path: '/dashboard/investor/inbox' },
         { name: 'Profile & KYC',      icon: ShieldCheck,     path: '/dashboard/investor/profile-kyc' },
       ],
@@ -72,7 +72,6 @@ const SIDEBAR_CONFIG: Record<string, SidebarSection[]> = {
         { name: 'Approvals',               icon: ShieldCheck,     path: '/dashboard/admin/approvals-hub' },
         { name: 'Subscriptions & Payments',icon: CreditCard,      path: '/dashboard/admin/sub-payments' },
         { name: 'AI Analytics',            icon: BarChart2,       path: '/dashboard/admin/analytics' },
-        { name: 'Support Tickets',         icon: Ticket,          path: '/dashboard/admin/tickets' },
         { name: 'Platform Settings',       icon: Settings,        path: '/dashboard/admin/platform-settings' },
         { name: 'Support Center',          icon: Inbox,           path: '/dashboard/admin/inbox' },
       ],

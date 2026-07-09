@@ -1,18 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Clock, ArrowRight, Video, Calendar, MoreVertical, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { addNotification } from '../../../utils/localStorageHelper';
 import VideoCallModal from '../../../components/shared/VideoCallModal';
 
+const initialSampleMentors = [
+  {
+    id: "mentor_demo_user",
+    name: "Alex Rivera",
+    location: "New York, NY",
+    expertise: "SaaS, Go-to-Market, Fundraising, Product Strategy",
+    linkedin: "linkedin.com/in/alexrivera",
+    bio: "Ex-VC partner and serial SaaS founder. Passionate about helping early-stage SaaS and FinTech founders find product-market fit, optimize GTM strategy, and close funding rounds.",
+    photoUrl: "",
+    experienceYears: "14+ Years",
+    category: "SaaS",
+    availability: "Available",
+    languages: "English, Spanish",
+    verificationStatus: "Verified",
+    rating: 4.9,
+    reviewsCount: 48
+  },
+  {
+    id: "mentor_sarah_chen",
+    name: "Sarah Chen",
+    location: "San Francisco, CA",
+    expertise: "SaaS Pricing, Monetization, PLG Growth Strategy",
+    linkedin: "linkedin.com/in/sarahchen",
+    bio: "Former Head of Growth at Stripe and pricing advisor to 20+ B2B SaaS unicorns. Helping founders optimize tiers and maximize LTV.",
+    photoUrl: "https://ui-avatars.com/api/?name=Sarah+Chen&background=F3F4F6&color=1F2937",
+    experienceYears: "11+ Years",
+    category: "Marketing",
+    availability: "Available",
+    languages: "English, Mandarin",
+    verificationStatus: "Verified",
+    rating: 4.9,
+    reviewsCount: 42
+  },
+  {
+    id: "mentor_david_kim",
+    name: "David Kim",
+    location: "Chicago, IL",
+    expertise: "Supply Chain Specialists, Operations, Unit Economics",
+    linkedin: "linkedin.com/in/davidkim",
+    bio: "Operations executive and angel investor specializing in supply chain automation, gross margin optimization, and early-stage scaling.",
+    photoUrl: "https://ui-avatars.com/api/?name=David+Kim&background=F3F4F6&color=1F2937",
+    experienceYears: "16+ Years",
+    category: "Product",
+    availability: "Busy",
+    languages: "English, Korean",
+    verificationStatus: "Verified",
+    rating: 4.8,
+    reviewsCount: 18
+  }
+];
 
 const FounderMentors: React.FC = () => {
   const [startups, setStartups] = useState<any[]>([]);
   const [videoSessions, setVideoSessions] = useState<any[]>([]);
+  const [mentorsList, setMentorsList] = useState<any[]>(initialSampleMentors);
+  const [selectedMentorModal, setSelectedMentorModal] = useState<any | null>(null);
   const [activeCallRoom, setActiveCallRoom] = useState<string | null>(null);
   const [ratingModalStartup, setRatingModalStartup] = useState<any>(null);
   const [rating, setRating] = useState<number>(0);
   const [reviewText, setReviewText] = useState('');
-  const navigate = useNavigate();
 
   useEffect(() => {
     const keys = Object.keys(localStorage);
@@ -31,6 +81,35 @@ const FounderMentors: React.FC = () => {
     if (storedSessions) {
       setVideoSessions(JSON.parse(storedSessions));
     }
+
+    const loadMentors = () => {
+      try {
+        const stored = localStorage.getItem('ai_startup_builder_mentor_profiles');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          initialSampleMentors.forEach(sample => {
+            if (!parsed.some((m: any) => m.id === sample.id || m.name === sample.name)) {
+              parsed.push(sample);
+            }
+          });
+          setMentorsList(parsed);
+          localStorage.setItem('ai_startup_builder_mentor_profiles', JSON.stringify(parsed));
+        } else {
+          localStorage.setItem('ai_startup_builder_mentor_profiles', JSON.stringify(initialSampleMentors));
+          setMentorsList(initialSampleMentors);
+        }
+      } catch (e) {
+        setMentorsList(initialSampleMentors);
+      }
+    };
+
+    loadMentors();
+    window.addEventListener('storage', loadMentors);
+    window.addEventListener('mentor_profile_updated', loadMentors);
+    return () => {
+      window.removeEventListener('storage', loadMentors);
+      window.removeEventListener('mentor_profile_updated', loadMentors);
+    };
   }, []);
 
   const handleBookCall = (mentorName: string, startupName: string) => {
@@ -277,45 +356,46 @@ const FounderMentors: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {/* Mentor Card */}
-            <div className="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-4">
-                <img src="https://ui-avatars.com/api/?name=Sarah+Chen&background=F3F4F6&color=1F2937" alt="Sarah Chen" className="w-12 h-12 rounded-full" />
-                <div>
-                  <p className="font-bold text-gray-900">Sarah Chen</p>
-                  <p className="text-xs text-gray-500 mb-1">SaaS Pricing Expert</p>
-                  <div className="flex items-center text-xs text-yellow-500 font-medium">
-                    <Star size={12} className="fill-yellow-500 mr-1" /> 4.9 (42 reviews)
+            {mentorsList.map((m: any, idx: number) => (
+              <div key={m.id || idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-100 rounded-xl hover:shadow-md transition-shadow gap-4">
+                <div className="flex items-start sm:items-center gap-4">
+                  {m.photoUrl ? (
+                    <img src={m.photoUrl} alt={m.name} className="w-12 h-12 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 text-white font-bold text-lg flex items-center justify-center shrink-0">
+                      {m.name ? m.name.charAt(0).toUpperCase() : 'M'}
+                    </div>
+                  )}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-gray-900">{m.name}</p>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-[#5B21B6] border border-purple-100">
+                        {m.category || 'SaaS'}
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        m.availability === 'Available' ? 'bg-emerald-50 text-emerald-700' :
+                        m.availability === 'Busy' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'
+                      }`}>
+                        {m.availability || 'Available'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1 line-clamp-1">{m.expertise || 'SaaS, Go-to-Market, Fundraising'}</p>
+                    <div className="flex items-center gap-3 text-xs text-yellow-500 font-medium mt-1">
+                      <span className="flex items-center">
+                        <Star size={12} className="fill-yellow-500 mr-1" /> {m.rating || 4.9} ({m.reviewsCount || 48} reviews)
+                      </span>
+                    </div>
                   </div>
                 </div>
+                <button 
+                  onClick={() => setSelectedMentorModal(m)}
+                  className="px-3.5 py-2 text-[#5B21B6] bg-indigo-50 hover:bg-indigo-100 rounded-lg font-bold text-xs transition-colors flex items-center gap-1.5 shrink-0 self-end sm:self-center"
+                >
+                  <span>View Public Profile</span>
+                  <ArrowRight size={16} />
+                </button>
               </div>
-              <button 
-                onClick={() => alert("Viewing Sarah Chen's profile...")}
-                className="p-2 text-[#5B21B6] bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
-              >
-                <ArrowRight size={20} />
-              </button>
-            </div>
-            
-            {/* Mentor Card */}
-            <div className="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-4">
-                <img src="https://ui-avatars.com/api/?name=David+Kim&background=F3F4F6&color=1F2937" alt="David Kim" className="w-12 h-12 rounded-full" />
-                <div>
-                  <p className="font-bold text-gray-900">David Kim</p>
-                  <p className="text-xs text-gray-500 mb-1">Supply Chain Specialist</p>
-                  <div className="flex items-center text-xs text-yellow-500 font-medium">
-                    <Star size={12} className="fill-yellow-500 mr-1" /> 4.8 (18 reviews)
-                  </div>
-                </div>
-              </div>
-              <button 
-                onClick={() => alert("Viewing David Kim's profile...")}
-                className="p-2 text-[#5B21B6] bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
-              >
-                <ArrowRight size={20} />
-              </button>
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -419,6 +499,89 @@ const FounderMentors: React.FC = () => {
                   className="px-5 py-2.5 bg-[#5B21B6] text-white font-bold rounded-xl hover:bg-[#4C1D95] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Submit Review
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Public Mentor Profile Modal (No Email / Phone visible to Founder) */}
+      {selectedMentorModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl space-y-0">
+            <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                {selectedMentorModal.photoUrl ? (
+                  <img src={selectedMentorModal.photoUrl} alt={selectedMentorModal.name} className="w-12 h-12 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 text-white font-bold text-lg flex items-center justify-center shrink-0">
+                    {selectedMentorModal.name ? selectedMentorModal.name.charAt(0).toUpperCase() : 'M'}
+                  </div>
+                )}
+                <div>
+                  <h2 className="font-bold text-gray-900 text-lg">{selectedMentorModal.name}</h2>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-[#5B21B6] border border-purple-100">
+                      {selectedMentorModal.category || 'SaaS'}
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      selectedMentorModal.availability === 'Available' ? 'bg-emerald-50 text-emerald-700' :
+                      selectedMentorModal.availability === 'Busy' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'
+                    }`}>
+                      {selectedMentorModal.availability || 'Available'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => setSelectedMentorModal(null)} className="text-gray-400 hover:text-gray-600 p-1">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Bio & Investment Thesis</h4>
+                <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  {selectedMentorModal.bio || "Serial entrepreneur and specialist advisor helping founders find product-market fit and scale."}
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Areas of Expertise</h4>
+                <p className="text-sm font-semibold text-gray-800">
+                  {selectedMentorModal.expertise || "SaaS, Go-to-Market, Fundraising"}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between pt-1 text-xs">
+                <div>
+                  <span className="text-gray-500">LinkedIn: </span>
+                  <a href={`https://${selectedMentorModal.linkedin || 'linkedin.com'}`} target="_blank" rel="noreferrer" className="font-bold text-blue-600 hover:underline">
+                    {selectedMentorModal.linkedin || 'linkedin.com/in/mentor'}
+                  </a>
+                </div>
+                <div className="flex items-center text-yellow-500 font-bold">
+                  <Star size={14} className="fill-yellow-500 mr-1" /> {selectedMentorModal.rating || 4.9} ({selectedMentorModal.reviewsCount || 48} reviews)
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 pt-5 flex justify-end gap-3">
+                <button
+                  onClick={() => setSelectedMentorModal(null)}
+                  className="px-5 py-2.5 text-gray-600 font-bold hover:bg-gray-50 rounded-xl transition-colors text-sm"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    const name = selectedMentorModal.name;
+                    setSelectedMentorModal(null);
+                    handleBookCall(name, "My AI Startup");
+                  }}
+                  className="px-5 py-2.5 bg-[#5B21B6] text-white font-bold rounded-xl hover:bg-[#4C1D95] transition-colors text-sm shadow flex items-center gap-2"
+                >
+                  <span>Book 1:1 Call</span>
                 </button>
               </div>
             </div>

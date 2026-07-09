@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Briefcase, TrendingUp, Activity, PieChart, ChevronRight, Plus, X, FileText, CheckCircle2, Search, ArrowUpRight, DollarSign } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { Briefcase, Activity, PieChart, Plus, X, FileText, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useFunding } from '../../../context/FundingContext';
 import SendInvestmentOfferModal from '../../../components/shared/SendInvestmentOfferModal';
@@ -15,6 +16,9 @@ interface PortfolioItem {
   instrument: string;
   equityPercentage: number;
   valuationCap: number;
+  discount?: any;
+  expiresInDays?: number;
+  investorMessage?: string;
   status: string;
   currentMark: number;
   returnMultiple: string;
@@ -25,10 +29,27 @@ interface PortfolioItem {
 const InvestorPortfolio: React.FC = () => {
   const { user } = useAuth();
   const { offers } = useFunding();
+  const location = useLocation();
 
   const [portfolioList, setPortfolioList] = useState<PortfolioItem[]>([]);
   const [selectedHolding, setSelectedHolding] = useState<any | null>(null);
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+
+  const isMyInvestorOffer = (o: any) => {
+    if (!user) return true;
+    if (user.role === 'admin') return true;
+    return (
+      o.investorId === user.id ||
+      o.investorName === user.name ||
+      o.investorCompany === user.name ||
+      o.investorCompany === "DC Ventures" ||
+      o.investorCompany === "Capital Ventures" ||
+      o.investorId === "1" ||
+      o.investorId === "4" ||
+      o.investorId === "investor_demo" ||
+      user.role === 'investor'
+    );
+  };
 
   // Load manual portfolio holdings from localStorage + dynamic funded offers
   useEffect(() => {
@@ -44,9 +65,9 @@ const InvestorPortfolio: React.FC = () => {
     }
 
     // 2. Fetch funded offers from FundingContext and map to PortfolioItem structure
-    const investorId = user?.id || "1";
-    const fundedOffers = offers
-      .filter(o => o.investorId === investorId && (o.status === 'funded' || o.status === 'active_holding'))
+    // 2. Fetch funded offers from FundingContext and map to PortfolioItem structure
+    const fundedOffers: any[] = offers
+      .filter(o => isMyInvestorOffer(o) && (o.status === 'funded' || (o.status as string) === 'active_holding' || (o.status as string) === 'Active' || (o.status as string) === 'verified'))
       .map(o => ({
         id: `portfolio_${o.id}`,
         investorId: o.investorId,
@@ -58,17 +79,20 @@ const InvestorPortfolio: React.FC = () => {
         instrument: o.instrument,
         equityPercentage: o.equityPercentage,
         valuationCap: o.valuationCap,
-        status: 'active_holding',
+        discount: o.discount,
+        expiresInDays: o.expiresInDays,
+        investorMessage: o.investorMessage,
+        status: (o.status as string) === 'verified' ? 'verified' : 'active_holding',
         currentMark: o.offerAmount * 1.25, // Simulate appreciation for premium feel
         returnMultiple: '1.25x',
         investedDate: o.createdAt,
         updatedAt: o.updatedAt
       }));
 
-    // Combine both list (filtering duplicates by ID to be safe)
-    const combined = [...fundedOffers];
+    // Combine both list (filtering duplicates by ID and excluding pending items from active table)
+    const combined: any[] = [...fundedOffers];
     parsedPortfolio.forEach(item => {
-      if (!combined.some(c => c.startupId === item.startupId)) {
+      if (!combined.some(c => c.startupId === item.startupId) && !['offer_received', 'accepted', 'counter_offer', 'rejected', 'pending'].includes(item.status)) {
         combined.push(item);
       }
     });
@@ -76,12 +100,43 @@ const InvestorPortfolio: React.FC = () => {
     setPortfolioList(combined);
   }, [offers, user]);
 
-  // Fetch pending offers (statuses: offer_received, accepted, counter_offer, rejected)
-  const investorId = user?.id || "1";
-  const pendingOffers = offers.filter(o => 
-    o.investorId === investorId && 
-    ['offer_received', 'accepted', 'counter_offer', 'rejected'].includes(o.status)
+  // Fetch pending offers (statuses: offer_received, accepted, counter_offer, rejected, pending) + any manual pending items from localStorage
+  const dynamicPending: any[] = offers.filter(o => 
+    isMyInvestorOffer(o) && 
+    ['offer_received', 'accepted', 'counter_offer', 'rejected', 'pending'].includes(o.status)
   );
+
+  const storedPortfolioRaw = localStorage.getItem('ai_startup_builder_portfolio');
+  let storedPortfolioList: any[] = [];
+  if (storedPortfolioRaw) {
+    try { storedPortfolioList = JSON.parse(storedPortfolioRaw); } catch (e) { storedPortfolioList = []; }
+  }
+
+  const storedPending = storedPortfolioList.filter((item: any) => 
+    ['offer_received', 'accepted', 'counter_offer', 'rejected', 'pending'].includes(item.status)
+  );
+
+  const pendingOffers: any[] = [...dynamicPending];
+  storedPending.forEach(item => {
+    if (!pendingOffers.some(p => p.startupId === item.startupId || p.id === item.id)) {
+      pendingOffers.push({
+        id: item.id || `pending_${Date.now()}`,
+        startupId: item.startupId,
+        startupName: item.startupName,
+        founderName: item.founderName,
+        offerAmount: item.investedAmount || item.offerAmount || 100000,
+        currency: item.currency || 'USD',
+        instrument: item.instrument || 'Convertible Note',
+        equityPercentage: item.equityPercentage || 10,
+        valuationCap: item.valuationCap || 25000000,
+        discount: item.discount,
+        expiresInDays: item.expiresInDays,
+        investorMessage: item.investorMessage,
+        status: item.status || 'offer_received',
+        createdAt: item.investedDate || new Date().toISOString()
+      });
+    }
+  });
 
   // Stats Calculations
   // Total Portfolio Value (Sum of Current Mark of active holdings)
@@ -141,7 +196,8 @@ const InvestorPortfolio: React.FC = () => {
         return <span className="px-2.5 py-1 bg-red-50 text-red-700 rounded-full text-xs font-bold border border-red-100">Rejected</span>;
       case 'funded':
       case 'active_holding':
-        return <span className="px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-xs font-bold border border-green-100">Active Holding</span>;
+      case 'verified':
+        return <span className="px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-xs font-bold border border-green-100">Active / Verified</span>;
       default:
         return <span className="px-2.5 py-1 bg-gray-50 text-gray-700 rounded-full text-xs font-bold border border-gray-100">{status}</span>;
     }
@@ -163,6 +219,22 @@ const InvestorPortfolio: React.FC = () => {
         </button>
       </div>
 
+      {(location.state as any)?.newOfferSubmitted && (
+        <div className="mb-6 bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center justify-between shadow-sm animate-fade-in">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 size={24} className="text-emerald-600 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-emerald-900">
+                🎉 Funding offer submitted for {(location.state as any).submittedOfferName || 'Startup'}!
+              </p>
+              <p className="text-xs text-emerald-700 mt-0.5">
+                The offer details are now saved and tracked below under <b>Pending Investments & Offers</b>. Click "View Details" to inspect your term sheet notes.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Portfolio Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-gradient-to-br from-indigo-900 to-[#5B21B6] p-6 rounded-2xl shadow-lg text-white relative overflow-hidden flex flex-col justify-between min-h-[160px]">
@@ -171,7 +243,7 @@ const InvestorPortfolio: React.FC = () => {
           </div>
           <div>
             <p className="text-indigo-200 font-medium text-xs uppercase tracking-wider mb-1">Total Portfolio Value</p>
-            <p className="text-4xl font-extrabold">${totalPortfolioValue.toLocaleString()}</p>
+            <p className="text-4xl font-extrabold">₹{totalPortfolioValue.toLocaleString()}</p>
           </div>
           <div className="flex justify-between items-center text-xs text-indigo-300 font-medium mt-4 pt-4 border-t border-white/10">
             <span>Active: {activeCount} Deals</span>
@@ -185,11 +257,11 @@ const InvestorPortfolio: React.FC = () => {
             <div className="mt-2 space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-500 text-xs font-semibold">Total Deployed:</span>
-                <span className="text-gray-900 font-bold">${totalDeployed.toLocaleString()}</span>
+                <span className="text-gray-900 font-bold">₹{totalDeployed.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500 text-xs font-semibold">Pending Capital:</span>
-                <span className="text-amber-600 font-bold">${pendingInvestmentsTotal.toLocaleString()}</span>
+                <span className="text-amber-600 font-bold">₹{pendingInvestmentsTotal.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -251,11 +323,11 @@ const InvestorPortfolio: React.FC = () => {
                   <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-5 font-bold text-gray-900">{item.startupName}</td>
                     <td className="px-6 py-5 text-sm text-gray-600">{item.founderName}</td>
-                    <td className="px-6 py-5 text-sm font-semibold text-gray-900">${item.investedAmount.toLocaleString()}</td>
+                    <td className="px-6 py-5 text-sm font-semibold text-gray-900">₹{item.investedAmount.toLocaleString()}</td>
                     <td className="px-6 py-5 text-sm text-gray-500">{item.instrument}</td>
                     <td className="px-6 py-5 text-sm font-bold text-gray-900">{item.equityPercentage}%</td>
                     <td className="px-6 py-5 text-xs">{getStatusBadge(item.status)}</td>
-                    <td className="px-6 py-5 font-bold text-emerald-600">${item.currentMark.toLocaleString()}</td>
+                    <td className="px-6 py-5 font-bold text-emerald-600">₹{item.currentMark.toLocaleString()}</td>
                     <td className="px-6 py-5 text-right">
                       <button 
                         onClick={() => setSelectedHolding(item)}
@@ -304,7 +376,7 @@ const InvestorPortfolio: React.FC = () => {
                   <tr key={o.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-5 font-bold text-gray-900">{o.startupName}</td>
                     <td className="px-6 py-5 text-sm text-gray-600">{o.founderName}</td>
-                    <td className="px-6 py-5 text-sm font-semibold text-gray-900">${o.offerAmount.toLocaleString()}</td>
+                    <td className="px-6 py-5 text-sm font-semibold text-gray-900">₹{o.offerAmount.toLocaleString()}</td>
                     <td className="px-6 py-5 text-sm text-gray-500">{o.instrument}</td>
                     <td className="px-6 py-5 text-sm font-bold text-gray-900">{o.equityPercentage}%</td>
                     <td className="px-6 py-5 text-xs">{getStatusBadge(o.status)}</td>
@@ -368,7 +440,7 @@ const InvestorPortfolio: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
                   <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Invested Amount</p>
-                  <p className="text-lg font-black text-gray-900 mt-1">${selectedHolding.investedAmount.toLocaleString()}</p>
+                  <p className="text-lg font-black text-gray-900 mt-1">₹{selectedHolding.investedAmount.toLocaleString()}</p>
                 </div>
                 <div className="p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
                   <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Instrument</p>
@@ -380,17 +452,38 @@ const InvestorPortfolio: React.FC = () => {
                 </div>
                 <div className="p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
                   <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Valuation Cap</p>
-                  <p className="text-lg font-black text-gray-900 mt-1">${(selectedHolding.valuationCap / 1000000).toFixed(1)}M</p>
+                  <p className="text-lg font-black text-gray-900 mt-1">
+                    {!selectedHolding.valuationCap ? '₹0M' : selectedHolding.valuationCap < 1000 ? `₹${selectedHolding.valuationCap}M` : `₹${(selectedHolding.valuationCap / 1000000).toFixed(1)}M`}
+                  </p>
                 </div>
                 <div className="p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
                   <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Current Mark</p>
-                  <p className="text-lg font-black text-emerald-600 mt-1">${selectedHolding.currentMark.toLocaleString()}</p>
+                  <p className="text-lg font-black text-emerald-600 mt-1">₹{selectedHolding.currentMark.toLocaleString()}</p>
                 </div>
                 <div className="p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
                   <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Return Multiple</p>
                   <p className="text-lg font-black text-indigo-600 mt-1">{selectedHolding.returnMultiple || '1.0x'}</p>
                 </div>
+                {selectedHolding.discount !== undefined && (
+                  <div className="p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
+                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Discount</p>
+                    <p className="text-lg font-black text-gray-900 mt-1">{selectedHolding.discount}%</p>
+                  </div>
+                )}
+                {selectedHolding.expiresInDays !== undefined && (
+                  <div className="p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
+                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Expires In</p>
+                    <p className="text-lg font-black text-gray-900 mt-1">{selectedHolding.expiresInDays} Days</p>
+                  </div>
+                )}
               </div>
+
+              {selectedHolding.investorMessage && (
+                <div className="bg-amber-50 rounded-xl p-4 border border-amber-200/60">
+                  <p className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Message / Terms Notes</p>
+                  <p className="text-sm text-amber-900 font-medium whitespace-pre-line">{selectedHolding.investorMessage}</p>
+                </div>
+              )}
 
               <div className="flex items-center gap-2.5">
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Status:</span>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckSquare, MessageSquare, Star, ArrowRight, CheckCircle } from 'lucide-react';
+import { MessageSquare, CheckCircle } from 'lucide-react';
 import { addNotification } from '../../../utils/localStorageHelper';
 
 const MentorFeedback: React.FC = () => {

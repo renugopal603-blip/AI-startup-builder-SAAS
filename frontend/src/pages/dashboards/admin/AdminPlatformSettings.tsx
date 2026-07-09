@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { KeyRound, DollarSign } from 'lucide-react';
+import { KeyRound, IndianRupee } from 'lucide-react';
 import AdminRoles from './AdminRoles';
 import AdminMentorPaymentSettings from './AdminMentorPaymentSettings';
 
 const tabs = [
   { id: 'roles', label: 'Roles & Permissions', icon: KeyRound, component: AdminRoles },
-  { id: 'payments', label: 'Mentor Payment Settings', icon: DollarSign, component: AdminMentorPaymentSettings },
+  { id: 'payments', label: 'Mentor Payment Settings', icon: IndianRupee, component: AdminMentorPaymentSettings },
 ];
 
 const AdminPlatformSettings: React.FC = () => {

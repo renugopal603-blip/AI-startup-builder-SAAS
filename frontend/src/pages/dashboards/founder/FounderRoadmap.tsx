@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, Circle, Clock, ChevronRight, Plus, Flag } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronRight, Plus } from 'lucide-react';
 import { updateStartup } from '../../../utils/localStorageHelper';
 
 const initialPhases = [

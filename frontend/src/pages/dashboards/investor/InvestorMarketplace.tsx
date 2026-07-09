@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Cpu, ArrowRight, Bookmark, Target, X, CheckCircle2, AlertTriangle, Briefcase, ArrowLeft, DollarSign } from 'lucide-react';
+import { Search, Cpu, ArrowRight, Bookmark, Target, X, Briefcase, ArrowLeft, IndianRupee } from 'lucide-react';
 import SharedStartupDetailsTabs from '../../../components/shared/SharedStartupDetailsTabs';
 import { useAuth } from '../../../context/AuthContext';
 import { useFunding } from '../../../context/FundingContext';
@@ -75,29 +75,79 @@ const InvestorMarketplace: React.FC = () => {
   }, []);
 
   const handleSendOffer = () => {
-    if (!user || !selectedStartup) return;
+    if (!selectedStartup) return;
+
+    const newOfferId = `offer_${Date.now()}`;
+    const amountVal = Number(offerData.offerAmount) || 100000;
+    const equityVal = Number(offerData.equityPercentage) || 10;
+    const valuationVal = Number(offerData.valuationCap) || 25000000;
+    const discountVal = Number(offerData.discount) || 20;
+    const expiresVal = Number(offerData.expiresInDays) || 14;
+    const investorIdVal = user?.id || "4";
+    const investorNameVal = user?.name || "Capital Ventures";
+    const investorCompVal = (user as any)?.company || user?.name || "Capital Ventures";
 
     sendOffer({
-      startupId: selectedStartup.startupId,
-      startupName: selectedStartup.startupName,
-      founderId: "1", // Hardcoded for demo as founder is usually ID '1' in this demo
-      founderName: "Sarah Jenkins", // Hardcoded for demo
-      investorId: user.id,
-      investorName: user.name,
-      investorCompany: "DC Ventures", // Hardcoded for demo, normally would come from user profile
-      offerAmount: Number(offerData.offerAmount),
-      currency: offerData.currency,
-      equityPercentage: Number(offerData.equityPercentage),
-      valuationCap: Number(offerData.valuationCap),
-      instrument: offerData.instrument,
-      discount: Number(offerData.discount),
-      expiresInDays: Number(offerData.expiresInDays),
-      investorMessage: offerData.investorMessage
+      startupId: selectedStartup.startupId || `startup_${Date.now()}`,
+      startupName: selectedStartup.startupName || 'Messy',
+      founderId: selectedStartup.founderId || "1",
+      founderName: selectedStartup.founderName || "Sarah Jenkins",
+      investorId: investorIdVal,
+      investorName: investorNameVal,
+      investorCompany: investorCompVal,
+      offerAmount: amountVal,
+      currency: offerData.currency || 'USD',
+      equityPercentage: equityVal,
+      valuationCap: valuationVal,
+      instrument: offerData.instrument || 'Convertible Note',
+      discount: discountVal,
+      expiresInDays: expiresVal,
+      investorMessage: offerData.investorMessage || ''
     });
 
-    window.alert("Funding offer sent successfully!");
+    try {
+      const storedPortfolio = localStorage.getItem('ai_startup_builder_portfolio');
+      let portfolio: any[] = [];
+      if (storedPortfolio) {
+        try { portfolio = JSON.parse(storedPortfolio); } catch (e) { portfolio = []; }
+      }
+      const newPortfolioItem = {
+        id: `portfolio_${newOfferId}`,
+        startupId: selectedStartup.startupId || `startup_${Date.now()}`,
+        startupName: selectedStartup.startupName || 'Messy',
+        founderName: selectedStartup.founderName || "Sarah Jenkins",
+        investedAmount: amountVal,
+        currency: offerData.currency || 'USD',
+        instrument: offerData.instrument || 'Convertible Note',
+        equityPercentage: equityVal,
+        valuationCap: valuationVal,
+        discount: discountVal,
+        expiresInDays: expiresVal,
+        investorMessage: offerData.investorMessage || '',
+        status: 'offer_received',
+        currentMark: amountVal,
+        returnMultiple: '1.0x',
+        investedDate: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      if (!portfolio.some((p: any) => p.startupName === newPortfolioItem.startupName && p.status === 'offer_received')) {
+        localStorage.setItem('ai_startup_builder_portfolio', JSON.stringify([newPortfolioItem, ...portfolio]));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
     setShowFundingModal(false);
     setSelectedStartup(null);
+
+    navigate('/dashboard/investor/portfolio-hub', { 
+      state: { 
+        activeTab: 'investments', 
+        newOfferSubmitted: true, 
+        submittedOfferName: selectedStartup.startupName || 'Messy',
+        submittedOfferId: newOfferId
+      } 
+    });
   };
 
   return (
@@ -170,11 +220,11 @@ const InvestorMarketplace: React.FC = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100 mb-6">
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Target Raise</p>
-                  <p className="font-bold text-gray-900">$500k</p>
+                  <p className="font-bold text-gray-900">₹50,00,000</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Valuation Cap</p>
-                  <p className="font-bold text-gray-900">$2.5M</p>
+                  <p className="font-bold text-gray-900">₹2.5M</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Committed</p>
@@ -255,7 +305,7 @@ const InvestorMarketplace: React.FC = () => {
                     onClick={() => setShowFundingModal(true)}
                     className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-sm transition-colors shadow-sm flex items-center"
                   >
-                    <DollarSign size={16} className="mr-2" /> Send Funding Offer
+                    <IndianRupee size={16} className="mr-2" /> Send Funding Offer
                   </button>
                 </div>
               </div>
@@ -270,7 +320,7 @@ const InvestorMarketplace: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
               <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
-                <DollarSign size={18} className="text-green-600" /> 
+                <IndianRupee size={18} className="text-green-600" /> 
                 Send Funding Offer
               </h3>
               <button onClick={() => setShowFundingModal(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-200 transition-colors">
@@ -281,18 +331,18 @@ const InvestorMarketplace: React.FC = () => {
             <div className="p-6">
               <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center bg-green-50 p-4 rounded-xl border border-green-100 gap-4">
                 <div>
-                  <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-1">Target Startup</p>
+                  <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-1.5">Target Startup</p>
                   <p className="text-lg font-black text-gray-900">{selectedStartup?.startupName}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-1">Founder</p>
+                  <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-1.5">Founder</p>
                   <p className="text-sm font-bold text-gray-800">Sarah Jenkins</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Offer Amount ($)</label>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Offer Amount (₹)</label>
                   <input 
                     type="number" 
                     value={offerData.offerAmount}
@@ -327,7 +377,7 @@ const InvestorMarketplace: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Valuation Cap ($)</label>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Valuation Cap (₹)</label>
                   <input 
                     type="number" 
                     value={offerData.valuationCap}

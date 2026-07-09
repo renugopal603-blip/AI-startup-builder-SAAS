@@ -1,23 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, CheckCircle2, ChevronRight } from 'lucide-react';
+import { CheckCircle2, ChevronRight } from 'lucide-react';
 
 interface Props {
-  startupData: any;
-  setStartupData: (data: any) => void;
+  startupData?: any;
+  setStartupData?: (data: any) => void;
 }
 
 const sectionKeys = [
   { id: 1, key: 'executiveSummary', title: 'Executive Summary', desc: 'Overview of your startup, vision, and value proposition.' },
-  { id: 2, key: 'problemAndSolution', title: 'Problem & Solution', desc: 'Define the problem and how your product solves it uniquely.' },
-  { id: 3, key: 'productAndFeatures', title: 'Product & Features', desc: 'Core product features, roadmap, and technology stack.' },
-  { id: 4, key: 'goToMarketStrategy', title: 'Go-to-Market Strategy', desc: 'Customer acquisition channels and launch plan.' },
-  { id: 5, key: 'competitiveAnalysis', title: 'Competitive Analysis', desc: 'Competitor landscape and your defensible moat.' },
-  { id: 6, key: 'teamSuggestion', title: 'Team', desc: 'Founding team bios and key advisors.' },
-  { id: 7, key: 'financialProjection', title: 'Financial Projections', desc: '3-year revenue forecast, burn rate, and break-even.' },
-  { id: 8, key: 'fundingAsk', title: 'Funding Ask', desc: 'Amount raised, use of funds, and investor returns.' },
+  { id: 2, key: 'problemAndSolution', title: 'Problem & Solution', desc: 'Define the problem and how your product solves it.' },
+  { id: 3, key: 'productDetails', title: 'Product / Service Details', desc: 'Core product/service features and tech stack or quality.' },
+  { id: 4, key: 'targetCustomers', title: 'Target Customers', desc: 'Your ideal customer profiles and segments.' },
+  { id: 5, key: 'businessModel', title: 'Business Model', desc: 'How you create and deliver value.' },
+  { id: 6, key: 'revenueModel', title: 'Revenue Model', desc: 'How you make money (e.g., subscriptions, sales).' },
+  { id: 7, key: 'pricingStrategy', title: 'Pricing Strategy', desc: 'Your pricing logic and tiers.' },
+  { id: 8, key: 'goToMarketStrategy', title: 'Go-To-Market Strategy', desc: 'Customer acquisition channels and launch plan.' },
+  { id: 9, key: 'operationsPlan', title: 'Operations Plan', desc: 'Day-to-day operations and logistics.' },
+  { id: 10, key: 'teamRequirement', title: 'Team Requirement', desc: 'Founding team bios and key roles.' },
+  { id: 11, key: 'financialProjection', title: 'Financial Projections', desc: 'Revenue forecast, burn rate, and break-even.' },
+  { id: 12, key: 'fundingAsk', title: 'Funding Ask', desc: 'Amount raised and use of funds.' },
 ];
 
-const FounderBusinessPlan: React.FC<Props> = ({ startupData }) => {
+const FounderBusinessPlan: React.FC<Props> = ({ startupData = {} }) => {
   const [activeSection, setActiveSection] = useState(1);
   const [content, setContent] = useState('');
 

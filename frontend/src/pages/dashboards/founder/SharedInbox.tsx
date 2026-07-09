@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MessageSquare, Bell } from 'lucide-react';
 import FounderMessages from './FounderMessages';
 import FounderNotifications from './FounderNotifications';
@@ -9,8 +10,18 @@ const tabs = [
 ];
 
 const SharedInbox: React.FC = () => {
-  const [active, setActive] = useState('messages');
-  const ActiveComponent = tabs.find(t => t.id === active)!.component;
+  const location = useLocation();
+  const [active, setActive] = useState(() => {
+    return (location.state && location.state.activeTab) ? location.state.activeTab : 'messages';
+  });
+
+  useEffect(() => {
+    if (location.state && location.state.activeTab) {
+      setActive(location.state.activeTab);
+    }
+  }, [location.state]);
+
+  const ActiveComponent = tabs.find(t => t.id === active)?.component || FounderMessages;
 
   return (
     <div className="animate-fade-in-up">

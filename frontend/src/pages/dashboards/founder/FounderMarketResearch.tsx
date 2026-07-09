@@ -1,14 +1,12 @@
-import React, { useState } from 'react';
-import { Search, TrendingUp, Users, DollarSign, Globe, Target, AlertTriangle } from 'lucide-react';
+import React from 'react';
+import { TrendingUp, Users, IndianRupee, Globe, Target, AlertTriangle } from 'lucide-react';
 
 interface Props {
-  startupData: any;
-  setStartupData: (data: any) => void;
+  startupData?: any;
+  setStartupData?: (data: any) => void;
 }
 
-const FounderMarketResearch: React.FC<Props> = ({ startupData }) => {
-  const [keyword, setKeyword] = useState('');
-
+const FounderMarketResearch: React.FC<Props> = ({ startupData = {} }) => {
   const mr = startupData?.aiGenerated?.marketResearch;
 
   const getArray = (items: any) => {
@@ -72,12 +70,12 @@ const FounderMarketResearch: React.FC<Props> = ({ startupData }) => {
             </div>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
               <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2"><Target size={16} className="text-[#5B21B6]" /> Competitor Analysis</h2>
-              <ul className="space-y-3">
-                {getArray(mr?.competitors).map((ins: string, i: number) => (
-                  <li key={i} className="flex items-start gap-3 text-sm">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#5B21B6] flex-shrink-0 mt-1.5" />
-                    <span className="text-gray-700">{ins}</span>
-                  </li>
+              <p className="text-sm text-gray-700 leading-relaxed mb-6">{mr?.competitorAnalysis || 'N/A'}</p>
+              
+              <h3 className="text-sm font-bold text-gray-900 mb-2">Customer Segments</h3>
+              <ul className="space-y-2">
+                {getArray(mr?.customerSegments).map((seg: string, i: number) => (
+                  <li key={i} className="text-sm text-gray-600 leading-relaxed">• {seg}</li>
                 ))}
               </ul>
             </div>
@@ -85,7 +83,7 @@ const FounderMarketResearch: React.FC<Props> = ({ startupData }) => {
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2"><DollarSign size={16} className="text-emerald-500" /> Opportunities</h2>
+              <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2"><IndianRupee size={16} className="text-emerald-500" /> Opportunities</h2>
               <ul className="space-y-3">
                 {getArray(mr?.opportunities).map((ins: string, i: number) => (
                   <li key={i} className="flex items-start gap-3 text-sm">
@@ -105,16 +103,25 @@ const FounderMarketResearch: React.FC<Props> = ({ startupData }) => {
               </div>
             </div>
             
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2"><AlertTriangle size={16} className="text-red-500" /> Risks & Threats</h2>
-              <ul className="space-y-3">
-                {getArray(mr?.risks).map((ins: string, i: number) => (
-                  <li key={i} className="flex items-start gap-3 text-sm">
-                    <div className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0 mt-1.5" />
-                    <span className="text-gray-700">{ins}</span>
-                  </li>
-                ))}
-              </ul>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col">
+              <div className="mb-6">
+                <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2"><AlertTriangle size={16} className="text-red-500" /> Risks & Threats</h2>
+                <ul className="space-y-3">
+                  {getArray(mr?.risks).map((ins: string, i: number) => (
+                    <li key={i} className="flex items-start gap-3 text-sm">
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0 mt-1.5" />
+                      <span className="text-gray-700">{ins}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {mr?.locationSuggestions && mr.locationSuggestions !== "N/A - Global remote-first digital product." && (
+                <div className="mt-auto pt-6 border-t border-gray-100">
+                  <h3 className="text-sm font-bold text-gray-900 mb-2">Location / Market Fit</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{mr.locationSuggestions}</p>
+                </div>
+              )}
             </div>
           </div>
         </>

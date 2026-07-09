@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings2, Cpu, Database, Save, Activity } from 'lucide-react';
+import { Cpu, Save, Activity } from 'lucide-react';
 
 const AdminSettings: React.FC = () => (
   <div className="animate-fade-in-up pb-10">

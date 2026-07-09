@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Lightbulb, FileText, BarChart3, Search, ClipboardList, MessageSquare, RefreshCw, Play, ChevronDown, Download, File as FileIcon } from 'lucide-react';
+import { Lightbulb, FileText, BarChart3, Search, ClipboardList, MessageSquare, RefreshCw, Play, ChevronDown, Download, File as FileIcon, Sparkles } from 'lucide-react';
 import FounderIdeaGenerator from './FounderIdeaGenerator';
+import FounderBranding from './FounderBranding';
 import FounderBusinessPlan from './FounderBusinessPlan';
 import FounderPitchDeck from './FounderPitchDeck';
 import FounderMarketResearch from './FounderMarketResearch';
@@ -11,6 +12,7 @@ import { getStartups, getStartupById, updateStartup, generateStartupOutput, gene
 
 const tabs = [
   { id: 'idea',     label: 'AI Idea Generator',    icon: Lightbulb,    component: FounderIdeaGenerator },
+  { id: 'branding', label: 'Logo & Branding',      icon: Sparkles,     component: FounderBranding },
   { id: 'plan',     label: 'Business Plan',         icon: FileText,     component: FounderBusinessPlan },
   { id: 'pitch',    label: 'Pitch Deck',             icon: BarChart3,    component: FounderPitchDeck },
   { id: 'market',   label: 'Market Research',        icon: Search,       component: FounderMarketResearch },
@@ -301,47 +303,86 @@ const FounderAIBuilder: React.FC = () => {
 
   return (
     <div className="animate-fade-in-up">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">AI Builder</h1>
           <p className="text-gray-500 mt-1">All your AI-powered startup tools in one place.</p>
         </div>
         
         {startupData && startupData.status === 'generated' && (
-          <div className="relative">
+          <div className="flex flex-wrap items-center gap-3">
             <button 
-              onClick={() => setShowExportMenu(!showExportMenu)}
-              disabled={exporting}
-              className="flex items-center px-4 py-2.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl shadow text-sm transition-colors disabled:opacity-50"
+              onClick={handleGenerate}
+              disabled={generating}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-colors flex items-center"
             >
-              {exporting ? <RefreshCw size={16} className="animate-spin mr-2" /> : <Download size={16} className="mr-2" />}
-              {exporting ? 'Exporting...' : 'Export'}
-              <ChevronDown size={16} className="ml-2" />
+              <RefreshCw size={16} className={`mr-2 ${generating ? 'animate-spin' : ''}`} />
+              Regenerate
             </button>
             
-            {showExportMenu && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-fade-in-up">
-                <button 
-                  onClick={() => handleExport('PDF')}
-                  className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
-                >
-                  <FileText size={16} className="mr-3 text-red-500" /> Export as PDF
-                </button>
-                <button 
-                  onClick={() => handleExport('WORD')}
-                  className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
-                >
-                  <FileIcon size={16} className="mr-3 text-blue-500" /> Export as Word
-                </button>
-                <div className="border-t border-gray-100 my-1"></div>
-                <button 
-                  onClick={() => handleExport('ZIP')}
-                  className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
-                >
-                  <Download size={16} className="mr-3 text-purple-500" /> Download All as ZIP
-                </button>
-              </div>
-            )}
+            <button 
+              onClick={() => {
+                alert('Saved to My Startups!');
+                window.location.href = '/dashboard/founder/startups';
+              }}
+              className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-sm transition-colors flex items-center border border-blue-100"
+            >
+              <FileIcon size={16} className="mr-2" />
+              Save to My Startups
+            </button>
+
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(JSON.stringify(startupData.aiGenerated, null, 2));
+                alert('Startup data copied to clipboard!');
+              }}
+              className="px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold rounded-xl text-sm transition-colors flex items-center border border-gray-200"
+            >
+              <ClipboardList size={16} className="mr-2" />
+              Copy
+            </button>
+
+            <div className="relative">
+              <button 
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                disabled={exporting}
+                className="flex items-center px-4 py-2 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl shadow text-sm transition-colors disabled:opacity-50"
+              >
+                {exporting ? <RefreshCw size={16} className="animate-spin mr-2" /> : <Download size={16} className="mr-2" />}
+                {exporting ? 'Exporting...' : 'Export'}
+                <ChevronDown size={16} className="ml-2" />
+              </button>
+              
+              {showExportMenu && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-fade-in-up">
+                  <button 
+                    onClick={() => handleExport('PDF')}
+                    className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
+                  >
+                    <FileText size={16} className="mr-3 text-red-500" /> Export PDF
+                  </button>
+                  <button 
+                    onClick={() => handleExport('WORD')}
+                    className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
+                  >
+                    <FileIcon size={16} className="mr-3 text-blue-500" /> Export Word
+                  </button>
+                  <button 
+                    onClick={() => handleExport('PPT')}
+                    className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
+                  >
+                    <BarChart3 size={16} className="mr-3 text-orange-500" /> Export Pitch Deck
+                  </button>
+                  <div className="border-t border-gray-100 my-1"></div>
+                  <button 
+                    onClick={() => handleExport('ZIP')}
+                    className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center text-sm font-bold text-gray-700"
+                  >
+                    <Download size={16} className="mr-3 text-purple-500" /> Download All as ZIP
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

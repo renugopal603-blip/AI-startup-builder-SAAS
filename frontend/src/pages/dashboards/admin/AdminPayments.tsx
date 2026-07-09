@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { DollarSign, Download, TrendingUp, AlertCircle, CheckCircle2, Clock, Check, X, Image as ImageIcon } from 'lucide-react';
+import { Download, AlertCircle, CheckCircle2, Clock, Check, X, Image as ImageIcon } from 'lucide-react';
 import { useBilling } from '../../../context/BillingContext';
 
 const statusStyle: Record<string, { cls: string; icon: React.ElementType }> = {
@@ -35,10 +35,10 @@ const AdminPayments: React.FC = () => {
     });
 
     return {
-      revenue: `$${totalRevenue.toLocaleString()}`,
+      revenue: `₹${totalRevenue.toLocaleString()}`,
       successful: successful.toString(),
       failed: failed.toString(),
-      refunds: `$${refunded.toLocaleString()}`
+      refunds: `₹${refunded.toLocaleString()}`
     };
   }, [transactions]);
   
@@ -145,7 +145,7 @@ const AdminPayments: React.FC = () => {
                       <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide mt-0.5">{p.billingCycle}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm font-black text-gray-900">${p.amount}.00</p>
+                      <p className="text-sm font-black text-gray-900">₹{p.amount}.00</p>
                       <p className="text-[11px] font-bold text-gray-500 mt-0.5">{p.paymentMethod}</p>
                     </td>
                     <td className="px-6 py-4">

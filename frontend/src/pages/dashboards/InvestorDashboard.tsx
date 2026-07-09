@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Briefcase, TrendingUp, Search, Filter, X, Cpu, CheckCircle2, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Briefcase, TrendingUp, Search, X, ArrowLeft } from 'lucide-react';
 import SharedStartupDetailsTabs from '../../components/shared/SharedStartupDetailsTabs';
 
 const InvestorDashboard: React.FC = () => {
@@ -34,7 +34,7 @@ const InvestorDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-6 rounded-2xl shadow-sm text-white">
           <p className="text-sm font-medium text-gray-400 mb-1">Total Deployed Capital</p>
-          <p className="text-3xl font-bold">$1.2M</p>
+          <p className="text-3xl font-bold">₹1.2M</p>
         </div>
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex justify-between items-start">

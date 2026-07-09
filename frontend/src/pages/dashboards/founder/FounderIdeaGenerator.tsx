@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { Lightbulb, Sparkles, RefreshCw, Rocket, Target, Briefcase, FileText, Download, Copy, Save } from 'lucide-react';
+import { Lightbulb, Sparkles, RefreshCw, Rocket, Target, Briefcase, FileText, Download, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Props {
-  startupData: any;
-  setStartupData: (data: any) => void;
+  startupData?: any;
+  setStartupData?: (data: any) => void;
 }
 
 import { generateStartupOutput, generateRoadmapAndTasks, updateStartup } from '../../../utils/localStorageHelper';
 
-const FounderIdeaGenerator: React.FC<Props> = ({ startupData, setStartupData }) => {
+const FounderIdeaGenerator: React.FC<Props> = ({ startupData = {}, setStartupData = () => {} }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -96,19 +96,18 @@ const FounderIdeaGenerator: React.FC<Props> = ({ startupData, setStartupData }) 
               <p className="text-[15px] leading-[1.7] text-gray-700 break-words">{ai.uniqueValueProposition}</p>
           </div>
 
-          <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-100 hide-in-read-only">
-            <button onClick={() => { window.alert('Saved successfully!'); navigate('/dashboard/founder/startups'); }} className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors">
-              <Save size={16} /> Save to My Startups
-            </button>
-            <button onClick={regenerate} disabled={loading} className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors disabled:opacity-50">
-              {loading ? <RefreshCw size={16} className="animate-spin" /> : <RefreshCw size={16} />} Regenerate
-            </button>
-            <button onClick={() => window.print()} className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition-colors ml-auto">
-              <Download size={16} /> Export PDF
-            </button>
-            <button onClick={() => window.print()} className="flex items-center gap-2 px-5 py-2.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-lg text-sm transition-colors shadow">
-              <FileText size={16} /> Export Pitch Deck
-            </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-gray-50 rounded-[20px] border border-gray-100 p-6">
+                <h3 className="font-semibold text-[18px] text-gray-900 mb-4 tracking-wide uppercase flex items-center gap-2">Market Opportunity</h3>
+                <p className="text-[15px] leading-[1.7] text-gray-700 break-words">{ai.marketOpportunity}</p>
+            </div>
+            
+            <div className="bg-emerald-50/50 rounded-[20px] border border-emerald-100 p-6">
+                <h3 className="font-semibold text-[18px] text-emerald-900 mb-4 tracking-wide uppercase flex items-center gap-2">Next Steps</h3>
+                <ul className="list-decimal pl-5 text-[15px] leading-[1.7] text-emerald-800 space-y-2 break-words font-medium">
+                  {ai.nextSteps?.map((step: string, i: number) => <li key={i}>{step}</li>)}
+                </ul>
+            </div>
           </div>
         </div>
       </div>

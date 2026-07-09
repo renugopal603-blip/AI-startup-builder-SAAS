@@ -1,10 +1,10 @@
 import React from 'react';
-import { DollarSign, ArrowUpRight, Clock } from 'lucide-react';
+import { IndianRupee, ArrowUpRight, Clock } from 'lucide-react';
 
 const transactions = [
-  { id: 'TRX-9821', date: 'Jun 15, 2026', startup: 'EcoPackage Hub', amount: '$50,000', type: 'SAFE Investment', status: 'Completed', pnl: '+12%' },
-  { id: 'TRX-7734', date: 'May 02, 2026', startup: 'AI Legal Reviewer', amount: '$25,000', type: 'Convertible Note', status: 'Completed', pnl: '+5%' },
-  { id: 'TRX-9012', date: 'Jul 01, 2026', startup: 'DataSync Pro', amount: '$100,000', type: 'Equity (Priced Round)', status: 'Pending', pnl: 'N/A' },
+  { id: 'TRX-9821', date: 'Jun 15, 2026', startup: 'EcoPackage Hub', amount: '₹50,00,000', type: 'SAFE Investment', status: 'Completed', pnl: '+12%' },
+  { id: 'TRX-7734', date: 'May 02, 2026', startup: 'AI Legal Reviewer', amount: '₹25,00,000', type: 'Convertible Note', status: 'Completed', pnl: '+5%' },
+  { id: 'TRX-9012', date: 'Jul 01, 2026', startup: 'DataSync Pro', amount: '₹1,00,00,000', type: 'Equity (Priced Round)', status: 'Pending', pnl: 'N/A' },
 ];
 
 const InvestorTransactions: React.FC = () => {
@@ -20,11 +20,11 @@ const InvestorTransactions: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <p className="text-sm font-bold text-gray-500 mb-1">Total Deployed</p>
-          <p className="text-3xl font-extrabold text-gray-900">$75,000</p>
+          <p className="text-3xl font-extrabold text-gray-900">₹75,00,000</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <p className="text-sm font-bold text-gray-500 mb-1">Pending Investments</p>
-          <p className="text-3xl font-extrabold text-amber-600">$100,000</p>
+          <p className="text-3xl font-extrabold text-amber-600">₹1,00,00,000</p>
         </div>
         <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl shadow-sm p-6 text-white">
           <p className="text-sm font-bold text-emerald-100 mb-1">Avg. Unrealised Return</p>
@@ -59,7 +59,7 @@ const InvestorTransactions: React.FC = () => {
                   <td className="px-6 py-4 font-bold text-[#5B21B6]">{t.amount}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${t.status === 'Completed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
-                      {t.status === 'Completed' ? <DollarSign size={12} /> : <Clock size={12} />} {t.status}
+                      {t.status === 'Completed' ? <IndianRupee size={12} /> : <Clock size={12} />} {t.status}
                     </span>
                   </td>
                 </tr>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Send, ShieldAlert, ChevronDown, Users } from 'lucide-react';
 import { useChat } from '../../../context/ChatContext';
-import type { Conversation, ChatUser } from '../../../context/ChatContext';
+import type { Conversation } from '../../../context/ChatContext';
 import { useAuth } from '../../../context/AuthContext';
 
 const SharedMessages: React.FC = () => {

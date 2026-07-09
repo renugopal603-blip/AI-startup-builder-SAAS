@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MoreVertical, Mail, Shield, UserCheck, UserX, BadgeCheck, Filter, Eye, Trash2, Download, X } from 'lucide-react';
+import { Search, UserCheck, UserX, Eye, Trash2, Download, X } from 'lucide-react';
 
 const initialUsers = [
   { id: 1, name: 'Sarah Jenkins', email: 'sarah@startup.ai', role: 'Founder', status: 'Active', plan: 'Growth', joined: 'Jan 15, 2026', avatar: 'S', color: 'from-[#7C3AED] to-[#FBBF24]' },

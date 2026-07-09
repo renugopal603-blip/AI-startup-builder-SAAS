@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, RefreshCw } from 'lucide-react';
+import { Send, Bot, RefreshCw } from 'lucide-react';
 
 interface Props {
-  startupData: any;
-  setStartupData: (data: any) => void;
+  startupData?: any;
+  setStartupData?: (data: any) => void;
 }
 
 type Msg = { role: 'user' | 'ai'; text: string };
@@ -19,7 +19,7 @@ const getInitialMessages = (startupName: string): Msg[] => [
   { role: 'ai', text: `Hi! I'm your AI co-founder for ${startupName ? startupName : 'your startup'}. I have all your business plan and market research context. What would you like to discuss today?` },
 ];
 
-const FounderAIChat: React.FC<Props> = ({ startupData }) => {
+const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
   const [messages, setMessages] = useState<Msg[]>(getInitialMessages(startupData?.startupName || ''));
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);

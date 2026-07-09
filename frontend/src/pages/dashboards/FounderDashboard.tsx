@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Lightbulb, TrendingUp, DollarSign, Clock } from 'lucide-react';
+import { Lightbulb, TrendingUp, IndianRupee, Clock } from 'lucide-react';
 
 const FounderDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -10,7 +10,7 @@ const FounderDashboard: React.FC = () => {
   const stats = [
     { title: 'Total Startups', value: '3', icon: Lightbulb, color: 'text-blue-500', bg: 'bg-blue-100' },
     { title: 'AI Reports Generated', value: '12', icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-100' },
-    { title: 'Pending Offers', value: '1', icon: DollarSign, color: 'text-green-500', bg: 'bg-green-100' },
+    { title: 'Pending Offers', value: '1', icon: IndianRupee, color: 'text-green-500', bg: 'bg-green-100' },
     { title: 'Mentor Reviews', value: '2', icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-100' },
   ];
 
@@ -98,7 +98,7 @@ const FounderDashboard: React.FC = () => {
                 <div className="w-2 h-2 mt-2 rounded-full bg-green-500 mr-3"></div>
                 <div>
                   <p className="text-sm font-medium text-gray-900">Investment Offer Received</p>
-                  <p className="text-xs text-gray-500">David Chen offered $250k for 10% on EcoPackage</p>
+                  <p className="text-xs text-gray-500">David Chen offered ₹25,00,000 for 10% on EcoPackage</p>
                   <p className="text-xs text-gray-400 mt-1">2 hours ago</p>
                 </div>
               </div>

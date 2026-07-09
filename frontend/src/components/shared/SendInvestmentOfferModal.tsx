@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { DollarSign, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { IndianRupee, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useFunding } from '../../context/FundingContext';
 
@@ -18,6 +19,7 @@ const SendInvestmentOfferModal: React.FC<SendInvestmentOfferModalProps> = ({
 }) => {
   const { user } = useAuth();
   const { sendOffer } = useFunding();
+  const navigate = useNavigate();
 
   const [offerData, setOfferData] = useState({
     startupName: initialStartupName,
@@ -27,7 +29,7 @@ const SendInvestmentOfferModal: React.FC<SendInvestmentOfferModalProps> = ({
     investorEmail: '',
     investorAddress: '',
     offerAmount: '',
-    currency: 'USD',
+    currency: 'INR',
     equityPercentage: '',
     valuationCap: '',
     instrument: 'SAFE',
@@ -39,29 +41,68 @@ const SendInvestmentOfferModal: React.FC<SendInvestmentOfferModalProps> = ({
   if (!isOpen) return null;
 
   const handleSendOffer = () => {
-    if (!user) return;
+    const newOfferId = `offer_${Date.now()}`;
+    const amountVal = Number(offerData.offerAmount) || 100000;
+    const equityVal = Number(offerData.equityPercentage) || 10;
+    const valuationVal = Number(offerData.valuationCap) || 25000000;
+    const discountVal = Number(offerData.discount) || 20;
+    const expiresVal = Math.max(1, Math.ceil((new Date(offerData.expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) || 14;
+    const investorIdVal = user?.id || "4";
+    const investorNameVal = offerData.investorName || user?.name || "Capital Ventures";
+    const investorCompVal = offerData.investorCompany || (user as any)?.company || user?.name || "Capital Ventures";
 
     sendOffer({
       startupId: `startup_${Date.now()}`,
       startupName: offerData.startupName || 'Unknown Startup',
       founderId: "1", // Hardcoded for demo
-      founderName: offerData.founderName || 'Founder',
-      investorId: user.id,
-      investorName: offerData.investorName || user.name,
-      investorCompany: offerData.investorCompany || "DC Ventures",
+      founderName: offerData.founderName || 'Sarah Jenkins',
+      investorId: investorIdVal,
+      investorName: investorNameVal,
+      investorCompany: investorCompVal,
       investorEmail: offerData.investorEmail,
       investorAddress: offerData.investorAddress,
-      offerAmount: Number(offerData.offerAmount),
+      offerAmount: amountVal,
       currency: offerData.currency,
-      equityPercentage: Number(offerData.equityPercentage),
-      valuationCap: Number(offerData.valuationCap),
-      instrument: offerData.instrument,
-      discount: Number(offerData.discount),
-      expiresInDays: Math.max(1, Math.ceil((new Date(offerData.expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))),
-      investorMessage: offerData.investorMessage
+      equityPercentage: equityVal,
+      valuationCap: valuationVal,
+      instrument: offerData.instrument || 'SAFE',
+      discount: discountVal,
+      expiresInDays: expiresVal,
+      investorMessage: offerData.investorMessage || ''
     });
 
-    window.alert("Investment offer sent successfully!");
+    try {
+      const storedPortfolio = localStorage.getItem('ai_startup_builder_portfolio');
+      let portfolio: any[] = [];
+      if (storedPortfolio) {
+        try { portfolio = JSON.parse(storedPortfolio); } catch (e) { portfolio = []; }
+      }
+      const newPortfolioItem = {
+        id: `portfolio_${newOfferId}`,
+        startupId: `startup_${Date.now()}`,
+        startupName: offerData.startupName || 'Unknown Startup',
+        founderName: offerData.founderName || "Sarah Jenkins",
+        investedAmount: amountVal,
+        currency: offerData.currency || 'USD',
+        instrument: offerData.instrument || 'SAFE',
+        equityPercentage: equityVal,
+        valuationCap: valuationVal,
+        discount: discountVal,
+        expiresInDays: expiresVal,
+        investorMessage: offerData.investorMessage || '',
+        status: 'offer_received',
+        currentMark: amountVal,
+        returnMultiple: '1.0x',
+        investedDate: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      if (!portfolio.some((p: any) => p.startupName === newPortfolioItem.startupName && p.status === 'offer_received')) {
+        localStorage.setItem('ai_startup_builder_portfolio', JSON.stringify([newPortfolioItem, ...portfolio]));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
     onClose();
     setOfferData({
       startupName: '',
@@ -79,6 +120,15 @@ const SendInvestmentOfferModal: React.FC<SendInvestmentOfferModalProps> = ({
       expiryDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       investorMessage: ''
     });
+
+    navigate('/dashboard/investor/portfolio-hub', { 
+      state: { 
+        activeTab: 'investments', 
+        newOfferSubmitted: true, 
+        submittedOfferName: offerData.startupName || 'Startup',
+        submittedOfferId: newOfferId
+      } 
+    });
   };
 
   return (
@@ -86,7 +136,7 @@ const SendInvestmentOfferModal: React.FC<SendInvestmentOfferModalProps> = ({
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
-            <DollarSign size={20} className="text-[#5B21B6]" /> Send Investment Offer
+            <IndianRupee size={20} className="text-[#5B21B6]" /> Send Investment Offer
           </h3>
           <button 
             onClick={onClose} 
@@ -184,10 +234,10 @@ const SendInvestmentOfferModal: React.FC<SendInvestmentOfferModalProps> = ({
                 onChange={(e) => setOfferData({...offerData, currency: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6]"
               >
+                <option value="INR">INR (₹)</option>
                 <option value="USD">USD ($)</option>
                 <option value="EUR">EUR (€)</option>
                 <option value="GBP">GBP (£)</option>
-                <option value="INR">INR (₹)</option>
               </select>
             </div>
             <div>
@@ -216,7 +266,7 @@ const SendInvestmentOfferModal: React.FC<SendInvestmentOfferModalProps> = ({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">Valuation Cap ($)</label>
+              <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">Valuation Cap (₹)</label>
               <input 
                 type="number" 
                 value={offerData.valuationCap}

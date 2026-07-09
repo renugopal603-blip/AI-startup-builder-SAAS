@@ -1,5 +1,5 @@
 import React from 'react';
-import { LifeBuoy, Clock, Search, MoreVertical } from 'lucide-react';
+import { Clock, Search } from 'lucide-react';
 
 const tickets = [
   { id: '#1042', user: 'Sarah Jenkins', role: 'Founder', subject: 'Pitch Deck AI stuck on generation', status: 'Open', priority: 'High', time: '10m ago' },

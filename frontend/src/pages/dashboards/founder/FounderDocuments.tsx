@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, FileText, File, Image, Search, Plus, Download, Trash2, X, Eye } from 'lucide-react';
+import { Upload, FileText, File, Image, Search, Download, Trash2, X, Eye } from 'lucide-react';
 import { getDocuments, saveDocument, deleteDocument, getStartups } from '../../../utils/localStorageHelper';
 import jsPDF from 'jspdf';
 import { Document as DocxDocument, Packer, Paragraph, TextRun } from 'docx';

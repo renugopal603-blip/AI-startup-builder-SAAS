@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
-import { Presentation, ChevronLeft, ChevronRight, Download, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
 
 interface Props {
-  startupData: any;
-  setStartupData: (data: any) => void;
+  startupData?: any;
+  setStartupData?: (data: any) => void;
 }
 
 const baseSlides = [
-  { id: 1, title: 'Cover', defaultContent: 'Company name, tagline & logo', icon: '🚀' },
+  { id: 1, title: 'Cover Slide', defaultContent: 'Company name, tagline & logo', icon: '🚀' },
   { id: 2, title: 'Problem', defaultContent: 'The pain point you are solving', icon: '⚠️' },
   { id: 3, title: 'Solution', defaultContent: 'Your product and how it helps', icon: '💡' },
   { id: 4, title: 'Market Size', defaultContent: 'TAM, SAM, SOM breakdown', icon: '📊' },
-  { id: 5, title: 'Product Demo', defaultContent: 'Screenshots / walkthrough', icon: '🖥️' },
+  { id: 5, title: 'Product / Service Demo', defaultContent: 'Screenshots / walkthrough', icon: '🖥️' },
   { id: 6, title: 'Business Model', defaultContent: 'How you make money', icon: '💰' },
-  { id: 7, title: 'Traction', defaultContent: 'Key metrics & growth proof', icon: '📈' },
-  { id: 8, title: 'Go-To-Market', defaultContent: 'How you acquire customers', icon: '🎯' },
-  { id: 9, title: 'Team', defaultContent: 'Founders & key team members', icon: '👥' },
-  { id: 10, title: 'Funding Ask', defaultContent: 'Funding amount & use of funds', icon: '🤝' },
+  { id: 7, title: 'Traction / Validation', defaultContent: 'Early traction and feedback', icon: '📈' },
+  { id: 8, title: 'Go-To-Market', defaultContent: 'Customer acquisition strategy', icon: '🎯' },
+  { id: 9, title: 'Team', defaultContent: 'Founders & key advisors', icon: '👥' },
+  { id: 10, title: 'Funding Ask', defaultContent: 'Funding amount & terms', icon: '💸' },
 ];
 
 const themes = [
@@ -26,7 +26,7 @@ const themes = [
   { name: 'Minimal', color: 'bg-white border border-gray-200', text: 'text-gray-900' },
 ];
 
-const FounderPitchDeck: React.FC<Props> = ({ startupData }) => {
+const FounderPitchDeck: React.FC<Props> = ({ startupData = {} }) => {
   const [activeSlide, setActiveSlide] = useState(1);
   const [theme, setTheme] = useState(0);
 

@@ -7,7 +7,6 @@ import LandingPage from './pages/LandingPage';
 import Login from './pages/auth/Login';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import DashboardLayout from './layouts/DashboardLayout';
-import ComingSoon from './components/shared/ComingSoon';
 
 // ── Founder Pages ────────────────────────────────────────────────
 import FounderDashboard from './pages/dashboards/FounderDashboard';
@@ -61,7 +60,6 @@ import AdminRoles            from './pages/dashboards/admin/AdminRoles';
 import AdminSubscriptions    from './pages/dashboards/admin/AdminSubscriptions';
 import AdminSubManagement    from './pages/dashboards/admin/AdminSubManagement';
 import AdminPayments         from './pages/dashboards/admin/AdminPayments';
-import AdminTickets          from './pages/dashboards/admin/AdminTickets';
 import AdminAnalytics        from './pages/dashboards/admin/AdminAnalytics';
 import AdminAISettings       from './pages/dashboards/admin/AdminAISettings';
 import AdminLogs             from './pages/dashboards/admin/AdminLogs';
@@ -145,7 +143,6 @@ function App() {
                     <Route path="approvals-hub"      element={<AdminApprovalsHub />} />
                     <Route path="sub-payments"       element={<AdminSubPayments />} />
                     <Route path="analytics"          element={<AdminAnalytics />} />
-                    <Route path="tickets"            element={<AdminTickets />} />
                     <Route path="platform-settings"  element={<AdminPlatformSettings />} />
                     <Route path="inbox"              element={<SharedInbox />} />
                     {/* Legacy / Direct paths */}

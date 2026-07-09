@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Save, Percent, Briefcase, Clock, Calendar } from 'lucide-react';
+import { IndianRupee, Save, Percent, Briefcase, Calendar } from 'lucide-react';
 import { getMentorPaymentSettings, saveMentorPaymentSettings } from '../../../utils/localStorageHelper';
 
 const AdminMentorPaymentSettings: React.FC = () => {
@@ -99,7 +99,7 @@ const AdminMentorPaymentSettings: React.FC = () => {
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-          <DollarSign size={20} className="text-[#5B21B6]" /> Per Task Base Rates ($)
+          <IndianRupee size={20} className="text-[#5B21B6]" /> Per Task Base Rates (₹)
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
@@ -161,7 +161,7 @@ const AdminMentorPaymentSettings: React.FC = () => {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Weekly Salary ($)</label>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Weekly Salary (₹)</label>
             <input
               type="number"
               name="weeklySalaryAmount"
@@ -171,7 +171,7 @@ const AdminMentorPaymentSettings: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Monthly Salary ($)</label>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Monthly Salary (₹)</label>
             <input
               type="number"
               name="monthlySalaryAmount"

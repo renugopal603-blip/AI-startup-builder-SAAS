@@ -1,10 +1,10 @@
 import React from 'react';
-import { CreditCard, TrendingUp, DollarSign, Download, ArrowUpRight } from 'lucide-react';
+import { CreditCard, TrendingUp, IndianRupee, Download } from 'lucide-react';
 
 const subscriptions = [
-  { id: 'SUB-092', user: 'EcoPackage Hub', plan: 'Scale', amount: '$149.00', status: 'Paid', date: 'Jul 2, 2026' },
-  { id: 'SUB-091', user: 'AI Legal Reviewer', plan: 'Growth', amount: '$49.00', status: 'Paid', date: 'Jul 1, 2026' },
-  { id: 'SUB-090', user: 'Fintech Micro-SaaS', plan: 'Scale', amount: '$149.00', status: 'Failed', date: 'Jun 28, 2026' },
+  { id: 'SUB-092', user: 'EcoPackage Hub', plan: 'Scale', amount: '₹149.00', status: 'Paid', date: 'Jul 2, 2026' },
+  { id: 'SUB-091', user: 'AI Legal Reviewer', plan: 'Growth', amount: '₹49.00', status: 'Paid', date: 'Jul 1, 2026' },
+  { id: 'SUB-090', user: 'Fintech Micro-SaaS', plan: 'Scale', amount: '₹149.00', status: 'Failed', date: 'Jun 28, 2026' },
 ];
 
 const AdminBilling: React.FC = () => {
@@ -44,10 +44,10 @@ const AdminBilling: React.FC = () => {
 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {[
-        { label: 'MRR', val: '$42,500', inc: '+12%', icon: DollarSign, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+        { label: 'MRR', val: '₹42,500', inc: '+12%', icon: IndianRupee, color: 'text-emerald-500', bg: 'bg-emerald-50' },
         { label: 'Active Subs', val: '850', inc: '+5%', icon: CreditCard, color: 'text-blue-500', bg: 'bg-blue-50' },
-        { label: 'Avg Revenue / User', val: '$50', inc: '+2%', icon: TrendingUp, color: 'text-[#5B21B6]', bg: 'bg-purple-50' },
-        { label: 'Failed Charges', val: '12', inc: '-2%', icon: DollarSign, color: 'text-red-500', bg: 'bg-red-50' },
+        { label: 'Avg Revenue / User', val: '₹50', inc: '+2%', icon: TrendingUp, color: 'text-[#5B21B6]', bg: 'bg-purple-50' },
+        { label: 'Failed Charges', val: '12', inc: '-2%', icon: IndianRupee, color: 'text-red-500', bg: 'bg-red-50' },
       ].map((stat, i) => (
         <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">

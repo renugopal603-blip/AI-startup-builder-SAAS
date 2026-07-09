@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FileText, DollarSign, Star, CheckCircle } from 'lucide-react';
+import { FileText, IndianRupee, Star, CheckCircle } from 'lucide-react';
 
 const MentorDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -27,7 +27,7 @@ const MentorDashboard: React.FC = () => {
     { title: 'Pending Reviews', value: '4', icon: FileText, color: 'text-orange-500', bg: 'bg-orange-100' },
     { title: 'Completed Reviews', value: '128', icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-100' },
     { title: 'Average Rating', value: '4.9', icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-100' },
-    { title: 'Total Earnings', value: '$3,840', icon: DollarSign, color: 'text-purple-500', bg: 'bg-purple-100' },
+    { title: 'Total Earnings', value: '₹3,84,000', icon: IndianRupee, color: 'text-purple-500', bg: 'bg-purple-100' },
   ];
 
   return (

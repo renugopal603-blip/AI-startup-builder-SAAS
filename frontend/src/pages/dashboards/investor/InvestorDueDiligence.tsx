@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, FolderOpen, FileText, Download, ShieldCheck, Activity, Lock, Image, File } from 'lucide-react';
+import { Search, FolderOpen, FileText, Download, ShieldCheck, Lock, Image, File } from 'lucide-react';
 import { getDocuments, getStartups } from '../../../utils/localStorageHelper';
 import jsPDF from 'jspdf';
 import { Document as DocxDocument, Packer, Paragraph, TextRun } from 'docx';

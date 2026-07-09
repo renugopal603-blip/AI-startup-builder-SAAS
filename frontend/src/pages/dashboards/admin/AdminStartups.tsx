@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, MoreVertical, Building2, X, Cpu, CheckCircle2, AlertTriangle, ArrowLeft, FileText, Eye, Trash2, DollarSign, Download } from 'lucide-react';
+import { Search, MoreVertical, Building2, X, ArrowLeft, FileText, Eye, Trash2, IndianRupee, Download } from 'lucide-react';
 import SharedStartupDetailsTabs from '../../../components/shared/SharedStartupDetailsTabs';
 import { useFunding } from '../../../context/FundingContext';
 import type { FundingOffer } from '../../../context/FundingContext';
@@ -20,7 +20,7 @@ const AdminStartups: React.FC = () => {
 
   const { getStartupOffers, markAsFunded, updateOfferAdminNote, verifyOffer } = useFunding();
   const startupOffers = selectedStartup ? getStartupOffers(selectedStartup.startupId, selectedStartup.startupName) : [];
-  const [adminNote, setAdminNote] = useState('');
+
   
   // Details Modal State
   const [selectedOfferForDetails, setSelectedOfferForDetails] = useState<FundingOffer | null>(null);
@@ -220,7 +220,7 @@ const AdminStartups: React.FC = () => {
                         className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-lg text-xs transition-colors inline-flex items-center gap-1"
                         title="Funding Offers"
                       >
-                        <DollarSign size={14} /> Funding
+                        <IndianRupee size={14} /> Funding
                       </button>
                       <button 
                         onClick={() => handleDelete(s.startupId || s.id)}
@@ -523,7 +523,11 @@ const AdminStartups: React.FC = () => {
               <button 
                 onClick={() => {
                   verifyOffer(selectedOfferForDetails.id, "System Admin");
-                  window.alert("Offer verified! History logged.");
+                  if (selectedStartup) {
+                    setStartups(prev => prev.map(s => (s.startupId === selectedStartup.startupId || s.startupName === selectedStartup.startupName) ? { ...s, status: 'generated' } : s));
+                    setSelectedStartup(prev => prev ? { ...prev, status: 'generated' } : null);
+                  }
+                  window.alert("Offer verified & startup marked Active! Notifications sent to Investor and Founder dashboards & bell icon.");
                   setSelectedOfferForDetails(null);
                 }}
                 className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-lg border border-indigo-200 transition-colors"
@@ -531,11 +535,15 @@ const AdminStartups: React.FC = () => {
                 Verify Offer
               </button>
 
-              {selectedOfferForDetails.status === 'accepted' && (
+              {(selectedOfferForDetails.status === 'accepted' || (selectedOfferForDetails.status as string) === 'verified' || selectedOfferForDetails.status === 'offer_received') && (
                 <button 
                   onClick={() => {
                     markAsFunded(selectedOfferForDetails.id, editableNote || "Verified by Admin", "System Admin");
-                    window.alert("Offer verified and marked as Funded!");
+                    if (selectedStartup) {
+                      setStartups(prev => prev.map(s => (s.startupId === selectedStartup.startupId || s.startupName === selectedStartup.startupName) ? { ...s, status: 'generated' } : s));
+                      setSelectedStartup(prev => prev ? { ...prev, status: 'generated' } : null);
+                    }
+                    window.alert("Offer verified & marked as Funded! Startup is now Active. Notifications sent to Investor and Founder dashboards & bell icon.");
                     setSelectedOfferForDetails(null);
                   }}
                   className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-lg shadow-sm transition-colors"

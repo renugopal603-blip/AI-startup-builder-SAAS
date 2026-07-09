@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, Calendar, ArrowUpRight, FileText } from 'lucide-react';
+import { IndianRupee, TrendingUp, Calendar, ArrowUpRight, FileText } from 'lucide-react';
 import { getStartups, getMentorPaymentSettings } from '../../../utils/localStorageHelper';
 
 const MentorEarnings: React.FC = () => {
@@ -85,12 +85,12 @@ const MentorEarnings: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10">
-            <DollarSign size={80} />
+            <IndianRupee size={80} />
           </div>
           <p className="text-sm font-medium text-gray-400 mb-2">Available for Payout</p>
-          <p className="text-4xl font-bold mb-4">${availablePayout.toFixed(2)}</p>
+          <p className="text-4xl font-bold mb-4">₹{availablePayout.toFixed(2)}</p>
           <button 
-            onClick={() => window.alert(`Processing withdrawal of $${availablePayout.toFixed(2)} to your bank account...`)}
+            onClick={() => window.alert(`Processing withdrawal of ₹${availablePayout.toFixed(2)} to your bank account...`)}
             className="px-4 py-2 bg-white text-gray-900 rounded-lg text-sm font-bold shadow-sm hover:bg-gray-50 transition-colors"
           >
             Withdraw Funds
@@ -104,7 +104,7 @@ const MentorEarnings: React.FC = () => {
               <ArrowUpRight size={16} className="mr-1" /> Active
             </span>
           </div>
-          <p className="text-3xl font-bold text-gray-900">${totalEarnings.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-gray-900">₹{totalEarnings.toFixed(2)}</p>
           <p className="text-sm font-medium text-gray-500">Gross Earnings (All Time)</p>
         </div>
 
@@ -155,7 +155,7 @@ const MentorEarnings: React.FC = () => {
                     </span>
                   </td>
                   <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold text-right ${t.amount < 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                    {t.amount > 0 ? '+' : ''}${Math.abs(t.amount).toFixed(2)}
+                    {t.amount > 0 ? '+' : ''}₹{Math.abs(t.amount).toFixed(2)}
                   </td>
                 </tr>
               ))}

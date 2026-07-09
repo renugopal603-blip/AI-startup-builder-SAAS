@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { Check, Zap, Shield, Building2, CreditCard, Download, X, QrCode, ArrowRight, Building, Copy, CheckCircle2, Clock, UploadCloud, AlertCircle } from 'lucide-react';
+import { Check, Zap, Shield, Building2, CreditCard, X, ArrowRight, Copy, CheckCircle2, UploadCloud } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useBilling } from '../../../context/BillingContext';
 
 const plans = [
   {
-    name: 'Starter', price: '$0', period: '1 Month Free Trial', icon: Zap, color: 'from-gray-600 to-gray-700',
+    name: 'Starter', price: '₹0', period: '1 Month Free Trial', icon: Zap, color: 'from-gray-600 to-gray-700',
     features: ['1 Startup', '5 AI Reports/month', 'Basic roadmap', 'Community support'],
   },
   {
-    name: 'Growth', price: '$49', period: '/month', icon: Shield, color: 'from-[#5B21B6] to-[#7C3AED]',
+    name: 'Growth', price: '₹49', period: '/month', icon: Shield, color: 'from-[#5B21B6] to-[#7C3AED]',
     features: ['5 Startups', 'Unlimited AI Reports', 'Pitch Deck Builder', 'Mentor matching', 'Priority support'],
   },
   {
-    name: 'Scale', price: '$149', period: '/month', icon: Building2, color: 'from-amber-500 to-orange-500',
+    name: 'Scale', price: '₹149', period: '/month', icon: Building2, color: 'from-amber-500 to-orange-500',
     features: ['Unlimited Startups', 'AI Chat Assistant', 'Investor introductions', 'Custom domain', 'Dedicated success manager'],
   },
 ];
@@ -47,7 +47,7 @@ const FounderBilling: React.FC = () => {
   const handleUpgradeClick = (plan: any) => {
     if (currentSub?.plan === plan.name) return;
     setTargetPlan(plan);
-    let amt = plan.price.replace('$', '');
+    let amt = plan.price.replace('₹', '').replace('$', '');
     if (annual && amt !== '0') {
       amt = Math.floor(parseInt(amt) * 0.8 * 12).toString();
     }
@@ -111,7 +111,7 @@ const FounderBilling: React.FC = () => {
       plan: p.planName,
       date: new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       method: p.paymentMethod,
-      amount: `+$${p.amount}.00`,
+      amount: `+₹${p.amount}.00`,
       status: p.status === 'pending_verification' ? 'Pending Verification' : p.status === 'approved' ? 'Approved' : 'Rejected'
     })),
     ...transactions.map(t => ({
@@ -180,8 +180,8 @@ const FounderBilling: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
         {plans.map(p => {
           const isCurrent = currentSub?.plan === p.name;
-          const priceDisplay = annual ? (p.price === '$0' ? '$0' : `$${Math.floor(parseInt(p.price.slice(1)) * 0.8 * 12)}`) : p.price;
-          const periodDisplay = annual && p.price !== '$0' ? '/year' : p.period;
+          const priceDisplay = annual ? (p.price === '₹0' || p.price === '$0' ? '₹0' : `₹${Math.floor(parseInt(p.price.replace('₹', '').replace('$', '')) * 0.8 * 12)}`) : p.price;
+          const periodDisplay = annual && p.price !== '₹0' && p.price !== '$0' ? '/year' : p.period;
 
           return (
             <div key={p.name} className={`bg-white rounded-2xl border shadow-sm p-6 relative flex flex-col ${isCurrent ? 'border-[#5B21B6] shadow-lg shadow-purple-100' : 'border-gray-100 hover:border-gray-200'}`}>
@@ -204,16 +204,16 @@ const FounderBilling: React.FC = () => {
               </ul>
               <button 
                 onClick={() => handleUpgradeClick(p)}
-                disabled={isCurrent || p.price === '$0'}
+                disabled={isCurrent || p.price === '₹0' || p.price === '$0'}
                 className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
                   isCurrent 
                     ? 'bg-gray-100 text-gray-400 cursor-default' 
-                    : p.price === '$0' 
+                    : p.price === '₹0' || p.price === '$0' 
                       ? 'bg-gray-50 text-gray-400 cursor-not-allowed border border-gray-200'
                       : 'bg-[#5B21B6] hover:bg-[#7C3AED] text-white shadow-md shadow-purple-900/10'
                 }`}
               >
-                {isCurrent ? 'Current Plan' : (p.price === '$0' ? 'Free Tier' : `Upgrade to ${p.name}`)}
+                {isCurrent ? 'Current Plan' : (p.price === '₹0' || p.price === '$0' ? 'Free Tier' : `Upgrade to ${p.name}`)}
               </button>
             </div>
           );
@@ -271,7 +271,7 @@ const FounderBilling: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-black text-[#5B21B6]">
-                    ${paidAmount}
+                    ₹{paidAmount}
                   </p>
                   <p className="text-xs font-semibold text-purple-600">{annual ? 'total (annual)' : 'total (monthly)'}</p>
                 </div>
@@ -339,7 +339,7 @@ const FounderBilling: React.FC = () => {
                         Amount Paid
                       </label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
                         <input 
                           type="number" 
                           value={paidAmount}

@@ -2,11 +2,11 @@ import React from 'react';
 import { Download, FileText, CheckCircle2, AlertTriangle, Cpu, MessageSquare } from 'lucide-react';
 
 interface Props {
-  startupData: any;
-  setStartupData: (data: any) => void;
+  startupData?: any;
+  setStartupData?: (data: any) => void;
 }
 
-const FounderReports: React.FC<Props> = ({ startupData }) => {
+const FounderReports: React.FC<Props> = ({ startupData = {} }) => {
   const ai = startupData?.aiGenerated?.aiReport;
 
   return (
@@ -43,13 +43,26 @@ const FounderReports: React.FC<Props> = ({ startupData }) => {
 
               <div className="space-y-8">
                 {/* Score Section */}
-                <div className="flex items-center gap-6 p-6 bg-gray-50 rounded-xl border border-gray-100">
-                  <div className={`w-24 h-24 rounded-full border-4 flex items-center justify-center bg-white shadow-sm shrink-0 ${ai?.investmentReadinessScore >= 80 ? 'border-green-500 text-green-600' : 'border-yellow-500 text-yellow-600'}`}>
-                    <span className="text-3xl font-bold text-gray-900">{ai?.investmentReadinessScore || 0}</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex items-center gap-6 p-6 bg-gray-50 rounded-xl border border-gray-100 h-full">
+                    <div className={`w-20 h-20 rounded-full border-4 flex items-center justify-center bg-white shadow-sm shrink-0 ${ai?.investmentReadinessScore >= 80 ? 'border-green-500 text-green-600' : 'border-yellow-500 text-yellow-600'}`}>
+                      <span className="text-2xl font-bold text-gray-900">{ai?.investmentReadinessScore || 0}</span>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">Investment Readiness</h3>
+                      <p className="text-sm text-gray-600 leading-relaxed">Reflects overall viability and structural robustness.</p>
+                      <p className="text-xs font-bold text-[#5B21B6] mt-2">Status: {ai?.fundingReadiness}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">Investment Readiness Score</h3>
-                    <p className="text-sm text-gray-600">This score reflects the overall viability, market size, and structural robustness of your startup model based on AI analysis.</p>
+                  
+                  <div className="flex items-center gap-6 p-6 bg-purple-50 rounded-xl border border-purple-100 h-full">
+                    <div className={`w-20 h-20 rounded-full border-4 flex items-center justify-center bg-white shadow-sm shrink-0 ${ai?.scalabilityScore >= 80 ? 'border-purple-500 text-purple-600' : 'border-blue-500 text-blue-600'}`}>
+                      <span className="text-2xl font-bold text-gray-900">{ai?.scalabilityScore || 0}</span>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">Scalability Score</h3>
+                      <p className="text-sm text-gray-600 leading-relaxed">Measures potential to grow revenue without linear cost increase.</p>
+                    </div>
                   </div>
                 </div>
 
@@ -57,10 +70,10 @@ const FounderReports: React.FC<Props> = ({ startupData }) => {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="font-bold text-gray-900 mb-4 flex items-center text-green-700">
-                      <CheckCircle2 size={20} className="mr-2" /> Key Strengths
+                      <CheckCircle2 size={20} className="mr-2" /> Business Strengths
                     </h3>
                     <ul className="space-y-3">
-                      {ai?.keyStrengths?.map((s: string, i: number) => (
+                      {ai?.businessStrengths?.map((s: string, i: number) => (
                         <li key={i} className="flex items-start text-sm text-gray-600 bg-green-50 p-3 rounded-lg border border-green-100">
                           <span className="font-bold mr-2 text-green-700">{i + 1}.</span>
                           {s}
@@ -68,6 +81,22 @@ const FounderReports: React.FC<Props> = ({ startupData }) => {
                       ))}
                     </ul>
                   </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-4 flex items-center text-red-600">
+                      <AlertTriangle size={20} className="mr-2" /> Weaknesses
+                    </h3>
+                    <ul className="space-y-3">
+                      {ai?.weaknesses?.map((r: string, i: number) => (
+                        <li key={i} className="flex items-start text-sm text-gray-600 bg-red-50 p-3 rounded-lg border border-red-100">
+                          <span className="font-bold mr-2 text-red-700">{i + 1}.</span>
+                          {r}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="font-bold text-gray-900 mb-4 flex items-center text-orange-600">
                       <AlertTriangle size={20} className="mr-2" /> Risk Factors
@@ -81,13 +110,33 @@ const FounderReports: React.FC<Props> = ({ startupData }) => {
                       ))}
                     </ul>
                   </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-4 flex items-center text-blue-600">
+                      <Cpu size={20} className="mr-2" /> Improvement Suggestions
+                    </h3>
+                    <ul className="space-y-3">
+                      {ai?.improvementSuggestions?.map((r: string, i: number) => (
+                        <li key={i} className="flex items-start text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                          <span className="font-bold mr-2 text-blue-700">{i + 1}.</span>
+                          {r}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
+              </div>
+
+              <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 mt-8">
+                <h3 className="font-bold text-gray-900 mb-2 flex items-center text-[#5B21B6]">
+                  <MessageSquare size={18} className="mr-2" /> AI Mentor Review Summary
+                </h3>
+                <p className="text-sm text-gray-700 leading-relaxed">{ai?.mentorReviewSummary}</p>
               </div>
 
               {startupData.mentorReview && (
                 <div className="bg-purple-50 p-6 rounded-xl border border-purple-100 mt-6">
                   <h3 className="font-bold text-gray-900 mb-4 flex items-center">
-                    <MessageSquare size={18} className="mr-2 text-[#5B21B6]" /> Mentor Review
+                    <MessageSquare size={18} className="mr-2 text-[#5B21B6]" /> Human Mentor Review
                   </h3>
                   <div className="flex items-center gap-3 mb-4">
                     <span className="text-sm font-bold text-gray-700">Rating:</span>

@@ -1,71 +1,207 @@
-import React, { useRef } from 'react';
-import { Camera, Save, Target } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Save, UserRound, ShieldCheck, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
+
+export interface InvestorProfileData {
+  id: string;
+  investorName: string;
+  email: string;
+  phone: string;
+  address: string;
+  investorType: 'Angel Investor' | 'VC Firm' | 'Institutional Investor';
+  typicalCheckSize: string;
+  sectorsOfInterest: string;
+  investmentThesis: string;
+  verificationStatus: 'pending' | 'Verified' | 'Rejected';
+}
+export const InvestorProfileData = {};
+
+const defaultProfile: InvestorProfileData = {
+  id: "investor_demo_user",
+  investorName: "Capital Ventures",
+  email: "capital@example.com",
+  phone: "9876543210",
+  address: "Chennai, Tamil Nadu",
+  investorType: "VC Firm",
+  typicalCheckSize: "₹50k - ₹250k",
+  sectorsOfInterest: "AI, SaaS, FinTech",
+  investmentThesis: "We invest in early-stage startups with strong growth potential.",
+  verificationStatus: "pending"
+};
 
 const InvestorProfileDetails: React.FC = () => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<InvestorProfileData>(defaultProfile);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('ai_startup_builder_investor_profiles');
+      let profiles: InvestorProfileData[] = [];
+      if (stored) {
+        profiles = JSON.parse(stored);
+      }
+      const myId = user?.id || "investor_demo_user";
+      const found = profiles.find(p => p.id === myId || p.id === "investor_demo_user" || p.investorName === user?.name);
+      if (found) {
+        setProfile(found);
+      } else {
+        // Initialize if not found
+        const initial = { ...defaultProfile, id: myId };
+        if (user?.name) initial.investorName = user.name;
+        if (user?.email) initial.email = user.email;
+        profiles.push(initial);
+        localStorage.setItem('ai_startup_builder_investor_profiles', JSON.stringify(profiles));
+        setProfile(initial);
+      }
+    } catch (e) {
+      setProfile(defaultProfile);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const handleRemoteSave = () => {
+      handleSave();
+    };
+    window.addEventListener('save_investor_profile', handleRemoteSave);
+    return () => window.removeEventListener('save_investor_profile', handleRemoteSave);
+  }, [profile]);
+
+  const handleSave = () => {
+    try {
+      const stored = localStorage.getItem('ai_startup_builder_investor_profiles');
+      let profiles: InvestorProfileData[] = [];
+      if (stored) {
+        profiles = JSON.parse(stored);
+      }
+      const myId = user?.id || "investor_demo_user";
+      const existingIndex = profiles.findIndex(p => p.id === profile.id || p.id === "investor_demo_user" || p.id === myId || p.id === "4");
+      if (existingIndex >= 0) {
+        // Update found profile and normalize to investor_demo_user so admin always sees exact updates
+        profiles[existingIndex] = { ...profiles[existingIndex], ...profile, id: "investor_demo_user" };
+      } else {
+        profiles.push({ ...profile, id: "investor_demo_user" });
+      }
+      // Also ensure if logged-in user id differs, we keep a synchronized copy for that ID too
+      if (myId && myId !== "investor_demo_user") {
+        const userIdx = profiles.findIndex(p => p.id === myId);
+        if (userIdx >= 0) {
+          profiles[userIdx] = { ...profiles[userIdx], ...profile, id: myId };
+        } else {
+          profiles.push({ ...profile, id: myId });
+        }
+      }
+      localStorage.setItem('ai_startup_builder_investor_profiles', JSON.stringify(profiles));
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('investor_kyc_updated'));
+      window.alert("✅ Investor Profile & KYC details saved successfully! All details and documents are synced with Admin Investor Approvals.");
+    } catch (e) {
+      window.alert("Error saving profile.");
+    }
+  };
+
+  const getBadge = () => {
+    const status = profile.verificationStatus || 'pending';
+    if (status === 'Verified' || status === 'Approved' as any) {
+      return (
+        <span className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold border border-emerald-200 shadow-sm">
+          <CheckCircle2 size={14} className="text-emerald-600" /> Verified
+        </span>
+      );
+    } else if (status === 'Rejected') {
+      return (
+        <span className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-800 rounded-full text-xs font-bold border border-red-200 shadow-sm">
+          <ShieldAlert size={14} className="text-red-600" /> Rejected
+        </span>
+      );
+    } else {
+      return (
+        <span className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 text-amber-800 rounded-full text-xs font-bold border border-amber-200 shadow-sm">
+          <ShieldCheck size={14} className="text-amber-600" /> Pending Verification
+        </span>
+      );
+    }
+  };
+
   return (
-    <div className="animate-fade-in-up pb-10">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Investor Profile</h1>
-          <p className="text-gray-500 mt-1">Manage your investment thesis and public profile.</p>
+    <div className="animate-fade-in-up pb-4">
+      <div className="pb-6 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-900">Profile & KYC</h1>
+          {getBadge()}
         </div>
-        <button 
-          onClick={() => window.alert('Profile changes saved successfully!')}
-          className="flex items-center px-4 py-2.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl shadow text-sm transition-colors"
-        >
-          <Save size={16} className="mr-2" /> Save Changes
-        </button>
+        <p className="text-gray-500 mt-1">Manage your investor profile, contact information, and verified KYC accreditation documents all in one place.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center text-center">
-          <div className="relative mb-4">
-            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-4xl font-black shadow-xl">
-              C
-            </div>
-            <button 
-              onClick={() => fileInputRef.current?.click()}
-              className="absolute bottom-0 right-0 w-9 h-9 bg-[#5B21B6] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#7C3AED] transition-colors"
-            >
-              <Camera size={16} />
-            </button>
+      <div className="max-w-3xl">
+        {/* Basic Information Card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 space-y-6">
+          <h2 className="text-base font-bold text-gray-900 pb-3 border-b border-gray-100 flex items-center gap-2">
+            <UserRound size={18} className="text-[#5B21B6]" /> Basic & Contact Details
+          </h2>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">Investor Name / Company Name</label>
             <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept="image/*" 
-              onChange={() => window.alert('Photo uploaded successfully!')} 
+              type="text" 
+              value={profile.investorName} 
+              onChange={e => setProfile({ ...profile, investorName: e.target.value })}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6] text-gray-900 font-medium"
+              placeholder="e.g. Capital Ventures"
             />
           </div>
-          <p className="font-bold text-gray-900 text-lg">Capital Ventures</p>
-          <p className="text-sm text-emerald-600 font-bold uppercase tracking-widest mt-1">Institutional Investor</p>
-          <p className="text-sm text-gray-500 mt-3">Silicon Valley, CA</p>
-        </div>
 
-        <div className="lg:col-span-2 space-y-5">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 className="text-base font-bold text-gray-900 mb-5 pb-4 border-b border-gray-100 flex items-center gap-2">
-              <Target size={18} className="text-[#5B21B6]" /> Investment Thesis
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">Email Address</label>
+              <input 
+                type="email" 
+                value={profile.email} 
+                onChange={e => setProfile({ ...profile, email: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6] text-gray-900"
+                placeholder="capital@example.com"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">Phone Number</label>
+              <input 
+                type="text" 
+                value={profile.phone} 
+                onChange={e => setProfile({ ...profile, phone: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6] text-gray-900"
+                placeholder="9876543210"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">Address</label>
+            <input 
+              type="text" 
+              value={profile.address} 
+              onChange={e => setProfile({ ...profile, address: e.target.value })}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6] text-gray-900"
+              placeholder="Chennai, Tamil Nadu"
+            />
+          </div>
+
+          <div className="pt-2">
+            <div className="p-4 bg-purple-50 rounded-xl border border-purple-100 flex items-start gap-3">
+              <ShieldCheck className="text-[#5B21B6] shrink-0 mt-0.5" size={18} />
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Typical Check Size</label>
-                <select className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6] bg-white">
-                  <option>$50k - $250k</option>
-                  <option>$250k - $1M</option>
-                  <option>$1M+</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Preferred Stages</label>
-                <input type="text" defaultValue="Pre-Seed, Seed" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6]" />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Sectors of Interest</label>
-                <input type="text" defaultValue="AI, ClimateTech, FinTech, B2B SaaS" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6]" />
+                <p className="text-xs font-bold text-purple-900">Accreditation Requirements</p>
+                <p className="text-xs text-purple-700 mt-0.5">To verify your investor profile and unlock direct term-sheet capabilities, please upload your KYC documents in the next tab.</p>
               </div>
             </div>
+          </div>
+
+          {/* Save Changes Button at the bottom (in last) */}
+          <div className="flex justify-end pt-4 border-t border-gray-100 mt-6">
+            <button 
+              onClick={handleSave}
+              className="flex items-center justify-center px-8 py-3.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl shadow-lg hover:shadow-xl text-sm transition-all transform hover:-translate-y-0.5"
+            >
+              <Save size={18} className="mr-2" /> Save Changes
+            </button>
           </div>
         </div>
       </div>

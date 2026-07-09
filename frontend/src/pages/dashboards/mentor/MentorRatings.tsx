@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, ThumbsUp, MessageCircle } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { getStartups } from '../../../utils/localStorageHelper';
 
 const defaultRatings = [

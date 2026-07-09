@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Cpu, Save, Key, TestTube, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Cpu, Save, Key, TestTube, CheckCircle2 } from 'lucide-react';
 
 const models = [
   { id: 'gpt4t', label: 'GPT-4 Turbo', provider: 'OpenAI', use: 'Primary — Business Plan, Idea Gen, Pitch Deck' },

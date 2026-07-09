@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Clock, X, Cpu, CheckCircle2, AlertTriangle, MessageSquare, Send, ArrowLeft } from 'lucide-react';
+import { Search, Clock, X, MessageSquare, Send, ArrowLeft } from 'lucide-react';
 import SharedStartupDetailsTabs from '../../../components/shared/SharedStartupDetailsTabs';
 import { getDocuments, addNotification } from '../../../utils/localStorageHelper';
 

@@ -17,17 +17,9 @@ const FounderProfile: React.FC = () => {
 
   return (
     <div className="animate-fade-in-up pb-10">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
-          <p className="text-gray-500 mt-1">Manage your public profile and account information.</p>
-        </div>
-        <button 
-          onClick={() => window.alert("Profile settings saved successfully!")}
-          className="flex items-center px-4 py-2.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl shadow text-sm transition-colors"
-        >
-          <Save size={16} className="mr-2" /> Save Changes
-        </button>
+      <div className="pb-6 border-b border-gray-100 mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
+        <p className="text-gray-500 mt-1">Manage your public profile and account information.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -85,6 +77,16 @@ const FounderProfile: React.FC = () => {
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6]" />
                 </div>
               ))}
+            </div>
+
+            {/* Save Changes Button at the bottom (in last) */}
+            <div className="flex justify-end pt-4 border-t border-gray-100 mt-6">
+              <button 
+                onClick={() => window.alert("Profile settings saved successfully!")}
+                className="flex items-center justify-center px-8 py-3.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl shadow-lg hover:shadow-xl text-sm transition-all transform hover:-translate-y-0.5"
+              >
+                <Save size={18} className="mr-2" /> Save Changes
+              </button>
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, MoreVertical, LayoutGrid, List, X, Rocket, Sparkles, RefreshCw, Trash2 } from 'lucide-react';
+import { Plus, Search, LayoutGrid, List, X, Rocket, Sparkles, RefreshCw, Trash2 } from 'lucide-react';
 import { createStartupDraft, getStartups } from '../../../utils/localStorageHelper';
 
 type Startup = {

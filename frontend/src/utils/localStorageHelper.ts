@@ -73,167 +73,209 @@ export const addNotification = (notification: any) => {
 };
 
 export const generateStartupOutput = (startup: any) => {
-  const isPhysical = /tea|coffee|snacks|restaurant|salon|hotel|shop|cafe|retail/i.test(startup.startupIdea);
+  const isPhysical = /tea|coffee|snacks|restaurant|salon|hotel|shop|cafe|retail|bakery/i.test(startup.startupIdea || startup.startupName);
   
-  let ideaAnalysis, businessPlan, pitchDeck, marketResearch, aiReport;
+  let ideaAnalysis, branding, businessPlan, pitchDeck, marketResearch, aiReport;
 
   if (isPhysical) {
     ideaAnalysis = {
-      refinedIdea: `${startup.startupName} is a modern, premium localized business focusing on high-quality offerings and exceptional customer experience.`,
-      problemStatement: "Customers lack premium, aesthetically pleasing, and high-quality options in their local vicinity.",
-      solution: "A beautifully designed, premium location offering curated products and an unforgettable customer experience.",
-      targetCustomers: ["Local Professionals", "Students", "Premium Shoppers"],
-      uniqueValueProposition: "Combining high-end aesthetics with premium quality products in a localized, accessible setting.",
-      businessModel: "Direct-to-Consumer Retail / Walk-in Sales",
-      revenueModel: ["Walk-in Sales", "Takeaway", "Combo Offers", "Office Bulk Orders", "Franchise Expansion"],
-      coreFeatures: ["Premium Ambiance", "Curated Menu/Products", "Loyalty Program", "Fast Service"],
-      marketOpportunity: "High local footfall and growing demand for premium aesthetic experiences.",
-      nextSteps: ["Secure Location", "Finalize Branding", "Vendor Agreements"]
+      refinedIdea: `${startup.startupName || 'Your Business'} is a premium, beautifully designed local establishment focusing on high-quality offerings and exceptional, memorable customer experiences.`,
+      problemStatement: "Customers in the area lack premium, aesthetically pleasing, and consistently high-quality options for daily consumption and socializing.",
+      solution: "A highly aesthetic, premium local venue offering carefully curated products, excellent service, and a welcoming ambiance.",
+      targetCustomers: ["Local Professionals", "Students & Remote Workers", "Premium Shoppers", "Families"],
+      uniqueValueProposition: "Combining high-end, instagrammable aesthetics with premium quality products in an accessible, community-centric location.",
+      businessModel: "Direct-to-Consumer Retail / Walk-in Sales & Delivery",
+      revenueModel: ["Walk-in Sales", "Takeaway & Delivery", "Combo Offers & Memberships", "Office Bulk Orders/Catering"],
+      coreFeatures: ["Premium Ambiance & Seating", "Curated Menu/Products", "Loyalty Program", "Fast, Friendly Service", "Branded Packaging"],
+      marketOpportunity: "High local footfall and rapidly growing demand for premium, experiential retail and dining.",
+      nextSteps: ["Secure Prime Location", "Finalize Interior Design & Branding", "Vendor Agreements & Sourcing", "Hire Initial Team"]
+    };
+
+    branding = {
+      brandNameSuggestions: [startup.startupName || "Brew & Bloom", "The Local Leaf", "Aura", "Prime Reserve"],
+      taglineSuggestions: ["Your Daily Escape.", "Premium Quality, Local Charm.", "Taste the Difference.", "Crafted for You."],
+      logoConceptIdeas: "Minimalist wordmark with a subtle, elegant icon (like a leaf or abstract cup). Use clean, ample whitespace.",
+      brandColorPalette: ["#1E293B (Deep Slate)", "#F8FAFC (Clean White)", "#D97706 (Warm Amber)", "#10B981 (Fresh Emerald)"],
+      fontStyleSuggestions: "Primary: 'Playfair Display' (Elegant Serif) | Secondary: 'Inter' (Clean Sans-Serif)",
+      brandPersonality: "Welcoming, Premium, Aesthetic, Community-Focused, Sophisticated.",
+      packagingStyleSuggestions: "Eco-friendly, matte-finish cups/bags with minimalist logo placement and a bold pop of the brand's accent color.",
+      socialMediaIdeas: "High-quality, warm-toned photography of products; behind-the-scenes preparation videos; user-generated aesthetic interior shots.",
+      websiteHero: "\"Experience [Name]. Your new favorite local spot for premium quality and comfort.\"",
+      marketingCaptions: ["Sip, relax, repeat. ☕", "Your new daily ritual is here.", "Elevating your local experience."]
     };
     
     businessPlan = {
-      executiveSummary: `${startup.startupName} will redefine the local retail experience by offering premium products in a highly aesthetic environment.`,
+      executiveSummary: `${startup.startupName || 'The business'} will redefine the local retail experience by offering premium products in a highly aesthetic, welcoming environment.`,
       problemAndSolution: "Problem: Uninspiring local options. Solution: A premium, design-forward establishment.",
-      marketOpportunity: "Capitalizing on the growing trend of experiential retail and dining.",
-      productAndFeatures: "High-quality products, instagrammable interiors, and exceptional service.",
-      businessModel: "Retail sales, takeaway, and potential B2B bulk orders.",
-      goToMarketStrategy: "Local influencer marketing, grand opening event, and targeted local social media ads.",
-      competitiveAnalysis: "Competitors lack the premium aesthetic and curated quality we offer.",
-      teamSuggestion: ["Store Manager", "Head Barista/Chef", "Marketing Lead", "Operations Staff"],
-      financialProjection: "Year 1 Revenue: $250k, Break-even by Month 8.",
-      fundingAsk: "$150,000 for lease, interior setup, and initial inventory."
+      productDetails: "High-quality, locally sourced products, instagrammable interiors, and exceptional service.",
+      targetCustomers: "Urban professionals, students, and local residents seeking quality.",
+      businessModel: "Retail sales, takeaway, and potential B2B bulk catering orders.",
+      revenueModel: "Walk-in revenue, loyalty subscriptions, and delivery app sales.",
+      pricingStrategy: "Premium pricing (+15-20% above local average) justified by quality, branding, and experience.",
+      goToMarketStrategy: "Local influencer marketing, grand opening event, targeted local social media ads, and flyers.",
+      operationsPlan: "Open 7 days a week, 7 AM - 9 PM. Two shifts. Daily local sourcing for perishables.",
+      teamRequirement: ["Store Manager", "Head Barista/Chef", "Marketing Lead (Part-time)", "Operations Staff (3-4x)"],
+      financialProjection: "Year 1 Revenue: $250k, Break-even by Month 8, 25% Net Margin by Year 2.",
+      fundingAsk: "$150,000 for lease deposit, interior setup, equipment, and initial inventory."
     };
 
     pitchDeck = [
-      { slide: 1, title: "Cover Slide", content: `${startup.startupName} - Premium Local Experience` },
+      { slide: 1, title: "Cover Slide", content: `${startup.startupName || 'Business'} - Premium Local Experience` },
       { slide: 2, title: "Problem", content: "Lack of premium aesthetic venues in the local area." },
       { slide: 3, title: "Solution", content: "A high-end, beautifully designed space offering top-tier products." },
       { slide: 4, title: "Market Size", content: "Local addressable market of 50,000+ daily commuters/residents." },
-      { slide: 5, title: "Product Demo", content: "[Interior Mockups & Product Samples]" },
-      { slide: 6, title: "Business Model", content: "Walk-in, Takeaway, Bulk Orders." },
-      { slide: 7, title: "Traction", content: "Pre-launch hype, 500+ waitlist/social followers." },
-      { slide: 8, title: "Go-To-Market", content: "Local SEO, Influencer Partnerships, Grand Opening." },
+      { slide: 5, title: "Product/Service Demo", content: "[Interior Mockups, Menu Highlights, & Branding]" },
+      { slide: 6, title: "Business Model", content: "Walk-in, Takeaway, Delivery, & Bulk Orders." },
+      { slide: 7, title: "Traction/Validation", content: "Pre-launch hype, 500+ waitlist/social followers." },
+      { slide: 8, title: "Go-To-Market", content: "Local SEO, Influencer Partnerships, Grand Opening Event." },
       { slide: 9, title: "Team", content: "Experienced retail and hospitality operators." },
-      { slide: 10, title: "Funding Ask", content: "$150k for Buildout and Launch." }
+      { slide: 10, title: "Funding Ask", content: "$150k for Buildout, Licensing, and Launch." }
     ];
 
     marketResearch = {
       tam: "$50M (Regional Market)",
-      sam: "$5M (City Market)",
+      sam: "$5M (City/District Market)",
       som: "$500k (Local Neighborhood Target)",
-      targetMarket: "Urban professionals and students aged 18-45.",
-      customerSegments: ["Daily Commuters", "Weekend Socializers", "Remote Workers"],
-      competitors: ["Local Mom-and-Pop Shops", "Generic Chains"],
-      marketTrends: ["Experiential Retail", "Premiumization", "Aesthetic Environments"],
-      opportunities: ["B2B Catering", "Merchandise Sales", "Franchising"],
-      risks: ["High Rent Costs", "Staff Turnover", "Supply Chain Issues"],
-      pricingSuggestions: "Premium pricing (+20% above market average) justified by quality and experience."
+      customerSegments: ["Daily Commuters", "Weekend Socializers", "Remote Workers", "Health-conscious locals"],
+      competitorAnalysis: "Local Mom-and-Pop Shops (outdated), Generic Chains (impersonal). We win on quality and aesthetics.",
+      marketTrends: ["Experiential Retail", "Premiumization", "Aesthetic Environments", "Local Sourcing"],
+      opportunities: ["B2B Catering", "Branded Merchandise Sales", "Future Franchising"],
+      risks: ["High Initial Rent/CapEx", "Staff Turnover", "Local Supply Chain Issues"],
+      pricingSuggestions: "Premium pricing (+20% above market average) justified by quality and experience.",
+      locationSuggestions: "High-footfall urban corners, near transit hubs or university campuses, large storefront windows."
     };
 
     aiReport = {
       investmentReadinessScore: 82,
-      keyStrengths: ["Clear tangible product", "Strong local demand", "Aesthetic focus aligns with current trends"],
-      riskFactors: ["High initial CapEx for interior", "Location dependency", "Staffing challenges"],
+      businessStrengths: ["Clear tangible product", "Strong local demand", "Aesthetic focus aligns with current trends"],
+      weaknesses: ["High upfront capital required for buildout", "Geographically constrained initially"],
+      riskFactors: ["High initial CapEx for interior", "Location dependency", "Staffing & training challenges"],
       improvementSuggestions: ["Secure a letter of intent for a prime location", "Develop a strong local marketing pre-launch campaign"],
+      scalabilityScore: 65,
       fundingReadiness: "Good for local angel investors or small business loans.",
-      mentorReviewSummary: "Solid physical business concept. Focus heavily on location scouting and lease negotiations."
+      mentorReviewSummary: "Solid physical business concept. Focus heavily on location scouting, lease negotiations, and creating a strong brand identity."
     };
   } else {
     ideaAnalysis = {
-      refinedIdea: `${startup.startupName} is an innovative tech solution designed to streamline workflows and drive efficiency in its target sector.`,
-      problemStatement: "Current software solutions are outdated, fragmented, and fail to leverage modern AI capabilities.",
-      solution: "A unified, AI-powered platform that automates tedious tasks and provides actionable insights.",
-      targetCustomers: ["SMBs", "Enterprise Teams", "Freelancers"],
-      uniqueValueProposition: "10x faster execution through seamless AI integration and intuitive UI/UX.",
-      businessModel: "B2B SaaS / Subscription",
-      revenueModel: ["Freemium Tier", "Pro Subscription ($49/mo)", "Enterprise Custom Plans"],
-      coreFeatures: ["AI Automation", "Real-time Analytics", "Team Collaboration", "API Integrations"],
-      marketOpportunity: "Rapidly digitizing sector with high willingness to pay for efficiency tools.",
-      nextSteps: ["Build MVP", "Launch Beta", "Acquire First 100 Users"]
+      refinedIdea: `${startup.startupName || 'Your SaaS'} is an innovative tech solution designed to streamline workflows, automate tasks, and drive 10x efficiency in its target sector.`,
+      problemStatement: "Current software solutions are outdated, fragmented, manual, and fail to leverage modern AI capabilities.",
+      solution: "A unified, intuitive AI-powered platform that automates tedious tasks and provides actionable, data-driven insights.",
+      targetCustomers: ["SMBs", "Enterprise Teams", "Freelancers", "Agencies"],
+      uniqueValueProposition: "10x faster execution and 50% cost reduction through seamless AI integration and intuitive UI/UX.",
+      businessModel: "B2B SaaS (Software as a Service)",
+      revenueModel: ["Freemium Tier (PLG)", "Pro Subscription ($49/mo)", "Enterprise Custom Plans ($999+/mo)"],
+      coreFeatures: ["AI Automation Engine", "Real-time Analytics Dashboard", "Team Collaboration Tools", "API Integrations (Zapier, Slack)"],
+      marketOpportunity: "Rapidly digitizing sector with high willingness to pay for efficiency and automation tools.",
+      nextSteps: ["Design UI/UX Mockups", "Build MVP Engine", "Launch Beta", "Acquire First 100 Paid Users"]
+    };
+
+    branding = {
+      brandNameSuggestions: [startup.startupName || "SyncAI", "FlowState", "Nexus", "AutomateHQ"],
+      taglineSuggestions: ["Work Smarter, Not Harder.", "The AI operating system for your team.", "Automate your growth.", "Efficiency, redefined."],
+      logoConceptIdeas: "Modern, geometric tech icon (like a connected node or forward arrow). Bold, lowercase tech font.",
+      brandColorPalette: ["#4F46E5 (Vibrant Indigo)", "#111827 (Dark Slate)", "#F3F4F6 (Light Gray)", "#10B981 (Success Green)"],
+      fontStyleSuggestions: "Primary: 'Inter' (Clean Sans-Serif) | Secondary: 'Roboto Mono' (Tech/Code Vibe)",
+      brandPersonality: "Innovative, Trustworthy, Fast, Modern, Cutting-edge.",
+      packagingStyleSuggestions: "Clean, dark-mode SaaS UI, heavy use of glassmorphism, subtle purple/blue gradients.",
+      socialMediaIdeas: "Feature highlight videos, customer success stories, thought leadership threads on X/LinkedIn.",
+      websiteHero: "\"Automate your workflow in seconds. Join 10,000+ teams doing their best work with [Name].\"",
+      marketingCaptions: ["Stop doing manual work. Let AI handle it. 🚀", "Scale your team without hiring.", "The future of work is here."]
     };
     
     businessPlan = {
-      executiveSummary: `${startup.startupName} aims to dominate the software niche by introducing advanced AI workflows to traditional processes.`,
-      problemAndSolution: "Problem: Inefficient workflows. Solution: Automated SaaS platform.",
-      marketOpportunity: "Capitalizing on the shift towards AI-native tooling in the enterprise space.",
-      productAndFeatures: "Cloud-based dashboard, AI assistants, and robust API.",
-      businessModel: "Tiered SaaS subscriptions.",
-      goToMarketStrategy: "Content marketing, Product Hunt launch, and direct outbound sales.",
-      competitiveAnalysis: "Legacy competitors are slow; we offer agility and cutting-edge AI.",
-      teamSuggestion: ["Technical Co-founder", "Growth Marketer", "Product Designer"],
-      financialProjection: "Year 1 ARR: $100k. Year 2 ARR: $1M.",
-      fundingAsk: "$500,000 for engineering hires and go-to-market execution."
+      executiveSummary: `${startup.startupName || 'This SaaS'} aims to dominate the software niche by introducing advanced AI workflows to traditional, manual processes.`,
+      problemAndSolution: "Problem: Inefficient workflows and scattered data. Solution: Automated, centralized SaaS platform.",
+      productDetails: "Cloud-based dashboard, AI co-pilot assistants, robust API, and role-based access control.",
+      targetCustomers: "Tech-forward SMBs and mid-market enterprises looking to cut operational costs.",
+      businessModel: "Tiered SaaS recurring subscriptions with usage-based overages.",
+      revenueModel: "Monthly/Annual recurring revenue (MRR/ARR).",
+      pricingStrategy: "Value-based pricing. Free tier for individuals, $49/mo for teams, $499/mo for enterprise.",
+      goToMarketStrategy: "Product-Led Growth (PLG), Content marketing/SEO, Product Hunt launch, and direct outbound sales.",
+      operationsPlan: "Agile software development, 24/7 cloud hosting, automated customer support.",
+      teamRequirement: ["Technical Co-founder (CTO)", "Growth Marketer", "Product Designer", "Full-Stack Engineer"],
+      financialProjection: "Year 1 ARR: $100k. Year 2 ARR: $1M. Gross margin: 85%.",
+      fundingAsk: "$500,000 for engineering hires, server costs, and go-to-market execution."
     };
 
     pitchDeck = [
-      { slide: 1, title: "Cover Slide", content: `${startup.startupName} - The Future of Automated Workflows` },
+      { slide: 1, title: "Cover Slide", content: `${startup.startupName || 'SaaS'} - The Future of Automated Workflows` },
       { slide: 2, title: "Problem", content: "Teams waste 40% of their week on manual, fragmented tasks." },
       { slide: 3, title: "Solution", content: "An all-in-one AI platform that connects tools and automates work." },
       { slide: 4, title: "Market Size", content: "$10B+ TAM in enterprise workflow automation." },
       { slide: 5, title: "Product Demo", content: "[Dashboard Screenshot & AI Flow Demo]" },
-      { slide: 6, title: "Business Model", content: "SaaS: $49/mo Pro, $99/mo Business." },
-      { slide: 7, title: "Traction", content: "1,000+ waitlist, 5 beta enterprise pilots." },
-      { slide: 8, title: "Go-To-Market", content: "PLG, SEO, and Outbound Sales." },
+      { slide: 6, title: "Business Model", content: "SaaS: $49/mo Pro, $499/mo Enterprise." },
+      { slide: 7, title: "Traction/Validation", content: "1,000+ waitlist, 5 beta enterprise pilots secured." },
+      { slide: 8, title: "Go-To-Market", content: "PLG, SEO, and Outbound Sales Motion." },
       { slide: 9, title: "Team", content: "Ex-FAANG engineers and SaaS operators." },
-      { slide: 10, title: "Funding Ask", content: "$500k Pre-Seed round." }
+      { slide: 10, title: "Funding Ask", content: "$500k Pre-Seed round for 18mo runway." }
     ];
 
     marketResearch = {
       tam: "$10B (Global SaaS Market for Niche)",
       sam: "$1B (Target Geography & Segment)",
       som: "$10M (Attainable Year 1-3)",
-      targetMarket: "Tech-forward SMBs and mid-market enterprises.",
-      customerSegments: ["Operations Teams", "Marketing Agencies", "IT Departments"],
-      competitors: ["Legacy Incumbents", "Horizontal Tools (e.g., Notion, Airtable)"],
-      marketTrends: ["AI Integration", "No-code/Low-code", "Remote Work Enablement"],
-      opportunities: ["Vertical-specific workflows", "Data monetization", "Marketplace expansions"],
-      risks: ["High customer acquisition costs", "Data privacy regulations", "Rapid AI obsolescence"],
-      pricingSuggestions: "Value-based pricing. Start with a $49/mo base tier."
+      customerSegments: ["Operations Teams", "Marketing Agencies", "IT Departments", "Founders"],
+      competitorAnalysis: "Legacy Incumbents (too complex/expensive), Horizontal Tools like Notion (too generic).",
+      marketTrends: ["AI Integration", "No-code/Low-code tools", "Remote Work Enablement"],
+      opportunities: ["Vertical-specific workflows", "Data monetization", "Marketplace app ecosystem"],
+      risks: ["High customer acquisition costs (CAC)", "Data privacy regulations (GDPR/SOC2)", "Rapid AI obsolescence"],
+      pricingSuggestions: "Value-based pricing. Start with a $49/mo base tier to reduce friction.",
+      locationSuggestions: "N/A - Global remote-first digital product."
     };
 
     aiReport = {
       investmentReadinessScore: 88,
-      keyStrengths: ["Highly scalable model", "Strong AI tailwinds", "High gross margins"],
-      riskFactors: ["Fierce competition", "Tech execution risk", "GTM dependency"],
-      improvementSuggestions: ["Solidify the exact ICP (Ideal Customer Profile)", "Build a clickable prototype immediately"],
+      businessStrengths: ["Highly scalable model", "Strong AI tailwinds", "High gross margins (80%+)"],
+      weaknesses: ["High dependency on third-party AI APIs", "No initial brand recognition"],
+      riskFactors: ["Fierce competition from well-funded incumbents", "Tech execution risk", "GTM dependency"],
+      improvementSuggestions: ["Solidify the exact ICP (Ideal Customer Profile)", "Build a clickable prototype immediately for user testing"],
+      scalabilityScore: 95,
       fundingReadiness: "Ready for Pre-Seed VC pitching.",
-      mentorReviewSummary: "Excellent SaaS concept. Focus on building a rapid MVP and getting early user feedback."
+      mentorReviewSummary: "Excellent SaaS concept. Focus on building a rapid MVP, getting early user feedback, and securing design partners."
     };
   }
 
-  return { ideaAnalysis, businessPlan, pitchDeck, marketResearch, aiReport };
+  return { ideaAnalysis, branding, businessPlan, pitchDeck, marketResearch, aiReport };
 };
 
 export const generateRoadmapAndTasks = (startup: any) => {
-  const isPhysical = /tea|coffee|snacks|restaurant|salon|hotel|shop|cafe|retail/i.test(startup.startupIdea);
+  const isPhysical = /tea|coffee|snacks|restaurant|salon|hotel|shop|cafe|retail|bakery/i.test(startup.startupIdea || startup.startupName);
   
   const roadmap = [
     { 
       id: 1, phase: 'Phase 1', title: "Idea & Validation", status: 'completed',
+      description: "Define the core concept, validate the market, and finalize the foundational plan.",
       milestones: [
-        { name: 'Define core concept', done: true },
-        { name: 'Market research', done: true }
+        { name: 'Define core concept & branding', done: true },
+        { name: 'Complete market research', done: true },
+        { name: 'Financial model creation', done: true }
       ]
     },
     { 
       id: 2, phase: 'Phase 2', title: "MVP / Setup", status: 'in-progress',
+      description: isPhysical ? "Secure location, build out interior, and source initial inventory." : "Develop the core product MVP and set up necessary infrastructure.",
       milestones: [
-        { name: 'Initial build', done: true },
-        { name: 'Vendor/Tech setup', done: false }
+        { name: isPhysical ? 'Secure lease agreement' : 'Complete core MVP features', done: true },
+        { name: isPhysical ? 'Interior design & buildout' : 'Beta testing with initial users', done: false },
+        { name: 'Legal & compliance setup', done: false }
       ]
     },
     { 
       id: 3, phase: 'Phase 3', title: "Launch", status: 'upcoming',
+      description: "Execute go-to-market strategy and open doors to the public (or launch product).",
       milestones: [
-        { name: 'Soft launch', done: false },
-        { name: 'Marketing push', done: false }
+        { name: 'Marketing campaign execution', done: false },
+        { name: 'Soft launch / invite-only', done: false },
+        { name: 'Public grand opening', done: false }
       ]
     },
     { 
       id: 4, phase: 'Phase 4', title: "Growth", status: 'upcoming',
+      description: "Scale operations, acquire customers, and optimize unit economics.",
       milestones: [
-        { name: 'First 100 customers', done: false },
-        { name: 'Scale operations', done: false }
+        { name: 'Reach target MRR / Revenue goals', done: false },
+        { name: 'Scale marketing spend', done: false },
+        { name: 'Team expansion', done: false }
       ]
     }
   ];
@@ -242,21 +284,21 @@ export const generateRoadmapAndTasks = (startup: any) => {
 
   if (isPhysical) {
     tasks = [
-      { id: 1, title: 'Finalize interior design mockups', description: 'Work with designer to plan aesthetic', phaseTitle: 'MVP / Setup', priority: 'High', status: 'in-progress', dueDate: 'Next Week' },
-      { id: 2, title: 'Scout 3 potential physical locations', description: 'Visit and evaluate local spots', phaseTitle: 'Idea & Validation', priority: 'High', status: 'done', dueDate: 'Past' },
-      { id: 3, title: 'Negotiate supplier contracts for inventory', description: 'Premium coffee beans, tea leaves, snacks', phaseTitle: 'MVP / Setup', priority: 'High', status: 'todo', dueDate: 'In 2 Weeks' },
-      { id: 4, title: 'Apply for business licenses and health permits', description: 'Local city requirements', phaseTitle: 'MVP / Setup', priority: 'High', status: 'todo', dueDate: 'In 2 Weeks' },
-      { id: 5, title: 'Plan grand opening local marketing campaign', description: 'Flyers, Instagram local ads', phaseTitle: 'Launch', priority: 'Medium', status: 'todo', dueDate: 'Next Month' },
-      { id: 6, title: 'Hire initial staff (manager, barista/cashier)', description: 'Post jobs locally', phaseTitle: 'Launch', priority: 'High', status: 'todo', dueDate: 'Next Month' },
+      { id: 1, title: 'Finalize interior design mockups', phaseTitle: 'MVP / Setup', priority: 'High', status: 'in-progress', dueDate: 'Next Week', progress: 60 },
+      { id: 2, title: 'Scout 3 potential physical locations', phaseTitle: 'Idea & Validation', priority: 'High', status: 'done', dueDate: 'Past', progress: 100 },
+      { id: 3, title: 'Negotiate supplier contracts for inventory', phaseTitle: 'MVP / Setup', priority: 'High', status: 'todo', dueDate: 'In 2 Weeks', progress: 0 },
+      { id: 4, title: 'Apply for business licenses and health permits', phaseTitle: 'MVP / Setup', priority: 'High', status: 'todo', dueDate: 'In 2 Weeks', progress: 0 },
+      { id: 5, title: 'Plan grand opening local marketing campaign', phaseTitle: 'Launch', priority: 'Medium', status: 'todo', dueDate: 'Next Month', progress: 0 },
+      { id: 6, title: 'Hire initial staff (manager, barista/cashier)', phaseTitle: 'Launch', priority: 'High', status: 'todo', dueDate: 'Next Month', progress: 0 },
     ];
   } else {
     tasks = [
-      { id: 1, title: 'Design Figma UI/UX mockups', description: 'Core dashboard screens', phaseTitle: 'MVP / Setup', priority: 'High', status: 'in-progress', dueDate: 'Next Week' },
-      { id: 2, title: 'Define database schema and architecture', description: 'Postgres + Prisma', phaseTitle: 'Idea & Validation', priority: 'High', status: 'done', dueDate: 'Past' },
-      { id: 3, title: 'Integrate OpenAI API for core workflow', description: 'Connect backend to LLM', phaseTitle: 'MVP / Setup', priority: 'High', status: 'todo', dueDate: 'In 2 Weeks' },
-      { id: 4, title: 'Set up Stripe billing and subscriptions', description: 'Checkout portal', phaseTitle: 'MVP / Setup', priority: 'Medium', status: 'todo', dueDate: 'In 2 Weeks' },
-      { id: 5, title: 'Launch on Product Hunt', description: 'Prepare assets and copy', phaseTitle: 'Launch', priority: 'High', status: 'todo', dueDate: 'Next Month' },
-      { id: 6, title: 'Deploy to Vercel/AWS', description: 'Production environment setup', phaseTitle: 'Launch', priority: 'High', status: 'todo', dueDate: 'Next Month' },
+      { id: 1, title: 'Design Figma UI/UX mockups', phaseTitle: 'MVP / Setup', priority: 'High', status: 'in-progress', dueDate: 'Next Week', progress: 80 },
+      { id: 2, title: 'Define database schema and architecture', phaseTitle: 'Idea & Validation', priority: 'High', status: 'done', dueDate: 'Past', progress: 100 },
+      { id: 3, title: 'Integrate OpenAI API for core workflow', phaseTitle: 'MVP / Setup', priority: 'High', status: 'todo', dueDate: 'In 2 Weeks', progress: 0 },
+      { id: 4, title: 'Set up Stripe billing and subscriptions', phaseTitle: 'MVP / Setup', priority: 'Medium', status: 'todo', dueDate: 'In 2 Weeks', progress: 0 },
+      { id: 5, title: 'Launch on Product Hunt', phaseTitle: 'Launch', priority: 'High', status: 'todo', dueDate: 'Next Month', progress: 0 },
+      { id: 6, title: 'Deploy to Vercel/AWS', phaseTitle: 'Launch', priority: 'High', status: 'todo', dueDate: 'Next Month', progress: 0 },
     ];
   }
 

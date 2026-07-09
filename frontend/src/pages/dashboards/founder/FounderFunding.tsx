@@ -25,6 +25,7 @@ const FounderFunding: React.FC = () => {
       case 'counter_offer': return <span className="px-2.5 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold mb-3 inline-block">Counter Offer Sent</span>;
       case 'rejected': return <span className="px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold mb-3 inline-block">Rejected</span>;
       case 'funded': return <span className="px-2.5 py-1 bg-green-500 text-white rounded-full text-xs font-bold mb-3 inline-block border border-green-600 shadow-sm">Funded</span>;
+      case 'verified': return <span className="px-2.5 py-1 bg-emerald-600 text-white rounded-full text-xs font-bold mb-3 inline-block border border-emerald-700 shadow-sm">Verified / Active</span>;
       default: return null;
     }
   };
@@ -166,7 +167,7 @@ const FounderFunding: React.FC = () => {
                         }}
                         className="px-6 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg font-bold text-sm transition-colors shadow-sm"
                       >
-                        Counter Offer
+                        Review Changes
                       </button>
                       <button 
                         onClick={() => setShowRejectModal(offer.id)}
@@ -188,7 +189,7 @@ const FounderFunding: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-gray-900 text-lg">Counter Offer</h3>
+              <h3 className="font-bold text-gray-900 text-lg">Review Changes / Counter Offer</h3>
               <button onClick={() => setShowCounterModal(null)} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
                 <X size={20} />
               </button>

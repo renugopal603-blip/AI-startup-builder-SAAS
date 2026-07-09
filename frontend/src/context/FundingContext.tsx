@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 
 export interface FundingOffer {
   id: string;
@@ -198,13 +199,14 @@ export const FundingProvider: React.FC<{ children: ReactNode }> = ({ children })
     }));
   };
 
-  const markAsFunded = (offerId: string, adminNote: string, adminName: string) => {
+  const markAsFunded = (offerId: string, note: string, adminName: string) => {
+    let updatedOffer: any = null;
     setOffers(prev => prev.map(offer => {
       if (offer.id === offerId) {
-        const updatedOffer = { 
-          ...offer, 
-          status: 'funded' as const, 
-          adminNote: adminNote,
+        updatedOffer = {
+          ...offer,
+          status: 'funded',
+          adminNote: note,
           updatedAt: new Date().toISOString(),
           history: [...offer.history]
         };
@@ -216,15 +218,58 @@ export const FundingProvider: React.FC<{ children: ReactNode }> = ({ children })
           message: 'Admin verified and marked the offer as funded.',
           createdAt: new Date().toISOString()
         });
-
-        // Notify Founder and Investor
-        addNotification(offer.founderId, "Funding Confirmed", "Admin verified and marked the funding offer as funded.", "/dashboard/founder/funding");
-        addNotification(offer.investorId, "Funding Confirmed", "Admin verified and marked your investment offer as funded.", "/dashboard/investor/portfolio-hub");
-
         return updatedOffer;
       }
       return offer;
     }));
+
+    if (updatedOffer) {
+      try {
+        const rawStartups = localStorage.getItem('ai_startup_builder_startups');
+        if (rawStartups) {
+          let parsedStartups = JSON.parse(rawStartups);
+          parsedStartups = parsedStartups.map((s: any) => {
+            if (s.startupId === updatedOffer.startupId || s.startupName === updatedOffer.startupName) {
+              return { ...s, status: 'generated' };
+            }
+            return s;
+          });
+          localStorage.setItem('ai_startup_builder_startups', JSON.stringify(parsedStartups));
+        }
+        if (updatedOffer.startupId && localStorage.getItem(updatedOffer.startupId)) {
+          const single = JSON.parse(localStorage.getItem(updatedOffer.startupId) || '{}');
+          single.status = 'generated';
+          localStorage.setItem(updatedOffer.startupId, JSON.stringify(single));
+        }
+      } catch (e) {}
+
+      try {
+        const storedPortfolio = localStorage.getItem('ai_startup_builder_portfolio');
+        if (storedPortfolio) {
+          let parsed = JSON.parse(storedPortfolio);
+          parsed = parsed.map((item: any) => {
+            if (`portfolio_${offerId}` === item.id || item.startupName === updatedOffer.startupName) {
+              return { ...item, status: 'funded', updatedAt: new Date().toISOString() };
+            }
+            return item;
+          });
+          localStorage.setItem('ai_startup_builder_portfolio', JSON.stringify(parsed));
+        }
+      } catch (e) {}
+
+      // Notify Founder and Investor across all demo account IDs so it always appears in their Bell Icon & Notifications page
+      addNotification(updatedOffer.founderId || "1", "Funding Confirmed 🎉", `Admin verified and marked your $${updatedOffer.offerAmount.toLocaleString()} funding offer from ${updatedOffer.investorCompany} as Funded!`, "/dashboard/founder/funding");
+      if (updatedOffer.founderId && updatedOffer.founderId !== "1") {
+        addNotification("1", "Funding Confirmed 🎉", `Admin verified and marked your $${updatedOffer.offerAmount.toLocaleString()} funding offer from ${updatedOffer.investorCompany} as Funded!`, "/dashboard/founder/funding");
+      }
+
+      addNotification(updatedOffer.investorId || "4", "Funding Confirmed ✅", `Admin verified and marked your $${updatedOffer.offerAmount.toLocaleString()} investment in ${updatedOffer.startupName} as Funded!`, "/dashboard/investor/portfolio-hub");
+      if (updatedOffer.investorId && updatedOffer.investorId !== "4") {
+        addNotification("4", "Funding Confirmed ✅", `Admin verified and marked your $${updatedOffer.offerAmount.toLocaleString()} investment in ${updatedOffer.startupName} as Funded!`, "/dashboard/investor/portfolio-hub");
+      }
+
+      addNotification("admin", "Funding Completed", `You verified and marked ${updatedOffer.startupName} ($${updatedOffer.offerAmount.toLocaleString()}) as Funded.`, "/dashboard/admin/startups");
+    }
   };
 
   const updateOfferAdminNote = (offerId: string, note: string) => {
@@ -241,10 +286,12 @@ export const FundingProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const verifyOffer = (offerId: string, adminName: string) => {
+    let verifiedOffer: any = null;
     setOffers(prev => prev.map(offer => {
       if (offer.id === offerId) {
         const updatedOffer = {
           ...offer,
+          status: 'funded' as FundingOffer['status'],
           updatedAt: new Date().toISOString(),
           history: [...offer.history]
         };
@@ -255,10 +302,83 @@ export const FundingProvider: React.FC<{ children: ReactNode }> = ({ children })
           message: 'Admin completed the offline document and compliance verification checks.',
           createdAt: new Date().toISOString()
         });
+        verifiedOffer = updatedOffer;
         return updatedOffer;
       }
       return offer;
     }));
+
+    if (verifiedOffer) {
+      try {
+        const rawStartups = localStorage.getItem('ai_startup_builder_startups');
+        if (rawStartups) {
+          let parsedStartups = JSON.parse(rawStartups);
+          parsedStartups = parsedStartups.map((s: any) => {
+            if (s.startupId === verifiedOffer.startupId || s.startupName === verifiedOffer.startupName) {
+              return { ...s, status: 'generated' };
+            }
+            return s;
+          });
+          localStorage.setItem('ai_startup_builder_startups', JSON.stringify(parsedStartups));
+        }
+        if (verifiedOffer.startupId && localStorage.getItem(verifiedOffer.startupId)) {
+          const single = JSON.parse(localStorage.getItem(verifiedOffer.startupId) || '{}');
+          single.status = 'generated';
+          localStorage.setItem(verifiedOffer.startupId, JSON.stringify(single));
+        }
+      } catch (e) {}
+
+      try {
+        const storedPortfolio = localStorage.getItem('ai_startup_builder_portfolio');
+        if (storedPortfolio) {
+          let parsed = JSON.parse(storedPortfolio);
+          parsed = parsed.map((item: any) => {
+            if (`portfolio_${offerId}` === item.id || item.startupName === verifiedOffer.startupName) {
+              return { ...item, status: 'verified', updatedAt: new Date().toISOString() };
+            }
+            return item;
+          });
+          localStorage.setItem('ai_startup_builder_portfolio', JSON.stringify(parsed));
+        }
+      } catch (e) {}
+
+      addNotification(
+        verifiedOffer.founderId || "1",
+        "Offer & Startup Verified ✅",
+        `Admin verified your funding offer from ${verifiedOffer.investorCompany || verifiedOffer.investorName} ($${verifiedOffer.offerAmount.toLocaleString()}) for ${verifiedOffer.startupName}. Your startup status is now Active!`,
+        "/dashboard/founder/funding"
+      );
+      if (verifiedOffer.founderId && verifiedOffer.founderId !== "1") {
+        addNotification(
+          "1",
+          "Offer & Startup Verified ✅",
+          `Admin verified your funding offer from ${verifiedOffer.investorCompany || verifiedOffer.investorName} ($${verifiedOffer.offerAmount.toLocaleString()}) for ${verifiedOffer.startupName}. Your startup status is now Active!`,
+          "/dashboard/founder/funding"
+        );
+      }
+
+      addNotification(
+        verifiedOffer.investorId || "4",
+        "Investment Verified & Active ✅",
+        `Admin verified your $${verifiedOffer.offerAmount.toLocaleString()} funding offer for ${verifiedOffer.startupName}. The investment is verified and active!`,
+        "/dashboard/investor/portfolio-hub"
+      );
+      if (verifiedOffer.investorId && verifiedOffer.investorId !== "4") {
+        addNotification(
+          "4",
+          "Investment Verified & Active ✅",
+          `Admin verified your $${verifiedOffer.offerAmount.toLocaleString()} funding offer for ${verifiedOffer.startupName}. The investment is verified and active!`,
+          "/dashboard/investor/portfolio-hub"
+        );
+      }
+
+      addNotification(
+        "admin",
+        "Offer Verified",
+        `You verified the funding offer and activated ${verifiedOffer.startupName}.`,
+        "/dashboard/admin/startups"
+      );
+    }
   };
 
   const getFounderOffers = (founderId: string) => 
