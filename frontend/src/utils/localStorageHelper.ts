@@ -95,12 +95,32 @@ export const generateStartupOutput = (startup: any) => {
       brandNameSuggestions: [startup.startupName || "Brew & Bloom", "The Local Leaf", "Aura", "Prime Reserve"],
       taglineSuggestions: ["Your Daily Escape.", "Premium Quality, Local Charm.", "Taste the Difference.", "Crafted for You."],
       logoConceptIdeas: "Minimalist wordmark with a subtle, elegant icon (like a leaf or abstract cup). Use clean, ample whitespace.",
-      brandColorPalette: ["#1E293B (Deep Slate)", "#F8FAFC (Clean White)", "#D97706 (Warm Amber)", "#10B981 (Fresh Emerald)"],
+      logoPrompt: `Create a professional, premium modern logo for a startup named "${startup.startupName || 'Breaktime'}".
+
+${startup.startupName || 'This business'} is a local premium tea, coffee, and snacks brand with a sophisticated, welcoming aesthetic.
+
+Logo Requirements:
+- Clean vector-style logo
+- Modern startup branding
+- Simple memorable icon
+- Strong readable typography
+- White or transparent background
+- No mockup, no 3D wall sign, no watermark
+- Suitable for packaging, pitch deck, website, and mobile app
+
+Generate:
+1. Icon + text logo (coffee cup, tea leaf, or break/pause icon)
+2. Text-only logo (elegant serif + sans-serif)
+3. App icon style (bold initial or abstract symbol)
+
+Style: Minimal, elegant, premium, vector-based. Colors: Coffee brown (#4B2E1E), Cream (#F5E6C8), Gold (#D4AF37), Black.`,
+      logoStyle: "Minimal Elegant Premium",
+      brandColorPalette: ["#4B2E1E (Coffee Brown)", "#F5E6C8 (Warm Cream)", "#D4AF37 (Gold)", "#111111 (Jet Black)"],
       fontStyleSuggestions: "Primary: 'Playfair Display' (Elegant Serif) | Secondary: 'Inter' (Clean Sans-Serif)",
       brandPersonality: "Welcoming, Premium, Aesthetic, Community-Focused, Sophisticated.",
       packagingStyleSuggestions: "Eco-friendly, matte-finish cups/bags with minimalist logo placement and a bold pop of the brand's accent color.",
       socialMediaIdeas: "High-quality, warm-toned photography of products; behind-the-scenes preparation videos; user-generated aesthetic interior shots.",
-      websiteHero: "\"Experience [Name]. Your new favorite local spot for premium quality and comfort.\"",
+      websiteHero: `"Experience ${startup.startupName || 'Us'}. Your new favorite local spot for premium quality and comfort."`,
       marketingCaptions: ["Sip, relax, repeat. ☕", "Your new daily ritual is here.", "Elevating your local experience."]
     };
     
@@ -173,12 +193,32 @@ export const generateStartupOutput = (startup: any) => {
       brandNameSuggestions: [startup.startupName || "SyncAI", "FlowState", "Nexus", "AutomateHQ"],
       taglineSuggestions: ["Work Smarter, Not Harder.", "The AI operating system for your team.", "Automate your growth.", "Efficiency, redefined."],
       logoConceptIdeas: "Modern, geometric tech icon (like a connected node or forward arrow). Bold, lowercase tech font.",
+      logoPrompt: `Create a professional, modern logo for a tech startup named "${startup.startupName || 'SyncAI'}".
+
+${startup.startupName || 'This startup'} is an AI/SaaS platform that automates workflows and provides data-driven insights.
+
+Logo Requirements:
+- Clean vector-style logo
+- Modern startup branding
+- Simple memorable icon
+- Strong readable typography
+- White or transparent background
+- No mockup, no watermark
+- Suitable for website, mobile app, and pitch deck
+
+Generate:
+1. Abstract geometric tech icon + text logo
+2. Text-only logo (bold, modern sans-serif)
+3. App icon style (letter mark or abstract symbol)
+
+Style: Minimal, futuristic, clean. Colors: Indigo (#4F46E5), Dark Slate (#111827), Light Gray (#F3F4F6), Success Green (#10B981).`,
+      logoStyle: "Modern Minimal Tech",
       brandColorPalette: ["#4F46E5 (Vibrant Indigo)", "#111827 (Dark Slate)", "#F3F4F6 (Light Gray)", "#10B981 (Success Green)"],
       fontStyleSuggestions: "Primary: 'Inter' (Clean Sans-Serif) | Secondary: 'Roboto Mono' (Tech/Code Vibe)",
       brandPersonality: "Innovative, Trustworthy, Fast, Modern, Cutting-edge.",
       packagingStyleSuggestions: "Clean, dark-mode SaaS UI, heavy use of glassmorphism, subtle purple/blue gradients.",
       socialMediaIdeas: "Feature highlight videos, customer success stories, thought leadership threads on X/LinkedIn.",
-      websiteHero: "\"Automate your workflow in seconds. Join 10,000+ teams doing their best work with [Name].\"",
+      websiteHero: `"Automate your workflow in seconds. Join 10,000+ teams doing their best work with ${startup.startupName || '[Name]'}."`,
       marketingCaptions: ["Stop doing manual work. Let AI handle it. 🚀", "Scale your team without hiring.", "The future of work is here."]
     };
     
@@ -379,4 +419,43 @@ export const getMentorPaymentSettings = () => {
 export const saveMentorPaymentSettings = (settings: any) => {
   localStorage.setItem('ai_startup_builder_mentor_payment_settings', JSON.stringify(settings));
   return settings;
+};
+
+// ────────────────────────────────────────────────────────────
+// Logo Helpers
+// ────────────────────────────────────────────────────────────
+
+export const getLogosByStartupId = (startupId: string) => {
+  try {
+    const data = localStorage.getItem('ai_startup_builder_logos');
+    const all: any[] = data ? JSON.parse(data) : [];
+    return all.filter((l) => l.startupId === startupId);
+  } catch (e) {
+    return [];
+  }
+};
+
+export const getAllLogos = () => {
+  try {
+    const data = localStorage.getItem('ai_startup_builder_logos');
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    return [];
+  }
+};
+
+export const saveLogo = (logo: any) => {
+  const current = getAllLogos();
+  // Replace existing logo for this startup if exists
+  const filtered = current.filter((l: any) => l.startupId !== logo.startupId);
+  const updated = [logo, ...filtered];
+  localStorage.setItem('ai_startup_builder_logos', JSON.stringify(updated));
+  return logo;
+};
+
+export const deleteLogoByStartupId = (startupId: string) => {
+  const current = getAllLogos();
+  const filtered = current.filter((l: any) => l.startupId !== startupId);
+  localStorage.setItem('ai_startup_builder_logos', JSON.stringify(filtered));
+  return filtered;
 };
