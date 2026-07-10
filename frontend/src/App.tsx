@@ -5,6 +5,12 @@ import { BillingProvider } from './context/BillingContext';
 import { FundingProvider } from './context/FundingContext';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/auth/Login';
+import Signup from './pages/auth/Signup';
+import PendingApproval from './pages/auth/PendingApproval';
+import BlogPage from './pages/info/BlogPage';
+import HelpCenterPage from './pages/info/HelpCenterPage';
+import CommunityPage from './pages/info/CommunityPage';
+import PitchDeckGuidePage from './pages/info/PitchDeckGuidePage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import DashboardLayout from './layouts/DashboardLayout';
 
@@ -25,6 +31,7 @@ import FounderReports   from './pages/dashboards/founder/FounderReports';
 import FounderAIChat    from './pages/dashboards/founder/FounderAIChat';
 import FounderProfile   from './pages/dashboards/founder/FounderProfile';
 import FounderBilling   from './pages/dashboards/founder/FounderBilling';
+import FounderLearningVideos from './pages/dashboards/founder/FounderLearningVideos';
 
 // ── Mentor Pages ─────────────────────────────────────────────────
 import MentorDashboard from './pages/dashboards/MentorDashboard';
@@ -66,6 +73,7 @@ import AdminLogs             from './pages/dashboards/admin/AdminLogs';
 import AdminReports          from './pages/dashboards/admin/AdminReports';
 import AdminBilling          from './pages/dashboards/admin/AdminBilling';
 import AdminSettings         from './pages/dashboards/admin/AdminSettings';
+import AdminManageVideos     from './pages/dashboards/admin/AdminManageVideos';
 
 import SharedMessages      from './pages/dashboards/founder/FounderMessages';
 import SharedNotifications from './pages/dashboards/founder/FounderNotifications';
@@ -101,6 +109,12 @@ function App() {
               {/* Public */}
               <Route path="/"      element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/pending-approval" element={<PendingApproval />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/help-center" element={<HelpCenterPage />} />
+              <Route path="/community" element={<CommunityPage />} />
+              <Route path="/pitch-deck-guide" element={<PitchDeckGuidePage />} />
 
               {/* Protected */}
               <Route element={<ProtectedRoute />}>
@@ -115,8 +129,9 @@ function App() {
                     <Route path="roadmap-tasks"   element={<FounderRoadmapTasks />} />
                     <Route path="mentors"         element={<FounderMentors />} />
                     <Route path="funding"         element={<FounderFunding />} />
-                    <Route path="documents"       element={<FounderDocuments />} />
-                    <Route path="inbox"           element={<SharedInbox />} />
+                    <Route path="documents"           element={<FounderDocuments />} />
+                    <Route path="learning-videos"    element={<FounderLearningVideos />} />
+                    <Route path="inbox"               element={<SharedInbox />} />
                     <Route path="profile-billing" element={<FounderProfileBilling />} />
                     {/* Legacy / Direct paths */}
                     <Route path="roadmap"         element={<FounderRoadmap />} />
@@ -140,6 +155,7 @@ function App() {
                     <Route index                     element={<AdminDashboard />} />
                     <Route path="users"              element={<AdminUsers />} />
                     <Route path="startups"           element={<AdminStartups />} />
+                    <Route path="manage-videos"     element={<AdminManageVideos />} />
                     <Route path="approvals-hub"      element={<AdminApprovalsHub />} />
                     <Route path="sub-payments"       element={<AdminSubPayments />} />
                     <Route path="analytics"          element={<AdminAnalytics />} />

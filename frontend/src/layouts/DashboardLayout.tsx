@@ -7,7 +7,7 @@ import {
   File, Lightbulb, CalendarClock, Handshake, ClipboardList,
   Briefcase, Building2, UserCog, Inbox, CreditCard,
   BarChart2, Settings, CheckSquare, ShieldCheck,
-  Map, IndianRupee,
+  Map, IndianRupee, Film,
 } from 'lucide-react';
 import NotificationDropdown from '../components/shared/NotificationDropdown';
 
@@ -25,8 +25,10 @@ const SIDEBAR_CONFIG: Record<string, SidebarSection[]> = {
         { name: 'AI Builder',       icon: Lightbulb,       path: '/dashboard/founder/ai-builder' },
         { name: 'Roadmap & Tasks',  icon: Map,             path: '/dashboard/founder/roadmap-tasks' },
         { name: 'Mentors',          icon: Users,           path: '/dashboard/founder/mentors' },
-        { name: 'Funding',          icon: Wallet,          path: '/dashboard/founder/funding' },
+        { name: 'Funding',          icon: Wallet,           path: '/dashboard/founder/funding' },
+        { name: 'Subscription',      icon: CreditCard,       path: '/dashboard/founder/billing' },
         { name: 'Documents',        icon: File,            path: '/dashboard/founder/documents' },
+        { name: 'Learning Videos',  icon: Film,            path: '/dashboard/founder/learning-videos' },
         { name: 'Founder Support',  icon: Inbox,           path: '/dashboard/founder/inbox' },
         { name: 'Profile & Billing',icon: CreditCard,      path: '/dashboard/founder/profile-billing' },
       ],
@@ -68,7 +70,9 @@ const SIDEBAR_CONFIG: Record<string, SidebarSection[]> = {
       items: [
         { name: 'Overview',                icon: LayoutDashboard, path: '/dashboard/admin' },
         { name: 'Manage Users',            icon: Users,           path: '/dashboard/admin/users' },
+        { name: 'Login Logs',             icon: ClipboardList,   path: '/dashboard/admin/logs' },
         { name: 'Manage Startups',         icon: Rocket,          path: '/dashboard/admin/startups' },
+        { name: 'Manage Videos',           icon: Film,            path: '/dashboard/admin/manage-videos' },
         { name: 'Approvals',               icon: ShieldCheck,     path: '/dashboard/admin/approvals-hub' },
         { name: 'Subscriptions & Payments',icon: CreditCard,      path: '/dashboard/admin/sub-payments' },
         { name: 'AI Analytics',            icon: BarChart2,       path: '/dashboard/admin/analytics' },

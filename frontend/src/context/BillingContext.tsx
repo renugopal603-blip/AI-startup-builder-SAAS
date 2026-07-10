@@ -61,6 +61,8 @@ interface BillingContextType {
   getUserTransactions: (userId: string) => Transaction[];
   getUserPaymentRequests: (userId: string) => PaymentRequest[];
   cancelSubscription: (subscriptionId: string) => void;
+  assignFreePlan: (userId: string, userName: string, email: string) => Subscription;
+  activatePlan: (userId: string, planName: string, amount: string, billingCycle: string) => void;
 }
 
 const getNextBillingDate = () => {
@@ -280,6 +282,74 @@ export const BillingProvider: React.FC<{ children: ReactNode }> = ({ children })
     setSubscriptions(prev => prev.filter(s => s.id !== subscriptionId));
   };
 
+  const assignFreePlan = (userId: string, userName: string, email: string) => {
+    const existing = subscriptions.find(s => s.userId === userId);
+    if (existing) return existing;
+
+    const newSub: Subscription = {
+      id: `SB-${Math.floor(1000 + Math.random() * 9000)}`,
+      userId,
+      userName,
+      email,
+      plan: 'Free',
+      amount: '₹0',
+      started: getTodayDate(),
+      nextBilling: getNextBillingDate(),
+      status: 'Active'
+    };
+    setSubscriptions(prev => [newSub, ...prev]);
+
+    const txn: Transaction = {
+      id: `PAY-${Math.floor(1000 + Math.random() * 9000)}`,
+      userId,
+      userName,
+      plan: 'Free',
+      amount: '+₹0.00',
+      date: getTodayDate(),
+      method: 'System Activation',
+      type: 'Free Plan Assigned',
+      status: 'Success'
+    };
+    setTransactions(prev => [txn, ...prev]);
+    return newSub;
+  };
+
+  const activatePlan = (userId: string, planName: string, amount: string, _billingCycle: string) => {
+    setSubscriptions(prev => {
+      const existingIdx = prev.findIndex(s => s.userId === userId);
+      const newSub: Subscription = {
+        id: existingIdx >= 0 ? prev[existingIdx].id : `SB-${Math.floor(1000 + Math.random() * 9000)}`,
+        userId,
+        userName: existingIdx >= 0 ? prev[existingIdx].userName : '',
+        email: existingIdx >= 0 ? prev[existingIdx].email : '',
+        plan: planName,
+        amount: amount,
+        started: getTodayDate(),
+        nextBilling: getNextBillingDate(),
+        status: 'Active'
+      };
+      if (existingIdx >= 0) {
+        const arr = [...prev];
+        arr[existingIdx] = newSub;
+        return arr;
+      }
+      return [newSub, ...prev];
+    });
+
+    const txn: Transaction = {
+      id: `PAY-${Math.floor(1000 + Math.random() * 9000)}`,
+      userId,
+      userName: subscriptions.find(s => s.userId === userId)?.userName || '',
+      plan: planName,
+      amount: `+${amount}`,
+      date: getTodayDate(),
+      method: 'Card Payment',
+      type: 'Subscription Upgrade',
+      status: 'Success'
+    };
+    setTransactions(prev => [txn, ...prev]);
+  };
+
   return (
     <BillingContext.Provider value={{ 
       subscriptions, 
@@ -291,7 +361,9 @@ export const BillingProvider: React.FC<{ children: ReactNode }> = ({ children })
       getUserSubscription, 
       getUserTransactions,
       getUserPaymentRequests,
-      cancelSubscription
+      cancelSubscription,
+      assignFreePlan,
+      activatePlan
     }}>
       {children}
     </BillingContext.Provider>

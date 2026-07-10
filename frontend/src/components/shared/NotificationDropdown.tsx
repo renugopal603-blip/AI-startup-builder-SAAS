@@ -25,9 +25,9 @@ const NotificationDropdown: React.FC = () => {
       const stored = getNotifications().map((n: any) => ({
         id: n.id || Date.now(),
         title: n.title,
-        desc: n.message || n.desc,
-        time: n.time || 'Just now',
-        read: !n.unread,
+        desc: n.message || n.desc || n.message,
+        time: n.time || n.createdAt ? new Date(n.createdAt || n.time).toLocaleString() : 'Just now',
+        read: n.isRead !== undefined ? n.isRead : !n.unread,
         ...getTypeStyles(n.type)
       }));
       setNotifications(stored);

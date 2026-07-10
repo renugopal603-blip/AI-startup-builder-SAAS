@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Briefcase, TrendingUp, Search, X, ArrowLeft } from 'lucide-react';
+import { Briefcase, TrendingUp, Search, X, ArrowLeft, Mail, Calendar, LogIn, ShieldCheck } from 'lucide-react';
 import SharedStartupDetailsTabs from '../../components/shared/SharedStartupDetailsTabs';
 
 const InvestorDashboard: React.FC = () => {
@@ -8,6 +8,12 @@ const InvestorDashboard: React.FC = () => {
   const [search, setSearch] = useState('');
   const [startups, setStartups] = React.useState<any[]>([]);
   const [selectedStartup, setSelectedStartup] = React.useState<any>(null);
+
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '—';
+    try { return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+    catch { return dateStr; }
+  };
 
   React.useEffect(() => {
     const keys = Object.keys(localStorage);
@@ -25,9 +31,42 @@ const InvestorDashboard: React.FC = () => {
 
   return (
     <div className="animate-fade-in-up">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Welcome, {user?.name}</h1>
-        <p className="text-gray-500 mt-1">Discover, evaluate, and invest in AI-validated startups.</p>
+      {/* User Profile Card */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#FBBF24] flex items-center justify-center text-white text-xl font-black shadow-lg shrink-0">
+            {(user?.name || '?').charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h1 className="text-xl font-bold text-gray-900">{user?.name}</h1>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200">
+                {user?.role}
+              </span>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                user?.status === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                user?.status === 'suspended' ? 'bg-red-50 text-red-600 border border-red-100' :
+                'bg-amber-50 text-amber-600 border border-amber-100'
+              }`}>
+                {user?.status || 'active'}
+              </span>
+            </div>
+            <p className="text-sm text-gray-500 flex items-center gap-1.5 mb-3">
+              <Mail size={14} className="text-gray-400" /> {user?.email}
+            </p>
+            <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-500">
+              <span className="flex items-center gap-1">
+                <Calendar size={13} className="text-gray-400" /> Signed up {formatDate(user?.signupDate)}
+              </span>
+              <span className="flex items-center gap-1">
+                <LogIn size={13} className="text-gray-400" /> Last login {user?.lastLoginAt ? formatDate(user.lastLoginAt) : <span className="italic">Never</span>}
+              </span>
+              <span className="flex items-center gap-1">
+                <ShieldCheck size={13} className="text-gray-400" /> Login count {user?.loginCount || 0}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Top metrics */}
@@ -81,11 +120,11 @@ const InvestorDashboard: React.FC = () => {
             </div>
           ) : (
             startups
-            .filter(startup => startup.startupName.toLowerCase().includes(search.toLowerCase()) || startup.startupIdea.toLowerCase().includes(search.toLowerCase()))
+            .filter(startup => startup.startupName?.toLowerCase().includes(search.toLowerCase()) || startup.startupIdea?.toLowerCase().includes(search.toLowerCase()))
             .map((startup, idx) => (
             <div key={idx} className="border border-gray-200 rounded-xl p-5 hover:border-[#10B981] transition-all hover:shadow-md group flex flex-col h-full">
               <div className="flex justify-between items-start mb-4">
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center font-bold text-xl bg-indigo-100 text-indigo-600">{startup.startupName.charAt(0)}</div>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center font-bold text-xl bg-indigo-100 text-indigo-600">{startup.startupName?.charAt(0)}</div>
                 {startup.status === 'generated' && <span className="px-2 py-1 bg-green-50 text-green-600 text-xs font-bold rounded-md border border-green-100">Seed</span>}
               </div>
               <h3 className="font-bold text-gray-900 text-lg mb-1">{startup.startupName}</h3>

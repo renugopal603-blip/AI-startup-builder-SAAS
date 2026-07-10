@@ -1,5 +1,10 @@
 import React from 'react';
-import { Rocket } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Rocket, Sparkles, BarChart3, IndianRupee, Briefcase, Users,
+  BookOpen, HelpCircle, FileText, MessageSquare, Shield,
+  FileJson, Cookie, ChevronRight
+} from 'lucide-react';
 
 const Twitter = ({ size = 24 }: { size?: number }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
@@ -17,15 +22,50 @@ const Instagram = ({ size = 24 }: { size?: number }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
 );
 
+const scrollToSection = (id: string) => {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+};
+
 const Footer: React.FC = () => {
+  const navigate = useNavigate();
+
+  const productLinks = [
+    { name: 'Features', icon: Sparkles, action: () => scrollToSection('features') },
+    { name: 'AI Analysis', icon: BarChart3, action: () => scrollToSection('ai-capabilities') },
+    { name: 'Pricing', icon: IndianRupee, action: () => scrollToSection('pricing') },
+    { name: 'For Founders', icon: Rocket, action: () => scrollToSection('roles') },
+    { name: 'For Investors', icon: Briefcase, action: () => scrollToSection('roles') },
+  ];
+
+  const resourceLinks = [
+    { name: 'Blog', icon: BookOpen, action: () => navigate('/blog') },
+    { name: 'Help Center', icon: HelpCircle, action: () => navigate('/help-center') },
+    { name: 'Pitch Deck Guide', icon: FileText, action: () => navigate('/pitch-deck-guide') },
+    { name: 'Community', icon: MessageSquare, action: () => navigate('/community') },
+  ];
+
+  const legalLinks = [
+    { name: 'Privacy Policy', icon: Shield, action: () => window.alert('Privacy Policy page coming soon!') },
+    { name: 'Terms of Service', icon: FileJson, action: () => window.alert('Terms of Service page coming soon!') },
+    { name: 'Cookie Policy', icon: Cookie, action: () => window.alert('Cookie Policy page coming soon!') },
+  ];
+
+  const socialLinks = [
+    { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
+    { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
+    { icon: Github, href: 'https://github.com', label: 'GitHub' },
+    { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
+  ];
+
   return (
     <footer className="bg-[#111827] text-gray-400 pt-20 pb-10 border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 mb-16">
-          
+
           <div className="col-span-2 lg:col-span-2">
-            <div className="flex items-center space-x-2 mb-6">
+            <div className="flex items-center space-x-2 mb-6 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
               <div className="bg-[#5B21B6] text-[#FBBF24] p-1.5 rounded-md">
                 <Rocket size={20} />
               </div>
@@ -37,52 +77,68 @@ const Footer: React.FC = () => {
               The all-in-one AI-powered SaaS platform for startup founders to validate ideas, connect with mentors, and secure funding from top investors.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors"><Twitter size={20} /></a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors"><Linkedin size={20} /></a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors"><Github size={20} /></a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors"><Instagram size={20} /></a>
+              {socialLinks.map((s) => (
+                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" title={s.label}>
+                  <s.icon size={20} />
+                </a>
+              ))}
             </div>
           </div>
-          
+
           <div>
-            <h4 className="text-white font-bold mb-5">Product</h4>
+            <h4 className="text-white font-bold mb-5 flex items-center gap-2"><ChevronRight size={14} className="text-[#FBBF24]" /> Product</h4>
             <ul className="space-y-3 text-sm">
-              <li><a href="#" className="hover:text-[#FBBF24] transition-colors">Features</a></li>
-              <li><a href="#" className="hover:text-[#FBBF24] transition-colors">AI Analysis</a></li>
-              <li><a href="#" className="hover:text-[#FBBF24] transition-colors">Pricing</a></li>
-              <li><a href="#" className="hover:text-[#FBBF24] transition-colors">For Founders</a></li>
-              <li><a href="#" className="hover:text-[#FBBF24] transition-colors">For Investors</a></li>
+              {productLinks.map((link) => (
+                <li key={link.name}>
+                  <button onClick={link.action} className="flex items-center gap-2 hover:text-[#FBBF24] transition-colors group">
+                    <link.icon size={14} className="text-gray-500 group-hover:text-[#FBBF24] transition-colors" />
+                    {link.name}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
-          
+
           <div>
-            <h4 className="text-white font-bold mb-5">Resources</h4>
+            <h4 className="text-white font-bold mb-5 flex items-center gap-2"><ChevronRight size={14} className="text-[#FBBF24]" /> Resources</h4>
             <ul className="space-y-3 text-sm">
-              <li><a href="#" className="hover:text-[#FBBF24] transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-[#FBBF24] transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-[#FBBF24] transition-colors">Pitch Deck Guide</a></li>
-              <li><a href="#" className="hover:text-[#FBBF24] transition-colors">Community</a></li>
+              {resourceLinks.map((link) => (
+                <li key={link.name}>
+                  <button onClick={link.action} className="flex items-center gap-2 hover:text-[#FBBF24] transition-colors group">
+                    <link.icon size={14} className="text-gray-500 group-hover:text-[#FBBF24] transition-colors" />
+                    {link.name}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
-          
+
           <div>
-            <h4 className="text-white font-bold mb-5">Legal</h4>
+            <h4 className="text-white font-bold mb-5 flex items-center gap-2"><ChevronRight size={14} className="text-[#FBBF24]" /> Legal</h4>
             <ul className="space-y-3 text-sm">
-              <li><a href="#" className="hover:text-[#FBBF24] transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-[#FBBF24] transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-[#FBBF24] transition-colors">Cookie Policy</a></li>
+              {legalLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <li key={link.name}>
+                    <button onClick={link.action} className="flex items-center gap-2 hover:text-[#FBBF24] transition-colors group">
+                      <Icon size={14} className="text-gray-500 group-hover:text-[#FBBF24] transition-colors" />
+                      {link.name}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
-          
+
         </div>
-        
+
         <div className="pt-8 border-t border-gray-800 text-sm text-center md:text-left flex flex-col md:flex-row justify-between items-center">
           <p>© {new Date().getFullYear()} AI Startup Builder. All rights reserved.</p>
           <div className="mt-4 md:mt-0 flex space-x-6">
             <span className="flex items-center"><div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div> Systems Operational</span>
           </div>
         </div>
-        
+
       </div>
     </footer>
   );

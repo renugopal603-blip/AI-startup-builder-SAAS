@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Rocket, IndianRupee, Check, X, Users, Cpu, UserCheck, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { Rocket, IndianRupee, Check, X, Users, Cpu, ShoppingBag, ShieldCheck, Building2 } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const [pendingMentors, setPendingMentors] = useState<any[]>([]);
+  const [pendingStartups, setPendingStartups] = useState<any[]>([]);
 
   const loadMentors = () => {
     try {
@@ -43,10 +44,11 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     loadMentors();
-    window.addEventListener('storage', loadMentors);
+    loadStartups();
+    window.addEventListener('storage', () => { loadMentors(); loadStartups(); });
     window.addEventListener('mentor_profile_updated', loadMentors);
     return () => {
-      window.removeEventListener('storage', loadMentors);
+      window.removeEventListener('storage', () => { loadMentors(); loadStartups(); });
       window.removeEventListener('mentor_profile_updated', loadMentors);
     };
   }, []);
@@ -64,6 +66,52 @@ const AdminDashboard: React.FC = () => {
     } catch (e) {}
     setPendingMentors(prev => prev.filter(m => m.id !== id && m.name !== name));
     window.alert(`✅ ${name} has been approved as a Mentor!`);
+  };
+
+  const loadStartups = () => {
+    try {
+      const keys = Object.keys(localStorage);
+      const pending: any[] = [];
+      keys.forEach(key => {
+        if (key.startsWith('startup_')) {
+          try {
+            const data = JSON.parse(localStorage.getItem(key) || '');
+            if (data.approvalStatus === 'pending') {
+              pending.push(data);
+            }
+          } catch (e) {}
+        }
+      });
+      pending.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setPendingStartups(pending);
+    } catch (e) {
+      setPendingStartups([]);
+    }
+  };
+
+  const handleApproveStartup = (id: string, name: string) => {
+    try {
+      const data = JSON.parse(localStorage.getItem(id) || '{}');
+      data.approvalStatus = 'approved';
+      data.status = 'generating';
+      data.updatedAt = new Date().toISOString();
+      localStorage.setItem(id, JSON.stringify(data));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {}
+    setPendingStartups(prev => prev.filter(s => (s.startupId || s.id) !== id));
+    window.alert(`✅ Startup "${name}" has been approved!`);
+  };
+
+  const handleRejectStartup = (id: string, name: string) => {
+    try {
+      const data = JSON.parse(localStorage.getItem(id) || '{}');
+      data.approvalStatus = 'rejected';
+      data.updatedAt = new Date().toISOString();
+      localStorage.setItem(id, JSON.stringify(data));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {}
+    setPendingStartups(prev => prev.filter(s => (s.startupId || s.id) !== id));
+    window.alert(`❌ Startup "${name}" has been rejected.`);
   };
 
   const handleQuickReject = (id: any, name: string) => {
@@ -326,6 +374,54 @@ const AdminDashboard: React.FC = () => {
               <span className="text-sm font-bold text-emerald-600">+₹12,500.00</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Pending Startup Approvals */}
+      <div className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <Building2 size={20} className="text-[#5B21B6]" /> Pending Startup Approvals
+          </h2>
+          <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2.5 py-1 rounded-full">
+            {pendingStartups.length} Pending
+          </span>
+        </div>
+
+        <div className="space-y-4 max-h-80 overflow-y-auto pr-1">
+          {pendingStartups.length > 0 ? (
+            pendingStartups.map((s, idx) => (
+              <div key={s.startupId || s.id || idx} className="flex justify-between items-center p-4 border border-gray-100 rounded-xl hover:bg-gray-50/50 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#FBBF24] flex items-center justify-center text-white font-black text-sm shadow-md">
+                    {(s.startupName || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900">{s.startupName}</p>
+                    <p className="text-xs text-gray-500">ID: {(s.startupId || s.id || '').replace('startup_', '').slice(0, 8)}... | Created {new Date(s.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleApproveStartup(s.startupId || s.id, s.startupName)}
+                    className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"
+                  >
+                    <Check size={14} /> Approve
+                  </button>
+                  <button
+                    onClick={() => handleRejectStartup(s.startupId || s.id, s.startupName)}
+                    className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"
+                  >
+                    <X size={14} /> Reject
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="p-6 text-center text-gray-400 text-sm italic border border-dashed border-gray-200 rounded-xl">
+              No pending startup approvals at the moment.
+            </div>
+          )}
         </div>
       </div>
     </div>

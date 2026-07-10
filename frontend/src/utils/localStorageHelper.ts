@@ -35,6 +35,7 @@ export const createStartupDraft = (startupName: string, startupIdea: string) => 
     startupName,
     startupIdea,
     status: 'pending_analysis',
+    approvalStatus: 'pending',
     aiGenerated: null,
     roadmap: [],
     tasks: [],

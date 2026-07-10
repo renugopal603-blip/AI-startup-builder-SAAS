@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Lightbulb, Sparkles, RefreshCw, Rocket, Target, Briefcase, FileText, Download, Save } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Lightbulb, Sparkles, RefreshCw, Rocket, Target, Briefcase } from 'lucide-react';
 
 interface Props {
   startupData?: any;
@@ -12,7 +11,6 @@ import { generateStartupOutput, generateRoadmapAndTasks, updateStartup } from '.
 const FounderIdeaGenerator: React.FC<Props> = ({ startupData = {}, setStartupData = () => {} }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
 
   const regenerate = () => {
     if (!startupData) return;

@@ -129,10 +129,21 @@ const AdminStartups: React.FC = () => {
     setDocuments(getDocuments());
   }, []);
 
+  const getDisplayStatus = (rawStatus: string) => {
+    if (rawStatus === 'generated') return 'Active';
+    return 'Pending';
+  };
+
   const filtered = startups.filter(s => {
-    const matchesSearch = s.startupName?.toLowerCase().includes(search.toLowerCase()) ||
-      s.startupIdea?.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'All Statuses' || s.status === statusFilter.toLowerCase();
+    if (!search.trim()) return statusFilter === 'All Statuses' || getDisplayStatus(s.status) === statusFilter;
+    const q = search.toLowerCase();
+    const matchFields = [
+      s.startupName, s.name, s.startupIdea, s.description,
+      s.founderId, s.id, s.startupId,
+      s.aiGenerated?.ideaAnalysis?.businessModel
+    ];
+    const matchesSearch = matchFields.some(f => f && f.toString().toLowerCase().includes(q));
+    const matchesStatus = statusFilter === 'All Statuses' || getDisplayStatus(s.status) === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -165,12 +176,11 @@ const AdminStartups: React.FC = () => {
           <select 
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5B21B6]"
+            className="px-3 py-2 border border-[#5B21B6] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5B21B6] font-semibold text-gray-700 cursor-pointer"
           >
-            <option>All Statuses</option>
-            <option>Active</option>
-            <option>Under Review</option>
-            <option>Suspended</option>
+            <option value="All Statuses">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Pending">Pending</option>
           </select>
         </div>
       </div>

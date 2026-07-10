@@ -35,7 +35,6 @@ const DemoLogoCard: React.FC<DemoLogoCardProps> = ({
 }) => {
   const primary = parseColor(colors[0]) || '#4B2E1E';
   const accent = parseColor(colors[2]) || '#D4AF37';
-  const bg = parseColor(colors[1]) || '#F5E6C8';
   const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
   return (
@@ -127,7 +126,6 @@ const FounderBranding: React.FC<FounderBrandingProps> = ({ startupData }) => {
   const branding = startupData?.aiGenerated?.branding;
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [logoError, setLogoError] = useState('');
   const [showDemoCards, setShowDemoCards] = useState(false);
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
   const [savedLogo, setSavedLogo] = useState<any>(null);
@@ -165,7 +163,6 @@ const FounderBranding: React.FC<FounderBrandingProps> = ({ startupData }) => {
 
   const handleGenerateLogo = async () => {
     setIsGenerating(true);
-    setLogoError('');
     setShowDemoCards(false);
     setSavedLogo(null);
     setSelectedCard(null);

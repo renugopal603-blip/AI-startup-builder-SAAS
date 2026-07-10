@@ -10,6 +10,15 @@ const HowItWorks: React.FC = () => {
     { num: '06', title: 'Get Funded', desc: 'Receive offers, negotiate equity, and secure funding.' }
   ];
 
+  const boxColors = [
+    { bg: 'bg-purple-50', border: 'border-purple-200', numColor: 'text-purple-200' },
+    { bg: 'bg-amber-50', border: 'border-amber-200', numColor: 'text-amber-200' },
+    { bg: 'bg-emerald-50', border: 'border-emerald-200', numColor: 'text-emerald-200' },
+    { bg: 'bg-blue-50', border: 'border-blue-200', numColor: 'text-blue-200' },
+    { bg: 'bg-pink-50', border: 'border-pink-200', numColor: 'text-pink-200' },
+    { bg: 'bg-orange-50', border: 'border-orange-200', numColor: 'text-orange-200' }
+  ];
+
   return (
     <section id="how-it-works" className="py-24 bg-[#F8FAFC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -42,8 +51,8 @@ const HowItWorks: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
           {steps.map((step, index) => (
             <div key={index} className={`reveal delay-${(index + 1) * 100} relative`}>
-              <div className="bg-white rounded-xl p-6 h-full border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative z-10">
-                <div className="text-[#E5E7EB] font-black text-5xl mb-4 -mt-2 -ml-2">{step.num}</div>
+              <div className={`${boxColors[index].bg} ${boxColors[index].border} rounded-xl p-6 h-full border shadow-sm hover:shadow-md transition-shadow relative z-10`}>
+                <div className={`${boxColors[index].numColor} font-black text-5xl mb-4 -mt-2 -ml-2`}>{step.num}</div>
                 <h4 className="text-lg font-bold text-[#1F2937] mb-2">{step.title}</h4>
                 <p className="text-sm text-[#6B7280] leading-relaxed">{step.desc}</p>
               </div>

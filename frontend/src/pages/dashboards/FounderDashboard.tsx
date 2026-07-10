@@ -1,11 +1,17 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Lightbulb, TrendingUp, IndianRupee, Clock } from 'lucide-react';
+import { Lightbulb, TrendingUp, IndianRupee, Clock, Mail, Calendar, LogIn, ShieldCheck } from 'lucide-react';
 
 const FounderDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '—';
+    try { return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+    catch { return dateStr; }
+  };
 
   const stats = [
     { title: 'Total Startups', value: '3', icon: Lightbulb, color: 'text-blue-500', bg: 'bg-blue-100' },
@@ -16,9 +22,42 @@ const FounderDashboard: React.FC = () => {
 
   return (
     <div className="animate-fade-in-up">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.name.split(' ')[0]}</h1>
-        <p className="text-gray-500 mt-1">Here's what's happening with your startups today.</p>
+      {/* User Profile Card */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#FBBF24] flex items-center justify-center text-white text-xl font-black shadow-lg shrink-0">
+            {(user?.name || '?').charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h1 className="text-xl font-bold text-gray-900">{user?.name}</h1>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-yellow-100 text-yellow-700 border border-yellow-200">
+                {user?.role}
+              </span>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                user?.status === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                user?.status === 'suspended' ? 'bg-red-50 text-red-600 border border-red-100' :
+                'bg-amber-50 text-amber-600 border border-amber-100'
+              }`}>
+                {user?.status || 'active'}
+              </span>
+            </div>
+            <p className="text-sm text-gray-500 flex items-center gap-1.5 mb-3">
+              <Mail size={14} className="text-gray-400" /> {user?.email}
+            </p>
+            <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-500">
+              <span className="flex items-center gap-1">
+                <Calendar size={13} className="text-gray-400" /> Signed up {formatDate(user?.signupDate)}
+              </span>
+              <span className="flex items-center gap-1">
+                <LogIn size={13} className="text-gray-400" /> Last login {user?.lastLoginAt ? formatDate(user.lastLoginAt) : <span className="italic">Never</span>}
+              </span>
+              <span className="flex items-center gap-1">
+                <ShieldCheck size={13} className="text-gray-400" /> Login count {user?.loginCount || 0}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -38,7 +77,6 @@ const FounderDashboard: React.FC = () => {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Main Content Area */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex justify-between items-center mb-6">
@@ -47,7 +85,6 @@ const FounderDashboard: React.FC = () => {
             </div>
             
             <div className="space-y-4">
-              {/* Dummy Startup Card */}
               <div className="p-5 border border-gray-100 rounded-xl hover:border-[#5B21B6]/30 transition-colors">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-bold text-gray-900">EcoPackage Hub</h3>
@@ -62,7 +99,6 @@ const FounderDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Dummy Startup Card 2 */}
               <div className="p-5 border border-gray-100 rounded-xl hover:border-[#5B21B6]/30 transition-colors">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-bold text-gray-900">FinFlow AI</h3>
@@ -80,7 +116,6 @@ const FounderDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Sidebar Area */}
         <div className="space-y-6">
           <div className="bg-gradient-to-br from-[#5B21B6] to-[#7C3AED] rounded-2xl shadow-sm p-6 text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10 blur-xl"></div>

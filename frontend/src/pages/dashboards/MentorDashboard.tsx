@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FileText, IndianRupee, Star, CheckCircle } from 'lucide-react';
+import { FileText, IndianRupee, Star, CheckCircle, Mail, Calendar, LogIn, ShieldCheck } from 'lucide-react';
 
 const MentorDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [filter, setFilter] = useState('Newest');
   const [startups, setStartups] = React.useState<any[]>([]);
+
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '—';
+    try { return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+    catch { return dateStr; }
+  };
 
   React.useEffect(() => {
     const keys = Object.keys(localStorage);
@@ -32,10 +38,47 @@ const MentorDashboard: React.FC = () => {
 
   return (
     <div className="animate-fade-in-up">
-      <div className="mb-8 flex justify-between items-end">
+      {/* User Profile Card */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#FBBF24] flex items-center justify-center text-white text-xl font-black shadow-lg shrink-0">
+            {(user?.name || '?').charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h1 className="text-xl font-bold text-gray-900">{user?.name}</h1>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-700 border border-blue-200">
+                {user?.role}
+              </span>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                user?.status === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                user?.status === 'suspended' ? 'bg-red-50 text-red-600 border border-red-100' :
+                'bg-amber-50 text-amber-600 border border-amber-100'
+              }`}>
+                {user?.status || 'active'}
+              </span>
+            </div>
+            <p className="text-sm text-gray-500 flex items-center gap-1.5 mb-3">
+              <Mail size={14} className="text-gray-400" /> {user?.email}
+            </p>
+            <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-500">
+              <span className="flex items-center gap-1">
+                <Calendar size={13} className="text-gray-400" /> Signed up {formatDate(user?.signupDate)}
+              </span>
+              <span className="flex items-center gap-1">
+                <LogIn size={13} className="text-gray-400" /> Last login {user?.lastLoginAt ? formatDate(user.lastLoginAt) : <span className="italic">Never</span>}
+              </span>
+              <span className="flex items-center gap-1">
+                <ShieldCheck size={13} className="text-gray-400" /> Login count {user?.loginCount || 0}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mentor Portal</h1>
-          <p className="text-gray-500 mt-1">Welcome back, {user?.name}. You have 4 startups waiting for review.</p>
+          <p className="text-gray-500">You have <strong className="text-gray-900">4 startups</strong> waiting for review.</p>
         </div>
         <button 
           onClick={() => window.alert('Redirecting to Earnings page to withdraw funds...')}
