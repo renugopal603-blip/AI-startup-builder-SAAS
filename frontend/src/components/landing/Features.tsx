@@ -70,7 +70,7 @@ const Features: React.FC = () => {
     {
       icon: <Lightbulb size={28} className="text-[#FBBF24] group-hover:animate-pulse" />,
       title: "AI Business Analysis",
-      description: "Get comprehensive insights on your startup idea including problem statements, solutions, and unique value propositions.",
+      description: "Input your startup idea and get instant AI-powered insights: value proposition, problem/solution fit, target customer segments, and TAM/SAM/SOM market sizing — all in one click.",
       themeColor: "#FBBF24",
       gradient: "from-amber-600 via-amber-700 to-orange-850",
       badge: "Idea Analysis"
@@ -78,7 +78,7 @@ const Features: React.FC = () => {
     {
       icon: <Target size={28} className="text-[#8B5CF6] group-hover:animate-bounce" />,
       title: "SWOT Analysis",
-      description: "Automatically identify your strengths, weaknesses, opportunities, and threats in seconds to build a robust strategy.",
+      description: "Build a complete strategic map of your startup's Strengths, Weaknesses, Opportunities, and Threats. Add, edit, or remove items to craft your unique competitive positioning.",
       themeColor: "#8B5CF6",
       gradient: "from-violet-650 via-purple-700 to-indigo-900",
       badge: "Strategy Mapping"
@@ -86,7 +86,7 @@ const Features: React.FC = () => {
     {
       icon: <TrendingUp size={28} className="text-[#10B981] group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />,
       title: "Financial Forecasting",
-      description: "Generate 3-year financial projections including startup costs, revenue estimates, and break-even analysis.",
+      description: "Drag sliders to adjust ticket size, growth rate, and margins. Watch real-time 3-year revenue and profit projections with CAC, LTV, and LTV:CAC ratio calculations.",
       themeColor: "#10B981",
       gradient: "from-emerald-600 via-emerald-700 to-teal-900",
       badge: "Unit Economics"
@@ -94,7 +94,7 @@ const Features: React.FC = () => {
     {
       icon: <Presentation size={28} className="text-[#3B82F6] group-hover:scale-105 transition-transform" />,
       title: "Investor Pitch Deck",
-      description: "Auto-generate a complete, 10-slide investor pitch deck based on your AI-validated business model.",
+      description: "Preview a complete 10-slide investor pitch deck — from Vision and Problem to Traction and The Ask. Navigate slides and see how your story flows for investors.",
       themeColor: "#3B82F6",
       gradient: "from-blue-600 via-blue-700 to-indigo-900",
       badge: "Deck Builder"
@@ -102,7 +102,7 @@ const Features: React.FC = () => {
     {
       icon: <Users size={28} className="text-[#EC4899] group-hover:scale-110 transition-transform" />,
       title: "Mentor Matching",
-      description: "Connect with vetted industry experts who review your AI reports and provide actionable, human feedback.",
+      description: "AI scans our expert network and finds the best-matched mentors for your domain. Review profiles, skills, and match scores — then connect in one click.",
       themeColor: "#EC4899",
       gradient: "from-pink-600 via-rose-700 to-red-800",
       badge: "Expert Networks"
@@ -110,7 +110,7 @@ const Features: React.FC = () => {
     {
       icon: <Activity size={28} className="text-[#F97316] group-hover:scale-110 transition-transform" />,
       title: "Startup Readiness Score",
-      description: "Get scored out of 100 based on innovation, market demand, scalability, and technical feasibility.",
+      description: "Toggle checklist items covering problem validation, MVP, CAC/LTV, and IP. Get a live score out of 100 with phase-based recommendations for your next move.",
       themeColor: "#F97316",
       gradient: "from-orange-500 via-red-600 to-red-850",
       badge: "Investor Readiness"
@@ -1065,7 +1065,7 @@ const Features: React.FC = () => {
             Everything you need to build from <span className="text-[#7C3AED]">idea to funding</span>
           </h3>
           <p className="text-[#6B7280] text-lg">
-            Our platform provides a complete ecosystem of tools designed specifically for modern founders. Click any module below to try the simulator and check related mock outputs!
+            Six powerful AI tools — each with an interactive simulator. Click any card to try it live and see real mock outputs for your startup.
           </p>
         </div>
 
