@@ -70,7 +70,7 @@ const Features: React.FC = () => {
     {
       icon: <Lightbulb size={28} className="text-[#FBBF24] group-hover:animate-pulse" />,
       title: "AI Business Analysis",
-      description: "Input your startup idea and get instant AI-powered insights: value proposition, problem/solution fit, target customer segments, and TAM/SAM/SOM market sizing — all in one click.",
+      description: "Business analysis evaluates a startup idea by examining the problem it solves, the solution it offers, who the target customers are, and how big the market opportunity is — using frameworks like TAM, SAM, and SOM to size the addressable market.",
       themeColor: "#FBBF24",
       gradient: "from-amber-600 via-amber-700 to-orange-850",
       badge: "Idea Analysis"
@@ -78,7 +78,7 @@ const Features: React.FC = () => {
     {
       icon: <Target size={28} className="text-[#8B5CF6] group-hover:animate-bounce" />,
       title: "SWOT Analysis",
-      description: "Build a complete strategic map of your startup's Strengths, Weaknesses, Opportunities, and Threats. Add, edit, or remove items to craft your unique competitive positioning.",
+      description: "SWOT stands for Strengths, Weaknesses, Opportunities, and Threats. It is a strategic planning framework that helps businesses evaluate internal capabilities and external market conditions to make informed decisions and build competitive strategies.",
       themeColor: "#8B5CF6",
       gradient: "from-violet-650 via-purple-700 to-indigo-900",
       badge: "Strategy Mapping"
@@ -86,7 +86,7 @@ const Features: React.FC = () => {
     {
       icon: <TrendingUp size={28} className="text-[#10B981] group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />,
       title: "Financial Forecasting",
-      description: "Drag sliders to adjust ticket size, growth rate, and margins. Watch real-time 3-year revenue and profit projections with CAC, LTV, and LTV:CAC ratio calculations.",
+      description: "Financial forecasting is the process of estimating a startup's future revenue, costs, and profitability. It uses metrics like CAC (Customer Acquisition Cost), LTV (Lifetime Value), and profit margins to project growth over 1–3 years and determine business viability.",
       themeColor: "#10B981",
       gradient: "from-emerald-600 via-emerald-700 to-teal-900",
       badge: "Unit Economics"
@@ -94,7 +94,7 @@ const Features: React.FC = () => {
     {
       icon: <Presentation size={28} className="text-[#3B82F6] group-hover:scale-105 transition-transform" />,
       title: "Investor Pitch Deck",
-      description: "Preview a complete 10-slide investor pitch deck — from Vision and Problem to Traction and The Ask. Navigate slides and see how your story flows for investors.",
+      description: "A pitch deck is a concise 10-slide presentation that tells a startup's story to investors. It covers the vision, problem, solution, market size, business model, competition, traction, and the funding ask — designed to secure investment in a short meeting.",
       themeColor: "#3B82F6",
       gradient: "from-blue-600 via-blue-700 to-indigo-900",
       badge: "Deck Builder"
@@ -102,7 +102,7 @@ const Features: React.FC = () => {
     {
       icon: <Users size={28} className="text-[#EC4899] group-hover:scale-110 transition-transform" />,
       title: "Mentor Matching",
-      description: "AI scans our expert network and finds the best-matched mentors for your domain. Review profiles, skills, and match scores — then connect in one click.",
+      description: "Mentor matching is the process of pairing startup founders with experienced industry experts based on domain relevance, skill gaps, and business stage. A good mentor provides guidance, avoids common mistakes, and opens doors to networks and funding opportunities.",
       themeColor: "#EC4899",
       gradient: "from-pink-600 via-rose-700 to-red-800",
       badge: "Expert Networks"
@@ -110,7 +110,7 @@ const Features: React.FC = () => {
     {
       icon: <Activity size={28} className="text-[#F97316] group-hover:scale-110 transition-transform" />,
       title: "Startup Readiness Score",
-      description: "Toggle checklist items covering problem validation, MVP, CAC/LTV, and IP. Get a live score out of 100 with phase-based recommendations for your next move.",
+      description: "A startup readiness score is a weighted assessment that evaluates how prepared a business is for funding. It measures criteria like problem clarity, MVP status, unit economics, customer validation, and IP protection — scored out of 100 to indicate investor readiness.",
       themeColor: "#F97316",
       gradient: "from-orange-500 via-red-600 to-red-850",
       badge: "Investor Readiness"
