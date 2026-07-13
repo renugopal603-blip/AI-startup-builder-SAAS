@@ -1074,10 +1074,16 @@ const Features: React.FC = () => {
             <button 
               key={index} 
               onClick={() => handleCardClick(index)}
-              className="text-left bg-white border border-[#E5E7EB] hover:border-[#7C3AED]/30 rounded-2xl p-8 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group flex flex-col justify-between h-full cursor-pointer"
+              className="text-left bg-white border-2 hover:shadow-lg hover:-translate-y-1 rounded-2xl p-8 transition-all duration-300 group flex flex-col justify-between h-full cursor-pointer"
+              style={{ borderColor: `${feature.themeColor}20` }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = `${feature.themeColor}60`; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = `${feature.themeColor}20`; }}
             >
               <div>
-                <div className="w-14 h-14 rounded-xl bg-slate-50 border border-slate-100 shadow-sm flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div 
+                  className="w-14 h-14 rounded-xl border shadow-sm flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300"
+                  style={{ backgroundColor: `${feature.themeColor}15`, borderColor: `${feature.themeColor}30` }}
+                >
                   {feature.icon}
                 </div>
                 <h4 className="text-xl font-bold text-[#1F2937] mb-3">{feature.title}</h4>
@@ -1085,7 +1091,10 @@ const Features: React.FC = () => {
                   {feature.description}
                 </p>
               </div>
-              <div className="flex items-center justify-between text-xs font-bold text-[#5B21B6] group-hover:text-[#7C3AED] transition-colors mt-auto pt-2">
+              <div 
+                className="flex items-center justify-between text-xs font-bold transition-colors mt-auto pt-2 border-t"
+                style={{ color: feature.themeColor, borderColor: `${feature.themeColor}20` }}
+              >
                 <span>Try Simulator</span>
                 <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </div>
