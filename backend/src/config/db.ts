@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const DB_CONFIG = {
-  uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/ai-startup-builder',
+  uri: process.env.MONGODB_URL || process.env.MONGODB_URI || 'mongodb://localhost:27017/ai-startup-builder',
 };
 
 export const connectDB = async (): Promise<void> => {
@@ -15,7 +15,7 @@ export const connectDB = async (): Promise<void> => {
     console.log('');
   } catch (error) {
     console.error('❌ Database connection failed:', error);
-    process.exit(1);
+    console.error('⚠️ Server will continue without database. API routes requiring DB will return errors.');
   }
 };
 
