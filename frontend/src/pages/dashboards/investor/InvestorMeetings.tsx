@@ -1,11 +1,7 @@
 import React, { useRef } from 'react';
 import { Calendar, Video, Clock, Link, CheckCircle2 } from 'lucide-react';
 
-const meetings = [
-  { id: 1, startup: 'EcoPackage Hub', founder: 'Sarah Jenkins', type: 'Initial Pitch', date: 'Jul 4, 2026', time: '10:00 AM - 10:45 AM', status: 'upcoming' },
-  { id: 2, startup: 'DataSync Pro', founder: 'Mark Voltas', type: 'Due Diligence Q&A', date: 'Jul 5, 2026', time: '2:00 PM - 3:00 PM', status: 'upcoming' },
-  { id: 3, startup: 'AI Legal Reviewer', founder: 'James Park', type: 'Founder Intro', date: 'Jun 28, 2026', time: '11:00 AM - 11:30 AM', status: 'completed' },
-];
+const meetings: any[] = [];
 
 const InvestorMeetings: React.FC = () => {
   const syncDateRef = useRef<HTMLInputElement>(null);

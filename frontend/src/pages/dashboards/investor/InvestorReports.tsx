@@ -1,11 +1,7 @@
 import React from 'react';
 import { FileText, Download, BarChart2 } from 'lucide-react';
 
-const reports = [
-  { id: 1, title: 'Q2 2026 Portfolio Performance', type: 'Quarterly Update', date: 'Jul 1, 2026' },
-  { id: 2, title: 'Market Analysis: AI in LegalTech', type: 'Industry Insight', date: 'Jun 15, 2026' },
-  { id: 3, title: 'EcoPackage Hub - Due Diligence Summary', type: 'Startup Report', date: 'May 20, 2026' },
-];
+const reports: {id:number;title:string;date:string;type:string}[] = [];
 
 const InvestorReports: React.FC = () => (
   <div className="animate-fade-in-up pb-10">

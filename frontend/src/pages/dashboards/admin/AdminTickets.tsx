@@ -1,11 +1,7 @@
 import React from 'react';
 import { Clock, Search } from 'lucide-react';
 
-const tickets = [
-  { id: '#1042', user: 'Sarah Jenkins', role: 'Founder', subject: 'Pitch Deck AI stuck on generation', status: 'Open', priority: 'High', time: '10m ago' },
-  { id: '#1041', user: 'Alex Rivera', role: 'Mentor', subject: 'Payout not received for June', status: 'Pending', priority: 'Medium', time: '2h ago' },
-  { id: '#1040', user: 'Capital Ventures', role: 'Investor', subject: 'Cannot access data room for EcoPackage', status: 'Resolved', priority: 'High', time: '1d ago' },
-];
+const tickets: any[] = [];
 
 const priorityStyles: Record<string, string> = {
   High: 'text-red-600 bg-red-50',

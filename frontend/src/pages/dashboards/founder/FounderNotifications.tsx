@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Bell, CheckCheck, Star, MessageSquare, TrendingUp, Users, Rocket, Info, X, Calendar, ShieldCheck, Tag, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Bell, CheckCheck, Star, Rocket, Info, X, Calendar, ShieldCheck, Tag, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { getNotifications } from '../../../utils/localStorageHelper';
 import { useAuth } from '../../../context/AuthContext';
 
 type Notif = { id: number; icon: React.ElementType; color: string; bg: string; title: string; desc: string; time: string; read: boolean; type?: string };
 
-const initialNotifs: Notif[] = [
-  { id: 1, icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-50', title: 'New Mentor Match!', desc: 'Alex Rivera has been matched as your mentor based on your startup profile.', time: '2 minutes ago', read: false },
-  { id: 2, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50', title: 'AI Report Ready', desc: 'Your market analysis for "AI Legal Tech" is ready to view.', time: '1 hour ago', read: false },
-  { id: 3, icon: MessageSquare, color: 'text-blue-600', bg: 'bg-blue-50', title: 'New Message from Capital Ventures', desc: 'They want to schedule a call to discuss your pitch deck.', time: '3 hours ago', read: false },
-  { id: 4, icon: Rocket, color: 'text-purple-600', bg: 'bg-purple-50', title: 'Startup Submitted', desc: 'Your startup "EcoPackage Hub" has been submitted for AI review.', time: 'Yesterday', read: true },
-  { id: 5, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50', title: 'Team Invite Accepted', desc: 'James Park accepted your invitation to join your startup workspace.', time: '2 days ago', read: true },
-];
+const initialNotifs: Notif[] = [];
 
 const getTypeStyles = (type?: string) => {
   switch (type) {

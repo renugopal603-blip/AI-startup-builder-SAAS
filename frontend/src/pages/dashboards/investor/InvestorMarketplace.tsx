@@ -83,15 +83,15 @@ const InvestorMarketplace: React.FC = () => {
     const valuationVal = Number(offerData.valuationCap) || 25000000;
     const discountVal = Number(offerData.discount) || 20;
     const expiresVal = Number(offerData.expiresInDays) || 14;
-    const investorIdVal = user?.id || "4";
-    const investorNameVal = user?.name || "Capital Ventures";
-    const investorCompVal = (user as any)?.company || user?.name || "Capital Ventures";
+    const investorIdVal = user?.id || '';
+    const investorNameVal = user?.name || '';
+    const investorCompVal = (user as any)?.company || user?.name || '';
 
     sendOffer({
       startupId: selectedStartup.startupId || `startup_${Date.now()}`,
       startupName: selectedStartup.startupName || 'Messy',
       founderId: selectedStartup.founderId || "1",
-      founderName: selectedStartup.founderName || "Sarah Jenkins",
+      founderName: selectedStartup.founderName || '',
       investorId: investorIdVal,
       investorName: investorNameVal,
       investorCompany: investorCompVal,
@@ -115,7 +115,7 @@ const InvestorMarketplace: React.FC = () => {
         id: `portfolio_${newOfferId}`,
         startupId: selectedStartup.startupId || `startup_${Date.now()}`,
         startupName: selectedStartup.startupName || 'Messy',
-        founderName: selectedStartup.founderName || "Sarah Jenkins",
+        founderName: selectedStartup.founderName || '',
         investedAmount: amountVal,
         currency: offerData.currency || 'USD',
         instrument: offerData.instrument || 'Convertible Note',
@@ -336,7 +336,7 @@ const InvestorMarketplace: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-1.5">Founder</p>
-                  <p className="text-sm font-bold text-gray-800">Sarah Jenkins</p>
+                  <p className="text-sm font-bold text-gray-800">{selectedStartup?.founderName || ''}</p>
                 </div>
               </div>
 

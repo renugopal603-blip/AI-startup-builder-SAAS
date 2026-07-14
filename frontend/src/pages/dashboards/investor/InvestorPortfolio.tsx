@@ -42,11 +42,7 @@ const InvestorPortfolio: React.FC = () => {
       o.investorId === user.id ||
       o.investorName === user.name ||
       o.investorCompany === user.name ||
-      o.investorCompany === "DC Ventures" ||
-      o.investorCompany === "Capital Ventures" ||
-      o.investorId === "1" ||
-      o.investorId === "4" ||
-      o.investorId === "investor_demo" ||
+      o.investorId === user.id ||
       user.role === 'investor'
     );
   };

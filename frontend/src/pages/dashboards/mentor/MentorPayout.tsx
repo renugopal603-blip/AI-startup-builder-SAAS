@@ -16,11 +16,11 @@ const MentorPayout: React.FC = () => (
         <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden mb-6">
           <div className="absolute -right-4 -top-4 opacity-10"><Landmark size={120} /></div>
           <p className="text-sm font-bold text-gray-400 mb-1 tracking-wider uppercase">Bank Account</p>
-          <p className="text-xl font-bold mb-6">Chase Bank **** 4589</p>
+          <p className="text-xl font-bold mb-6">{'\u00A0'}</p>
           <div className="flex justify-between items-end">
             <div>
               <p className="text-xs text-gray-400 uppercase tracking-widest">Routing Number</p>
-              <p className="text-sm font-semibold mt-0.5">**** 2190</p>
+              <p className="text-sm font-semibold mt-0.5">{'\u00A0'}</p>
             </div>
             <div className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold">
               <CheckCircle2 size={14} /> Active

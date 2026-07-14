@@ -1,11 +1,7 @@
 import React from 'react';
 import { Check, X, UserCheck, ShieldAlert } from 'lucide-react';
 
-const approvals = [
-  { id: 1, type: 'Investor KYC', name: 'Capital Ventures', requestDate: '2 hours ago', status: 'Pending Review', notes: 'Uploaded W-9 and SEC accreditation letter' },
-  { id: 2, type: 'Mentor Application', name: 'Alex Rivera', requestDate: '1 day ago', status: 'Pending Review', notes: 'Ex-VC partner. LinkedIn profile verified.' },
-  { id: 3, type: 'Investor KYC', name: 'Maria Lopez', requestDate: '2 days ago', status: 'Pending Review', notes: 'Uploaded AngelList syndicate details.' },
-];
+const approvals: any[] = [];
 
 const AdminApprovals: React.FC = () => (
   <div className="animate-fade-in-up pb-10">

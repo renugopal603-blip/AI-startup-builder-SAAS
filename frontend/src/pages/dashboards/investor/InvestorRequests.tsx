@@ -1,11 +1,7 @@
 import React from 'react';
 import { Handshake, Clock, CheckCircle2, XCircle } from 'lucide-react';
 
-const requests = [
-  { id: 1, startup: 'EcoPackage Hub', date: 'Jul 2, 2026', status: 'Pending', type: 'Pitch Deck Request', note: 'Requested full financials and cap table.' },
-  { id: 2, startup: 'AI Legal Reviewer', date: 'Jun 28, 2026', status: 'Accepted', type: 'Intro Meeting', note: 'Founder accepted. Call scheduled for Jul 5.' },
-  { id: 3, startup: 'Fintech Micro-SaaS', date: 'Jun 15, 2026', status: 'Declined', type: 'Term Sheet Sent', note: 'Founder went with another lead investor.' },
-];
+const requests: any[] = [];
 
 const statusStyles: Record<string, { icon: React.ElementType, color: string, bg: string }> = {
   Pending: { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-100' },

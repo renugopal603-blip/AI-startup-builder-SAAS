@@ -4,45 +4,6 @@ import { addNotification } from '../../../utils/localStorageHelper';
 import type { InvestorProfileData } from '../investor/InvestorProfileDetails';
 import type { KYCDocument } from '../investor/InvestorKYC';
 
-const initialDemoInvestors: InvestorProfileData[] = [
-  {
-    id: "investor_demo_user",
-    investorName: "Capital Ventures",
-    email: "capital@example.com",
-    phone: "9876543210",
-    address: "Chennai, Tamil Nadu",
-    investorType: "VC Firm",
-    typicalCheckSize: "₹50k - ₹250k",
-    sectorsOfInterest: "AI, SaaS, FinTech",
-    investmentThesis: "We invest in early-stage startups with strong growth potential.",
-    verificationStatus: "pending"
-  },
-  {
-    id: "maria_lopez_demo",
-    investorName: "Maria Lopez",
-    email: "maria@angelnetwork.com",
-    phone: "9812345678",
-    address: "Bangalore, Karnataka",
-    investorType: "Angel Investor",
-    typicalCheckSize: "₹25k - ₹100k",
-    sectorsOfInterest: "ClimateTech, HealthTech",
-    investmentThesis: "Backing passionate founders solving sustainable development goals.",
-    verificationStatus: "pending"
-  },
-  {
-    id: "nexgen_fund_demo",
-    investorName: "NexGen Fund",
-    email: "david@nexgenfund.io",
-    phone: "9898989898",
-    address: "Mumbai, Maharashtra",
-    investorType: "Institutional Investor",
-    typicalCheckSize: "₹1M+",
-    sectorsOfInterest: "DeepTech, Web3, Enterprise AI",
-    investmentThesis: "Lead Series A rounds in category-defining technology platforms.",
-    verificationStatus: "Verified"
-  }
-];
-
 const AdminInvestorApproval: React.FC = () => {
   const [profiles, setProfiles] = useState<InvestorProfileData[]>([]);
   const [documents, setDocuments] = useState<KYCDocument[]>([]);
@@ -71,13 +32,6 @@ const AdminInvestorApproval: React.FC = () => {
         loadedProfiles = JSON.parse(storedProfiles);
       }
       
-      // Ensure demo users exist in the list without overwriting any user modifications
-      initialDemoInvestors.forEach(demo => {
-        if (!loadedProfiles.some(p => p.id === demo.id || (demo.id === 'investor_demo_user' && (p.id === '4' || p.investorName === demo.investorName)))) {
-          loadedProfiles.push(demo);
-        }
-      });
-      localStorage.setItem('ai_startup_builder_investor_profiles', JSON.stringify(loadedProfiles));
       setProfiles(loadedProfiles);
 
       // Load KYC documents
@@ -85,23 +39,10 @@ const AdminInvestorApproval: React.FC = () => {
       if (storedDocs) {
         setDocuments(JSON.parse(storedDocs));
       } else {
-        // Seed initial sample doc for Capital Ventures if none exist
-        const sample: KYCDocument = {
-          id: "kyc_doc_sample_1",
-          investorId: "investor_demo_user",
-          investorName: "Capital Ventures",
-          documentType: "PAN Card",
-          fileName: "pan_card_capital_ventures.pdf",
-          fileData: "sample_pdf_data",
-          status: "pending",
-          rejectionReason: "",
-          uploadedAt: new Date().toISOString()
-        };
-        localStorage.setItem('ai_startup_builder_kyc_documents', JSON.stringify([sample]));
-        setDocuments([sample]);
+        setDocuments([]);
       }
     } catch (e) {
-      setProfiles(initialDemoInvestors);
+      setProfiles([]);
       setDocuments([]);
     }
   };

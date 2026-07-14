@@ -49,23 +49,11 @@ const InvestorKYC: React.FC = () => {
       const stored = localStorage.getItem('ai_startup_builder_kyc_documents');
       if (stored === null) {
         // Seed initial sample doc so list has demo data right on start
-        const sample: KYCDocument = {
-          id: "kyc_doc_sample_1",
-          investorId: user?.id || "investor_demo_user",
-          investorName: user?.name || "Capital Ventures",
-          documentType: "PAN Card",
-          fileName: "pan_card_capital_ventures.pdf",
-          fileData: "sample_pdf_data",
-          status: "pending",
-          rejectionReason: "",
-          uploadedAt: new Date().toISOString()
-        };
-        localStorage.setItem('ai_startup_builder_kyc_documents', JSON.stringify([sample]));
-        setDocuments([sample]);
+        setDocuments([]);
       } else {
         const parsed: KYCDocument[] = JSON.parse(stored);
-        const myId = user?.id || "investor_demo_user";
-        const filtered = parsed.filter(d => d.investorId === myId || d.investorId === "investor_demo_user" || d.investorName === user?.name);
+        const myId = user?.id || '';
+        const filtered = parsed.filter(d => d.investorId === myId || d.investorId === user?.id || d.investorName === user?.name);
         setDocuments(filtered);
       }
     } catch (e) {
@@ -90,8 +78,8 @@ const InvestorKYC: React.FC = () => {
       const base64Data = reader.result as string || "file_content_placeholder";
       const newDoc: KYCDocument = {
         id: `kyc_doc_${Date.now()}`,
-        investorId: "investor_demo_user", // Normalized so Admin Investor Approvals directly displays it under Capital Ventures
-        investorName: user?.name || "Capital Ventures",
+        investorId: user?.id || '',
+        investorName: user?.name || '',
         documentType: selectedDocType,
         fileName: selectedFile.name,
         fileData: base64Data,
@@ -111,9 +99,9 @@ const InvestorKYC: React.FC = () => {
           const storedProfiles = localStorage.getItem('ai_startup_builder_investor_profiles');
           if (storedProfiles) {
             const profiles = JSON.parse(storedProfiles);
-            const myId = user?.id || "investor_demo_user";
+            const myId = user?.id || '';
             const updatedProfiles = profiles.map((p: any) => 
-              (p.id === myId || p.id === "investor_demo_user" || p.id === "4") ? { ...p, verificationStatus: 'pending' } : p
+              (p.id === myId || p.id === user?.id) ? { ...p, verificationStatus: 'pending' } : p
             );
             localStorage.setItem('ai_startup_builder_investor_profiles', JSON.stringify(updatedProfiles));
           }
@@ -124,7 +112,7 @@ const InvestorKYC: React.FC = () => {
           id: Date.now(),
           userId: "admin",
           title: "New KYC Document Uploaded",
-          desc: `${user?.name || "Capital Ventures"} uploaded ${selectedDocType} (${selectedFile.name}) for KYC & Accreditation verification.`,
+          desc: `${user?.name || ''} uploaded ${selectedDocType} (${selectedFile.name}) for KYC & Accreditation verification.`,
           time: "Just now",
           read: false,
           link: "/dashboard/admin/approvals"
@@ -172,7 +160,7 @@ const InvestorKYC: React.FC = () => {
           id: Date.now(),
           userId: "admin",
           title: "KYC Document Re-uploaded",
-          desc: `${user?.name || "Capital Ventures"} re-uploaded their KYC document (${file.name}).`,
+          desc: `${user?.name || ''} re-uploaded their KYC document (${file.name}).`,
           time: "Just now",
           read: false,
           link: "/dashboard/admin/approvals"

@@ -17,11 +17,7 @@ type Startup = {
   businessModel?: string;
 };
 
-const initialStartups: Startup[] = [
-  { id: '1', name: 'EcoPackage Hub', description: 'Sustainable packaging marketplace connecting green manufacturers with D2C e-commerce brands.', status: 'Approved', score: 92, stage: 'Pre-Seed', color: 'bg-green-100 text-green-600' },
-  { id: '2', name: 'FinFlow AI', description: 'Automated financial forecasting for SaaS companies using LLM-based data extraction.', status: 'In Review', score: 85, stage: 'Idea Phase', color: 'bg-blue-100 text-blue-600' },
-  { id: '3', name: 'LegalLens AI', description: 'AI-powered contract review and risk analysis platform for small law firms.', status: 'Approved', score: 95, stage: 'Seed', color: 'bg-purple-100 text-purple-600' },
-];
+const initialStartups: Startup[] = [];
 
 const statusStyles: Record<string, string> = {
   'Approved': 'text-green-700 bg-green-50 border-green-200',

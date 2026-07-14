@@ -14,11 +14,7 @@ interface SavedStartup {
   startupData?: any; // Original startup object if saved dynamically
 }
 
-const defaultMockSaved: SavedStartup[] = [
-  { id: 'mock-1', name: 'EcoPackage Hub', sector: 'ClimateTech', stage: 'Seed', traction: '₹12k MRR', team: 4, location: 'Berlin, DE', rating: 94, logo: 'from-emerald-500 to-teal-600' },
-  { id: 'mock-2', name: 'AI Legal Reviewer', sector: 'LegalTech', stage: 'Pre-Seed', traction: '1k Waitlist', team: 2, location: 'London, UK', rating: 88, logo: 'from-blue-500 to-indigo-600' },
-  { id: 'mock-3', name: 'Fintech Micro-SaaS', sector: 'FinTech', stage: 'Series A', traction: '₹85k MRR', team: 12, location: 'New York, USA', rating: 91, logo: 'from-purple-500 to-pink-600' },
-];
+const defaultMockSaved: SavedStartup[] = [];
 
 const InvestorSaved: React.FC = () => {
   const [savedList, setSavedList] = useState<SavedStartup[]>([]);

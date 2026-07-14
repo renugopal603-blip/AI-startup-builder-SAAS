@@ -145,7 +145,7 @@ const FounderBilling: React.FC = () => {
   };
 
   const handleCopyUPI = () => {
-    navigator.clipboard.writeText("startupbuilder@bank");
+    navigator.clipboard.writeText('');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -506,7 +506,7 @@ const FounderBilling: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-2">
-                      <span className="text-sm font-bold text-[#4B5563]">UPI ID: startupbuilder@bank</span>
+                      <span className="text-sm font-bold text-[#4B5563]">UPI ID: </span>
                       <button onClick={handleCopyUPI} className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors flex items-center gap-1">
                         {copied ? <CheckCircle2 size={14} className="text-emerald-500" /> : <Copy size={14} />}
                       </button>

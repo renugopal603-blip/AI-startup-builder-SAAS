@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
 import { getStartups } from '../../../utils/localStorageHelper';
 
-const defaultRatings = [
-  { id: 'd1', founder: 'Sarah Jenkins', startup: 'EcoPackage Hub', score: 5, review: 'Alex was incredible! Gave us completely new perspective on our GTM strategy. Highly recommended.', date: 'Jul 2, 2026' },
-  { id: 'd2', founder: 'Tom Chen', startup: 'Fintech Micro-SaaS', score: 5, review: 'Very direct and actionable feedback on our business plan. Pointed out flaws we missed.', date: 'Jun 20, 2026' },
-  { id: 'd3', founder: 'Priya Sharma', startup: 'EdTech Learn', score: 4, review: 'Good insights into the EdTech market. Wish we had a bit more time on the call.', date: 'Jun 5, 2026' },
-];
+const defaultRatings: any[] = [];
 
 const MentorRatings: React.FC = () => {
   const [ratings, setRatings] = useState<any[]>(defaultRatings);

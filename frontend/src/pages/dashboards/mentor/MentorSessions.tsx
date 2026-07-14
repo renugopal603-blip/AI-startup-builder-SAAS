@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Video, Calendar, Clock, MoreVertical, Link } from 'lucide-react';
 import VideoCallModal from '../../../components/shared/VideoCallModal';
 
-const defaultSessions = [
-  { id: 1, startup: 'EcoPackage Hub', founder: 'Sarah Jenkins', time: 'Today, 2:00 PM', duration: '45 min', status: 'upcoming', roomName: 'AIStartupBuilder-EcoPackage' },
-  { id: 2, startup: 'AI Legal Reviewer', founder: 'James Park', time: 'Tomorrow, 10:00 AM', duration: '30 min', status: 'upcoming', roomName: 'AIStartupBuilder-AILegal' },
-  { id: 3, startup: 'Fintech Micro-SaaS', founder: 'Tom Chen', time: 'Jul 1, 2026', duration: '60 min', status: 'completed', roomName: 'AIStartupBuilder-Fintech' },
-];
+const defaultSessions: any[] = [];
 
 const MentorSessions: React.FC = () => {
   const [videoSessions, setVideoSessions] = useState<any[]>([]);

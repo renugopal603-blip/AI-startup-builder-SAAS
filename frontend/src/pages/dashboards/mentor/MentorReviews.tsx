@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Search, Clock, X, MessageSquare, Send, ArrowLeft } from 'lucide-react';
 import SharedStartupDetailsTabs from '../../../components/shared/SharedStartupDetailsTabs';
 import { getDocuments, addNotification } from '../../../utils/localStorageHelper';
+import { useAuth } from '../../../context/AuthContext';
 
 const MentorReviews: React.FC = () => {
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [startups, setStartups] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
@@ -34,8 +36,8 @@ const MentorReviews: React.FC = () => {
     const review = {
       id: `review_${Date.now()}`,
       startupId: selectedStartup.startupId,
-      mentorId: "mentor_demo_user",
-      mentorName: "Elena Rodriguez",
+      mentorId: user?.id || '',
+      mentorName: user?.name || '',
       rating,
       feedback,
       createdAt: new Date().toISOString()
@@ -54,7 +56,7 @@ const MentorReviews: React.FC = () => {
     addNotification({
       id: Date.now(),
       title: 'New Mentor Review',
-      message: `Elena Rodriguez provided a review for "${updated.startupName}": "${feedback}"`,
+      message: `${user?.name || ''} provided a review for "${updated.startupName}": "${feedback}"`,
       type: 'mentor_review',
       time: 'Just now',
       unread: true

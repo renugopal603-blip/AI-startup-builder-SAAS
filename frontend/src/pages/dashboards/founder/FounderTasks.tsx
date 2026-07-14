@@ -4,16 +4,7 @@ import { updateStartup } from '../../../utils/localStorageHelper';
 
 type Task = { id: number; title: string; priority: 'High' | 'Medium' | 'Low'; due: string; status: 'todo' | 'in-progress' | 'done' };
 
-const initialTasks: Task[] = [
-  { id: 1, title: 'Write executive summary for pitch deck', priority: 'High', due: 'Jul 5', status: 'in-progress' },
-  { id: 2, title: 'Set up product analytics dashboard', priority: 'High', due: 'Jul 7', status: 'todo' },
-  { id: 3, title: 'Conduct 5 user interviews this week', priority: 'Medium', due: 'Jul 8', status: 'in-progress' },
-  { id: 4, title: 'Finalise landing page copy', priority: 'Medium', due: 'Jul 6', status: 'done' },
-  { id: 5, title: 'Apply to Y Combinator batch', priority: 'High', due: 'Jul 10', status: 'todo' },
-  { id: 6, title: 'Register company entity', priority: 'Low', due: 'Jul 15', status: 'done' },
-  { id: 7, title: 'Integrate Stripe payment gateway', priority: 'High', due: 'Jul 12', status: 'todo' },
-  { id: 8, title: 'Publish first blog post', priority: 'Low', due: 'Jul 20', status: 'todo' },
-];
+const initialTasks: Task[] = [];
 
 const priorityColors = { High: 'bg-red-50 text-red-600 border-red-100', Medium: 'bg-yellow-50 text-yellow-600 border-yellow-100', Low: 'bg-green-50 text-green-600 border-green-100' };
 

@@ -1,29 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Check, X, GraduationCap, Calendar, ExternalLink, Mail, Phone, MapPin, Globe } from 'lucide-react';
 
-const initialApplicants = [
-  {
-    id: 1, name: 'Dr. Priya Sharma', expertise: 'AI/ML, Product Strategy', experience: '12+ years',
-    applied: '2 hours ago', linkedin: 'linkedin.com/in/priyasharma',
-    bio: 'Former Google PM with expertise in AI products. Mentored 40+ startups.', status: 'Pending',
-    email: 'priya.sharma@example.com', phone: '+91 98765 43210', location: 'Bangalore, Karnataka',
-    category: 'AI/ML', availability: 'Available', languages: 'English, Hindi, Kannada'
-  },
-  {
-    id: 2, name: 'Marcus Webb', expertise: 'B2B SaaS, Sales', experience: '8+ years',
-    applied: '1 day ago', linkedin: 'linkedin.com/in/marcuswebb',
-    bio: 'Scaled two B2B SaaS companies to ₹10M ARR. YC alumni.', status: 'Pending',
-    email: 'marcus.webb@saasgrowth.io', phone: '+1 (415) 555-0192', location: 'San Francisco, CA',
-    category: 'SaaS', availability: 'Available', languages: 'English'
-  },
-  {
-    id: 3, name: 'Amelia Torres', expertise: 'ClimateTech, Fundraising', experience: '15+ years',
-    applied: '3 days ago', linkedin: 'linkedin.com/in/ameliatorres',
-    bio: 'Partner at Green Ventures. Led 30+ climate-tech deals.', status: 'Under Review',
-    email: 'amelia@greenventures.com', phone: '+44 20 7946 0921', location: 'London, UK',
-    category: 'Strategy', availability: 'Busy', languages: 'English, Spanish'
-  },
-];
+const initialApplicants: any[] = [];
 
 const AdminMentorApproval: React.FC = () => {
   const [applicants, setApplicants] = useState<any[]>(initialApplicants);

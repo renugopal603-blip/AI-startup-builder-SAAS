@@ -1,11 +1,7 @@
 import React from 'react';
 import { CreditCard, TrendingUp, IndianRupee, Download } from 'lucide-react';
 
-const subscriptions = [
-  { id: 'SUB-092', user: 'EcoPackage Hub', plan: 'Scale', amount: '₹149.00', status: 'Paid', date: 'Jul 2, 2026' },
-  { id: 'SUB-091', user: 'AI Legal Reviewer', plan: 'Growth', amount: '₹49.00', status: 'Paid', date: 'Jul 1, 2026' },
-  { id: 'SUB-090', user: 'Fintech Micro-SaaS', plan: 'Scale', amount: '₹149.00', status: 'Failed', date: 'Jun 28, 2026' },
-];
+const subscriptions: any[] = [];
 
 const AdminBilling: React.FC = () => {
   const handleExportCSV = () => {

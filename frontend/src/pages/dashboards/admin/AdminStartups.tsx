@@ -47,7 +47,7 @@ const AdminStartups: React.FC = () => {
     const rows = startups.map(s => [
       s.startupId || s.id,
       s.startupName,
-      s.founderId || "Local Founder",
+      s.founderId || '',
       s.aiGenerated?.ideaAnalysis?.businessModel || 'Tech',
       s.status,
       new Date(s.createdAt || Date.now()).toLocaleDateString()
@@ -208,7 +208,7 @@ const AdminStartups: React.FC = () => {
                   <td className="px-6 py-4 font-bold text-gray-900 flex items-center gap-2">
                     <Building2 size={16} className="text-gray-400" /> {s.startupName}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">Local Founder</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{s.founderId || ''}</td>
                   <td className="px-6 py-4 text-sm text-gray-600 line-clamp-1">{s.aiGenerated?.ideaAnalysis?.businessModel || 'Tech'}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${s.status === 'generated' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>

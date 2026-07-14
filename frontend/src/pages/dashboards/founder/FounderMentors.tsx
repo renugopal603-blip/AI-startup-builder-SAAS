@@ -3,56 +3,7 @@ import { Star, Clock, ArrowRight, Video, Calendar, MoreVertical, X } from 'lucid
 import { addNotification } from '../../../utils/localStorageHelper';
 import VideoCallModal from '../../../components/shared/VideoCallModal';
 
-const initialSampleMentors = [
-  {
-    id: "mentor_demo_user",
-    name: "Alex Rivera",
-    location: "New York, NY",
-    expertise: "SaaS, Go-to-Market, Fundraising, Product Strategy",
-    linkedin: "linkedin.com/in/alexrivera",
-    bio: "Ex-VC partner and serial SaaS founder. Passionate about helping early-stage SaaS and FinTech founders find product-market fit, optimize GTM strategy, and close funding rounds.",
-    photoUrl: "",
-    experienceYears: "14+ Years",
-    category: "SaaS",
-    availability: "Available",
-    languages: "English, Spanish",
-    verificationStatus: "Verified",
-    rating: 4.9,
-    reviewsCount: 48
-  },
-  {
-    id: "mentor_sarah_chen",
-    name: "Sarah Chen",
-    location: "San Francisco, CA",
-    expertise: "SaaS Pricing, Monetization, PLG Growth Strategy",
-    linkedin: "linkedin.com/in/sarahchen",
-    bio: "Former Head of Growth at Stripe and pricing advisor to 20+ B2B SaaS unicorns. Helping founders optimize tiers and maximize LTV.",
-    photoUrl: "https://ui-avatars.com/api/?name=Sarah+Chen&background=F3F4F6&color=1F2937",
-    experienceYears: "11+ Years",
-    category: "Marketing",
-    availability: "Available",
-    languages: "English, Mandarin",
-    verificationStatus: "Verified",
-    rating: 4.9,
-    reviewsCount: 42
-  },
-  {
-    id: "mentor_david_kim",
-    name: "David Kim",
-    location: "Chicago, IL",
-    expertise: "Supply Chain Specialists, Operations, Unit Economics",
-    linkedin: "linkedin.com/in/davidkim",
-    bio: "Operations executive and angel investor specializing in supply chain automation, gross margin optimization, and early-stage scaling.",
-    photoUrl: "https://ui-avatars.com/api/?name=David+Kim&background=F3F4F6&color=1F2937",
-    experienceYears: "16+ Years",
-    category: "Product",
-    availability: "Busy",
-    languages: "English, Korean",
-    verificationStatus: "Verified",
-    rating: 4.8,
-    reviewsCount: 18
-  }
-];
+const initialSampleMentors: any[] = [];
 
 const FounderMentors: React.FC = () => {
   const [startups, setStartups] = useState<any[]>([]);
@@ -116,7 +67,7 @@ const FounderMentors: React.FC = () => {
     const newSession = {
       id: Date.now(),
       startup: startupName,
-      founder: 'Sarah Jenkins', // current user
+      founder: '',
       time: 'Tomorrow, 11:00 AM',
       duration: '30 min',
       status: 'upcoming',

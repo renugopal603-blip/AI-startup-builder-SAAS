@@ -1,11 +1,7 @@
 import React from 'react';
 import { IndianRupee, ArrowUpRight, Clock } from 'lucide-react';
 
-const transactions = [
-  { id: 'TRX-9821', date: 'Jun 15, 2026', startup: 'EcoPackage Hub', amount: '₹50,00,000', type: 'SAFE Investment', status: 'Completed', pnl: '+12%' },
-  { id: 'TRX-7734', date: 'May 02, 2026', startup: 'AI Legal Reviewer', amount: '₹25,00,000', type: 'Convertible Note', status: 'Completed', pnl: '+5%' },
-  { id: 'TRX-9012', date: 'Jul 01, 2026', startup: 'DataSync Pro', amount: '₹1,00,00,000', type: 'Equity (Priced Round)', status: 'Pending', pnl: 'N/A' },
-];
+const transactions: any[] = [];
 
 const InvestorTransactions: React.FC = () => {
   return (

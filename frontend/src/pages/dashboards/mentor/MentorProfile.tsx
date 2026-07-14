@@ -25,22 +25,22 @@ export interface MentorProfileData {
 export const MentorProfileData = {};
 
 const defaultMentorProfile: MentorProfileData = {
-  id: "mentor_demo_user",
-  name: "Alex Rivera",
-  email: "alex.rivera@example.com",
-  phone: "+1 (555) 987-6543",
-  location: "New York, NY",
-  expertise: "SaaS, Go-to-Market, Fundraising, Product Strategy",
-  linkedin: "linkedin.com/in/alexrivera",
-  bio: "Ex-VC partner and serial SaaS founder. Passionate about helping early-stage SaaS and FinTech founders find product-market fit, optimize GTM strategy, and close funding rounds.",
-  photoUrl: "",
-  experienceYears: "14+ Years",
-  category: "SaaS",
-  availability: "Available",
-  languages: "English, Spanish",
-  verificationStatus: "Verified",
-  rating: 4.9,
-  reviewsCount: 48
+  id: '',
+  name: '',
+  email: '',
+  phone: '',
+  location: '',
+  expertise: '',
+  linkedin: '',
+  bio: '',
+  photoUrl: '',
+  experienceYears: '',
+  category: 'SaaS',
+  availability: 'Available',
+  languages: '',
+  verificationStatus: 'Pending',
+  rating: 0,
+  reviewsCount: 0,
 };
 
 const categories: MentorProfileData['category'][] = [
@@ -72,8 +72,8 @@ const MentorProfile: React.FC = () => {
       if (stored) {
         profiles = JSON.parse(stored);
       }
-      const myId = user?.id || "mentor_demo_user";
-      const found = profiles.find(p => p.id === myId || p.id === "mentor_demo_user" || p.id === "2" || p.name === user?.name);
+      const myId = user?.id || '';
+      const found = profiles.find(p => p.id === myId || p.name === user?.name);
       if (found) {
         setForm(found);
       } else {
@@ -100,7 +100,7 @@ const MentorProfile: React.FC = () => {
       if (stored) {
         profiles = JSON.parse(stored);
       }
-      const myId = user?.id || form.id || "mentor_demo_user";
+      const myId = user?.id || form.id || '';
       const updatedEntry = { 
         ...form, 
         id: myId, 

@@ -12,48 +12,7 @@ const AdminAnalytics: React.FC = () => {
     { month: 'Jul', val: '₹42.5k', pct: 100, raw: 42500 }
   ];
 
-  const topStartupsAIOutput = [
-    { 
-      name: 'EcoPackage Hub', 
-      sector: 'ClimateTech • B2B SaaS', 
-      score: 94, 
-      mrr: '₹12,000', 
-      growth: '+24% MoM',
-      pmfScore: '96% High Fit',
-      valuation: '₹4.5M - ₹6.2M',
-      aiAction: 'Series A Ready — High expansion potential in US enterprise packaging supply chain.'
-    },
-    { 
-      name: 'AI Legal Reviewer', 
-      sector: 'LegalTech • Enterprise AI', 
-      score: 91, 
-      mrr: '₹22,500', 
-      growth: '+38% MoM',
-      pmfScore: '92% High Fit',
-      valuation: '₹7.8M - ₹10.5M',
-      aiAction: 'Acquisition & VC Deal Target — Strong enterprise retention and 140% Net Dollar Retention.'
-    },
-    { 
-      name: 'DataSync Pro', 
-      sector: 'DevOps • Cloud Infrastructure', 
-      score: 88, 
-      mrr: '₹18,400', 
-      growth: '+18% MoM',
-      pmfScore: '89% Optimal Fit',
-      valuation: '₹5.0M - ₹7.0M',
-      aiAction: 'Scale GTM Strategy — Recommend expanding self-serve PLG tier for mid-market engineering teams.'
-    },
-    { 
-      name: 'Fintech Micro-SaaS', 
-      sector: 'FinTech • Automated Accounting', 
-      score: 86, 
-      mrr: '₹8,900', 
-      growth: '+15% MoM',
-      pmfScore: '84% Good Fit',
-      valuation: '₹2.8M - ₹3.8M',
-      aiAction: 'Optimize Unit Economics — AI analysis shows 25% LTV increase by introducing annual prepaid billing.'
-    },
-  ];
+  const topStartupsAIOutput: any[] = [];
 
   return (
     <div className="animate-fade-in-up pb-12 space-y-8">

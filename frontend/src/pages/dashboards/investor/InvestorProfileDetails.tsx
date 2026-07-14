@@ -17,16 +17,16 @@ export interface InvestorProfileData {
 export const InvestorProfileData = {};
 
 const defaultProfile: InvestorProfileData = {
-  id: "investor_demo_user",
-  investorName: "Capital Ventures",
-  email: "capital@example.com",
-  phone: "9876543210",
-  address: "Chennai, Tamil Nadu",
-  investorType: "VC Firm",
-  typicalCheckSize: "₹50k - ₹250k",
-  sectorsOfInterest: "AI, SaaS, FinTech",
-  investmentThesis: "We invest in early-stage startups with strong growth potential.",
-  verificationStatus: "pending"
+  id: '',
+  investorName: '',
+  email: '',
+  phone: '',
+  address: '',
+  investorType: 'Angel Investor' as const,
+  typicalCheckSize: '',
+  sectorsOfInterest: '',
+  investmentThesis: '',
+  verificationStatus: 'pending'
 };
 
 const InvestorProfileDetails: React.FC = () => {
@@ -40,8 +40,8 @@ const InvestorProfileDetails: React.FC = () => {
       if (stored) {
         profiles = JSON.parse(stored);
       }
-      const myId = user?.id || "investor_demo_user";
-      const found = profiles.find(p => p.id === myId || p.id === "investor_demo_user" || p.investorName === user?.name);
+      const myId = user?.id || '';
+      const found = profiles.find(p => p.id === myId || p.id === user?.id || p.investorName === user?.name);
       if (found) {
         setProfile(found);
       } else {
@@ -73,22 +73,12 @@ const InvestorProfileDetails: React.FC = () => {
       if (stored) {
         profiles = JSON.parse(stored);
       }
-      const myId = user?.id || "investor_demo_user";
-      const existingIndex = profiles.findIndex(p => p.id === profile.id || p.id === "investor_demo_user" || p.id === myId || p.id === "4");
+      const myId = user?.id || '';
+      const existingIndex = profiles.findIndex(p => p.id === profile.id || p.id === user?.id || p.id === myId);
       if (existingIndex >= 0) {
-        // Update found profile and normalize to investor_demo_user so admin always sees exact updates
-        profiles[existingIndex] = { ...profiles[existingIndex], ...profile, id: "investor_demo_user" };
+        profiles[existingIndex] = { ...profiles[existingIndex], ...profile, id: myId };
       } else {
-        profiles.push({ ...profile, id: "investor_demo_user" });
-      }
-      // Also ensure if logged-in user id differs, we keep a synchronized copy for that ID too
-      if (myId && myId !== "investor_demo_user") {
-        const userIdx = profiles.findIndex(p => p.id === myId);
-        if (userIdx >= 0) {
-          profiles[userIdx] = { ...profiles[userIdx], ...profile, id: myId };
-        } else {
-          profiles.push({ ...profile, id: myId });
-        }
+        profiles.push({ ...profile, id: myId });
       }
       localStorage.setItem('ai_startup_builder_investor_profiles', JSON.stringify(profiles));
       window.dispatchEvent(new Event('storage'));
@@ -146,7 +136,7 @@ const InvestorProfileDetails: React.FC = () => {
               value={profile.investorName} 
               onChange={e => setProfile({ ...profile, investorName: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6] text-gray-900 font-medium"
-              placeholder="e.g. Capital Ventures"
+              placeholder="Enter company name"
             />
           </div>
 
@@ -158,7 +148,7 @@ const InvestorProfileDetails: React.FC = () => {
                 value={profile.email} 
                 onChange={e => setProfile({ ...profile, email: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6] text-gray-900"
-                placeholder="capital@example.com"
+                placeholder="Enter email"
               />
             </div>
             <div>
@@ -168,7 +158,7 @@ const InvestorProfileDetails: React.FC = () => {
                 value={profile.phone} 
                 onChange={e => setProfile({ ...profile, phone: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6] text-gray-900"
-                placeholder="9876543210"
+                placeholder="Enter phone"
               />
             </div>
           </div>
@@ -180,7 +170,7 @@ const InvestorProfileDetails: React.FC = () => {
               value={profile.address} 
               onChange={e => setProfile({ ...profile, address: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6] text-gray-900"
-              placeholder="Chennai, Tamil Nadu"
+              placeholder="Enter address"
             />
           </div>
 

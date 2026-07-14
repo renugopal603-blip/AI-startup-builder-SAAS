@@ -40,7 +40,7 @@ const SharedMessages: React.FC = () => {
     }
   }, [active, activeConv, user]);
 
-  // Format Helper for Conversation Title (e.g., Sarah Jenkins (Founder) & Capital Ventures (Investor))
+  // Format Helper for Conversation Title
   const formatConvTitle = (c: Conversation, separator: string = ' & ') => {
     if (c.participants.length < 2) return c.participants[0]?.name || 'Unknown';
     const p1 = c.participants[0];

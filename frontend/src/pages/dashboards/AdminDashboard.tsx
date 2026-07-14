@@ -23,10 +23,7 @@ const AdminDashboard: React.FC = () => {
           }));
       }
 
-      const initialSamplePending = [
-        { id: 'm_sample_1', name: 'Michael Chang', expertise: 'Ex-Product at Google | 2 Exits' },
-        { id: 'm_sample_2', name: 'Dr. Priya Sharma', expertise: 'AI/ML, Product Strategy' }
-      ];
+      const initialSamplePending: any[] = [];
 
       const combined = [...loaded];
       initialSamplePending.forEach(s => {
@@ -36,9 +33,7 @@ const AdminDashboard: React.FC = () => {
       });
       setPendingMentors(combined);
     } catch (e) {
-      setPendingMentors([
-        { id: 'm_sample_1', name: 'Michael Chang', expertise: 'Ex-Product at Google | 2 Exits' }
-      ]);
+      setPendingMentors([]);
     }
   };
 
@@ -343,35 +338,8 @@ const AdminDashboard: React.FC = () => {
           </div>
           
           <div className="space-y-4">
-            <div className="flex justify-between items-center py-3 border-b border-gray-50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center text-sm font-bold">S</div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900">Sarah Jenkins</p>
-                  <p className="text-xs text-gray-500">Upgraded to Premium (Annual)</p>
-                </div>
-              </div>
-              <span className="text-sm font-bold text-emerald-600">+₹4,680.00</span>
-            </div>
-            <div className="flex justify-between items-center py-3 border-b border-gray-50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold">D</div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900">David Ross</p>
-                  <p className="text-xs text-gray-500">Upgraded to Pro (Monthly)</p>
-                </div>
-              </div>
-              <span className="text-sm font-bold text-emerald-600">+₹499.00</span>
-            </div>
-            <div className="flex justify-between items-center py-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center text-sm font-bold">E</div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900">Elena Rostova</p>
-                  <p className="text-xs text-gray-500">Upgraded to Enterprise Suite</p>
-                </div>
-              </div>
-              <span className="text-sm font-bold text-emerald-600">+₹12,500.00</span>
+            <div className="p-6 text-center text-gray-400 text-sm italic border border-dashed border-gray-200 rounded-xl">
+              No upgrades yet.
             </div>
           </div>
         </div>

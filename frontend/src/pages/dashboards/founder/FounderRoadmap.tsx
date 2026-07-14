@@ -2,44 +2,7 @@ import React, { useState } from 'react';
 import { CheckCircle2, Circle, ChevronRight, Plus } from 'lucide-react';
 import { updateStartup } from '../../../utils/localStorageHelper';
 
-const initialPhases = [
-  {
-    id: 1, phase: 'Phase 1', title: 'Idea & Validation', status: 'completed',
-    milestones: [
-      { name: 'Define problem statement', done: true },
-      { name: 'Identify target audience', done: true },
-      { name: 'Competitive analysis', done: true },
-      { name: 'Validate with 10 users', done: true },
-    ],
-  },
-  {
-    id: 2, phase: 'Phase 2', title: 'MVP Development', status: 'in-progress',
-    milestones: [
-      { name: 'Create wireframes', done: true },
-      { name: 'Build core feature set', done: true },
-      { name: 'Internal testing & QA', done: false },
-      { name: 'Beta launch to 50 users', done: false },
-    ],
-  },
-  {
-    id: 3, phase: 'Phase 3', title: 'Market Launch', status: 'upcoming',
-    milestones: [
-      { name: 'Public product launch', done: false },
-      { name: 'PR & media outreach', done: false },
-      { name: 'First 100 paying customers', done: false },
-      { name: 'Iterate on feedback', done: false },
-    ],
-  },
-  {
-    id: 4, phase: 'Phase 4', title: 'Growth & Funding', status: 'upcoming',
-    milestones: [
-      { name: 'Reach $10k MRR', done: false },
-      { name: 'Prepare pitch deck', done: false },
-      { name: 'Raise Pre-Seed round', done: false },
-      { name: 'Expand team', done: false },
-    ],
-  },
-];
+const initialPhases: any[] = [];
 
 const statusColors: Record<string, string> = {
   completed: 'from-emerald-500 to-teal-500',

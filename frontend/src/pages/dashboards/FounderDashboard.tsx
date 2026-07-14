@@ -14,10 +14,10 @@ const FounderDashboard: React.FC = () => {
   };
 
   const stats = [
-    { title: 'Total Startups', value: '3', icon: Lightbulb, color: 'text-blue-500', bg: 'bg-blue-100' },
-    { title: 'AI Reports Generated', value: '12', icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-100' },
-    { title: 'Pending Offers', value: '1', icon: IndianRupee, color: 'text-green-500', bg: 'bg-green-100' },
-    { title: 'Mentor Reviews', value: '2', icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-100' },
+    { title: 'Total Startups', value: '0', icon: Lightbulb, color: 'text-blue-500', bg: 'bg-blue-100' },
+    { title: 'AI Reports Generated', value: '0', icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-100' },
+    { title: 'Pending Offers', value: '0', icon: IndianRupee, color: 'text-green-500', bg: 'bg-green-100' },
+    { title: 'Mentor Reviews', value: '0', icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-100' },
   ];
 
   return (
@@ -85,32 +85,8 @@ const FounderDashboard: React.FC = () => {
             </div>
             
             <div className="space-y-4">
-              <div className="p-5 border border-gray-100 rounded-xl hover:border-[#5B21B6]/30 transition-colors">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-gray-900">EcoPackage Hub</h3>
-                  <span className="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Approved</span>
-                </div>
-                <p className="text-sm text-gray-500 mb-4 line-clamp-2">Sustainable packaging marketplace connecting green manufacturers with D2C e-commerce brands.</p>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center text-sm font-medium">
-                    <span className="text-[#5B21B6]">AI Score: 92/100</span>
-                  </div>
-                  <button onClick={() => navigate('/dashboard/founder/ai-builder')} className="px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium rounded-lg transition-colors">Manage</button>
-                </div>
-              </div>
-
-              <div className="p-5 border border-gray-100 rounded-xl hover:border-[#5B21B6]/30 transition-colors">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-gray-900">FinFlow AI</h3>
-                  <span className="px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold">In Review</span>
-                </div>
-                <p className="text-sm text-gray-500 mb-4 line-clamp-2">Automated financial forecasting for SaaS companies using LLM-based data extraction.</p>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center text-sm font-medium">
-                    <span className="text-gray-500">AI Score: 85/100</span>
-                  </div>
-                  <button onClick={() => navigate('/dashboard/founder/ai-builder')} className="px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium rounded-lg transition-colors">Manage</button>
-                </div>
+              <div className="p-5 border border-gray-100 rounded-xl text-center text-gray-400 text-sm">
+                No data yet
               </div>
             </div>
           </div>
@@ -129,21 +105,8 @@ const FounderDashboard: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Recent Activity</h2>
             <div className="space-y-4">
-              <div className="flex items-start">
-                <div className="w-2 h-2 mt-2 rounded-full bg-green-500 mr-3"></div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Investment Offer Received</p>
-                  <p className="text-xs text-gray-500">David Chen offered ₹25,00,000 for 10% on EcoPackage</p>
-                  <p className="text-xs text-gray-400 mt-1">2 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="w-2 h-2 mt-2 rounded-full bg-blue-500 mr-3"></div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Mentor Review Completed</p>
-                  <p className="text-xs text-gray-500">Elena reviewed FinFlow AI</p>
-                  <p className="text-xs text-gray-400 mt-1">1 day ago</p>
-                </div>
+              <div className="text-center text-gray-400 text-sm py-4">
+                No recent activity
               </div>
             </div>
           </div>
