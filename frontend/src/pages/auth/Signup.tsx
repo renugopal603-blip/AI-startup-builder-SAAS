@@ -39,7 +39,6 @@ const Signup: React.FC = () => {
   
   const [step, setStep] = useState<number>(1);
   const [role, setRole] = useState<string>('');
-  const [plan, setPlan] = useState<string>('');
   
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -65,8 +64,8 @@ const Signup: React.FC = () => {
     setStep(2);
   };
 
-  const handlePlanSelect = (selectedPlan: string) => {
-    setPlan(selectedPlan);
+  const handlePlanSelect = (_selectedPlan: string) => {
+    // plan state is currently unused as subscription logic handles it on the backend
     setStep(3);
   };
 
