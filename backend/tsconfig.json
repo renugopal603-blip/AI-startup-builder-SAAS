@@ -9,8 +9,7 @@
     "rootDir": "./src",
     "resolveJsonModule": true,
     "declaration": true,
-    "skipLibCheck": true,
-    "types": ["node"]
+    "skipLibCheck": true
   },
   "include": ["src/**/*"]
 }
