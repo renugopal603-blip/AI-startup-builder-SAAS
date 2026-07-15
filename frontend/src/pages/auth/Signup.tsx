@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { 
-  Rocket, GraduationCap, Briefcase, ArrowRight, CheckCircle2, 
+import {
+  Rocket, GraduationCap, Briefcase, ArrowRight, CheckCircle2,
   AlertCircle, Mail, User, Lock, Eye, EyeOff, ShieldCheck
 } from 'lucide-react';
 
@@ -36,19 +36,19 @@ const roleCards = [
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  
+
   const [step, setStep] = useState<number>(1);
   const [role, setRole] = useState<string>('');
-  
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  
+
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  
+
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -69,22 +69,27 @@ const Signup: React.FC = () => {
     setStep(3);
   };
 
-  const handleSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendOTP = async (
+    e?: React.FormEvent | React.MouseEvent<HTMLButtonElement>
+  ) => {
+    e?.preventDefault();
+
     if (!fullName.trim() || !email.trim()) {
       return showError('Full Name and Email are required.');
     }
-    
+
     setIsLoading(true);
     setError('');
+
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       });
+
       const data = await res.json();
-      
+
       if (data.success) {
         setSuccess('OTP sent successfully to your email.');
         setTimeout(() => setSuccess(''), 3000);
@@ -157,7 +162,7 @@ const Signup: React.FC = () => {
         })
       });
       const data = await res.json();
-      
+
       if (data.success) {
         setSuccess('Account Created Successfully.');
         setTimeout(() => {
@@ -199,7 +204,7 @@ const Signup: React.FC = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <div className="bg-white/80 backdrop-blur-xl py-8 px-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:rounded-[20px] sm:px-10 border border-gray-100/50">
-          
+
           {/* Messages */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm flex items-start shadow-sm animate-in fade-in slide-in-from-top-2">
@@ -243,7 +248,7 @@ const Signup: React.FC = () => {
           {step === 2 && (
             <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {role === 'founder' && (
-                <div 
+                <div
                   onClick={() => handlePlanSelect('free_trial')}
                   className="relative overflow-hidden cursor-pointer w-full p-6 rounded-2xl border-2 border-[#D4AF37] bg-gradient-to-br from-white to-[#D4AF37]/5 hover:shadow-[0_8px_30px_rgba(212,175,55,0.15)] transition-all"
                 >
@@ -262,8 +267,8 @@ const Signup: React.FC = () => {
                   </button>
                 </div>
               )}
-              
-              <div 
+
+              <div
                 onClick={() => handlePlanSelect('monthly')}
                 className="cursor-pointer w-full p-6 rounded-2xl border-2 border-gray-100 hover:border-[#6C4CF1] hover:shadow-[0_8px_30px_rgba(108,76,241,0.1)] transition-all bg-white"
               >
@@ -277,7 +282,7 @@ const Signup: React.FC = () => {
                   Select Monthly
                 </button>
               </div>
-              
+
               <button onClick={() => setStep(1)} className="w-full py-2 text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">
                 ← Back to Roles
               </button>
@@ -320,7 +325,7 @@ const Signup: React.FC = () => {
               >
                 {isLoading ? 'Sending OTP...' : 'Send Verification OTP'}
               </button>
-              
+
               <button type="button" onClick={() => setStep(2)} className="w-full py-2 text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">
                 ← Back
               </button>
@@ -334,7 +339,7 @@ const Signup: React.FC = () => {
                 <div className="mx-auto w-16 h-16 bg-[#6C4CF1]/10 text-[#6C4CF1] rounded-full flex items-center justify-center mb-4">
                   <ShieldCheck size={32} />
                 </div>
-                <p className="text-sm text-gray-600 mb-6">Enter the 6-digit code sent to<br/><strong className="text-gray-900">{email}</strong></p>
+                <p className="text-sm text-gray-600 mb-6">Enter the 6-digit code sent to<br /><strong className="text-gray-900">{email}</strong></p>
               </div>
 
               <div className="flex justify-between gap-2">
@@ -354,7 +359,7 @@ const Signup: React.FC = () => {
               >
                 Verify Code
               </button>
-              
+
               <div className="text-center">
                 <button onClick={handleSendOTP} disabled={isLoading} className="text-sm font-semibold text-[#6C4CF1] hover:text-[#5B21B6] transition-colors">
                   Resend Code
@@ -416,7 +421,7 @@ const Signup: React.FC = () => {
           )}
 
         </div>
-        
+
         {step === 1 && (
           <div className="mt-6 text-center animate-in fade-in">
             <p className="text-sm text-gray-500 font-medium">
