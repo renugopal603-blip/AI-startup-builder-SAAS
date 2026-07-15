@@ -3,7 +3,7 @@ import express from 'express';
 const router = express.Router();
 
 // Mock notification endpoint
-router.post('/', (req, res) => {
+router.post('/', (req: express.Request, res: express.Response) => {
   const { title, message, type } = req.body;
   
   // In a real app, save to MongoDB Notification collection

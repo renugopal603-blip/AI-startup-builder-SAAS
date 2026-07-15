@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', apiRoutes);
 
 // Root endpoint
-app.get('/', (_req, res) => {
+app.get('/', (_req: express.Request, res: express.Response) => {
   res.json({
     name: 'AI Startup Builder API',
     version: '1.0.0',
