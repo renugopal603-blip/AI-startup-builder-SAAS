@@ -4,37 +4,79 @@
 
 /* ===== AI Startup Builder - Design System ===== */
 
-:root {
-  --color-brand: #5B21B6;
-  --color-brand-light: #7C3AED;
-  --color-brand-dark: #4C1D95;
-  --color-accent: #FBBF24;
-  --color-accent-light: #FDE68A;
-  --color-accent-dark: #F59E0B;
-  --color-bg: #F8FAFC;
-  --color-bg-dark: #111827;
-  --color-bg-card: #FFFFFF;
-  --color-text-primary: #1F2937;
-  --color-text-secondary: #6B7280;
-  --color-text-muted: #9CA3AF;
-  --color-border: #E5E7EB;
-  --color-border-light: #F3F4F6;
-  --color-success: #10B981;
-  --color-error: #EF4444;
-  --color-warning: #F59E0B;
-  --color-info: #3B82F6;
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 262.1 83.3% 57.8%; /* #6C4CF1 equivalent */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 262.1 83.3% 57.8%;
+    --radius: 0.5rem;
+
+    --color-brand: #5B21B6;
+    --color-brand-light: #7C3AED;
+    --color-brand-dark: #4C1D95;
+    --color-accent: #FBBF24;
+    --color-accent-light: #FDE68A;
+    --color-accent-dark: #F59E0B;
+    --color-bg: #F8FAFC;
+    --color-bg-dark: #111827;
+    --color-bg-card: #FFFFFF;
+    --color-text-primary: #1F2937;
+    --color-text-secondary: #6B7280;
+    --color-text-muted: #9CA3AF;
+    --color-border: #E5E7EB;
+    --color-border-light: #F3F4F6;
+    --color-success: #10B981;
+    --color-error: #EF4444;
+    --color-warning: #F59E0B;
+    --color-info: #3B82F6;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 262.1 83.3% 57.8%;
+  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #0F0A1E;
-    --color-bg-card: #1A1033;
-    --color-text-primary: #F9FAFB;
-    --color-text-secondary: #D1D5DB;
-    --color-text-muted: #9CA3AF;
-    --color-border: #374151;
-    --color-border-light: #1F2937;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }
 
@@ -223,32 +265,4 @@ body {
   opacity: 1;
   transform: translateY(0);
 }
-
-/* ===== OTP Input ===== */
-.otp-input {
-  width: 3rem;
-  height: 3.5rem;
-  text-align: center;
-  font-size: 1.25rem;
-  font-weight: 700;
-  border-radius: 0.75rem;
-  border: 2px solid var(--color-border);
-  background-color: var(--color-bg);
-  color: var(--color-text-primary);
-  transition: all 0.2s;
-}
-
-.otp-input:focus {
-  outline: none;
-  border-color: var(--color-brand);
-  background-color: var(--color-bg-card);
-  box-shadow: 0 0 0 4px rgba(91, 33, 182, 0.1);
-}
-
-.otp-input.filled {
-  border-color: var(--color-brand);
-  background-color: rgba(91, 33, 182, 0.05);
-  color: var(--color-brand);
-}
-
 .read-only-view .hide-in-read-only { display: none !important; } .read-only-view textarea { pointer-events: none; opacity: 0.8; border-color: transparent; resize: none; }
