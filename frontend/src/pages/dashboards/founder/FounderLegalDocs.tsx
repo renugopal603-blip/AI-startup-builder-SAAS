@@ -1,359 +1,419 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Scale, FileCheck, CheckCircle2, AlertTriangle, ChevronDown, ChevronRight,
-  UploadCloud, FileText, X, Shield, Clock, File
+  Scale, Building2, UserCheck, MapPin, FileCheck, Shield,
+  TrendingUp, Calendar, ClipboardCheck, AlertTriangle,
+  Loader2, RefreshCw, ChevronDown, ChevronRight, CheckCircle2, Clock, XCircle
 } from 'lucide-react';
+import { API_URL } from '../../../config/api';
 import { saveDocument, getDocuments } from '../../../utils/localStorageHelper';
 import { useAuth } from '../../../context/AuthContext';
 
 interface Props {
   startupData: any;
+  setStartupData?: (data: any) => void;
 }
-
-const DOCUMENT_TYPES = [
-  'PAN Card',
-  'Aadhaar Card',
-  'FSSAI Certificate',
-  'GST Certificate',
-  'Shop & Establishment Certificate',
-  'Trade License',
-  'Rent Agreement',
-  'NOC from Owner',
-  'Trademark Certificate',
-  'Pitch Deck',
-  'Business Plan',
-  'Financial Projection',
-  'Other'
-];
 
 const FounderLegalDocs: React.FC<Props> = ({ startupData }) => {
   const { user } = useAuth();
-  const [documents, setDocuments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [legalData, setLegalData] = useState<any>(null);
+  const [error, setError] = useState('');
+  const [savedToDocs, setSavedToDocs] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    required: true,
-    optional: false,
-    investor: false,
-    timeline: false
+    category: true, structure: true, founder: false, address: false,
+    registrations: false, licenses: false, investor: false,
+    timeline: false, checklist: false
   });
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [uploadDocType, setUploadDocType] = useState('PAN Card');
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadNotes, setUploadNotes] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-
-  // Read local documents
-  useEffect(() => {
-    setDocuments(getDocuments() || []);
-  }, []);
 
   const toggle = (key: string) => setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
 
-  const isFoodBusiness = /food|cafe|restaurant|bakery|snacks|tea|coffee|eatery/i.test(startupData.startupIdea || startupData.startupName);
-  
-  const detectedCategory = isFoodBusiness ? 'Food / Restaurant / Cafe' : 'Technology / Software / SaaS';
-
-  const requiredDocs = isFoodBusiness ? [
-    { type: 'FSSAI Certificate', name: 'FSSAI Registration / License', required: true, reason: 'Mandatory for any food-related business in India.' },
-    { type: 'Shop & Establishment Certificate', name: 'Shop & Establishment Registration', required: true, reason: 'Mandatory for physical premises and hiring employees.' },
-    { type: 'Trade License', name: 'Trade License', required: true, reason: 'Required by local municipal corporation to operate.' },
-    { type: 'GST Certificate', name: 'GST Certificate (if applicable)', required: true, reason: 'Required if turnover exceeds ₹20L/₹40L.' },
-    { type: 'Rent Agreement', name: 'Rent Agreement / NOC from owner', required: true, reason: 'Proof of business address.' },
-    { type: 'PAN Card', name: 'Founder PAN & Aadhaar', required: true, reason: 'Mandatory KYC for founders and directors.' },
-    { type: 'Other', name: 'Business Bank Account', required: true, reason: 'To separate business and personal finances.' },
-  ] : [
-    { type: 'Other', name: 'Certificate of Incorporation', required: true, reason: 'Official proof of company registration (Pvt Ltd, LLP, etc.).' },
-    { type: 'PAN Card', name: 'Founder PAN & Aadhaar', required: true, reason: 'Mandatory KYC for founders and directors.' },
-    { type: 'GST Certificate', name: 'GST Certificate', required: true, reason: 'Required if turnover exceeds ₹20L or for interstate B2B.' },
-    { type: 'Other', name: 'Business Bank Account', required: true, reason: 'To separate business and personal finances.' },
-  ];
-
-  const optionalDocs = [
-    { type: 'Trademark Certificate', name: 'Trademark Registration', required: false, reason: 'Protects your brand name and logo from being copied.' },
-    { type: 'Other', name: 'Non-Disclosure Agreement (NDA)', required: false, reason: 'Protects confidential ideas when sharing with partners.' },
-  ];
-
-  const investorDocs = [
-    { type: 'Pitch Deck', name: 'Pitch Deck', reason: 'To present your startup to potential investors.' },
-    { type: 'Business Plan', name: 'Business Plan', reason: 'Detailed strategy, go-to-market, and financial planning.' },
-    { type: 'Financial Projection', name: 'Financial Projections', reason: '3-5 year revenue and cost forecasts.' },
-  ];
-
-  const timelineSteps = [
-    'Month 1: Register Business Entity & Founders KYC',
-    'Month 1: Apply for Core Licenses (FSSAI, Trade License, Shop & Establishment)',
-    'Month 2: Open Business Bank Account & Register for GST',
-    'Month 3: Trademark Application (Optional but recommended)',
-    'Ongoing: Monthly GST returns, Annual ROC filings'
-  ];
-
-  const getDocStatus = (type: string) => {
-    // Find if the document is uploaded by documentType mapping
-    const doc = documents.find(d => 
-      d.startupId === startupData.startupId && 
-      (d.documentType === type || d.category === type)
+  // Check if legal docs already exist for this startup in documents
+  useEffect(() => {
+    const docs = getDocuments() || [];
+    const existing = docs.find((d: any) =>
+      d.startupId === startupData.startupId && d.category === 'Legal Document' && d.documentType === '__checklist__'
     );
-    if (!doc) return 'Action Required';
-    return doc.status || 'Pending Verification';
-  };
+    if (existing && existing.aiLegalData) {
+      setLegalData(existing.aiLegalData);
+      setSavedToDocs(true);
+    }
+  }, [startupData.startupId]);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Verified':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 border border-green-200 rounded-lg text-xs font-bold flex items-center gap-1"><CheckCircle2 size={12}/> Verified</span>;
-      case 'Pending Verification':
-      case 'Pending':
-        return <span className="px-2 py-1 bg-yellow-100 text-yellow-700 border border-yellow-200 rounded-lg text-xs font-bold flex items-center gap-1"><Clock size={12}/> Pending</span>;
-      case 'Rejected':
-        return <span className="px-2 py-1 bg-red-100 text-red-700 border border-red-200 rounded-lg text-xs font-bold flex items-center gap-1"><AlertTriangle size={12}/> Rejected</span>;
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-600 border border-gray-200 rounded-lg text-xs font-bold">Action Required</span>;
+  const handleGenerate = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`${API_URL}/ai-builder/generate-legal-docs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startupName: startupData.startupName,
+          startupIdea: startupData.startupIdea,
+          location: 'India'
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setLegalData(json.data);
+        saveLegalDocsToDocuments(json.data);
+      } else {
+        setError(json.message || 'Failed to generate legal documents.');
+      }
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleOpenModal = (defaultType: string) => {
-    setUploadDocType(defaultType);
-    setUploadFile(null);
-    setUploadNotes('');
-    setIsModalOpen(true);
-  };
+  const saveLegalDocsToDocuments = (data: any) => {
+    // Save a checklist entry + individual pending doc entries to the Documents page
+    const allDocs: any[] = [];
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setUploadFile(e.target.files[0]);
-    }
-  };
+    // Save the full checklist reference
+    allDocs.push({
+      id: `doc_legal_checklist_${Date.now()}`,
+      startupId: startupData.startupId,
+      founderId: user?.id || startupData.founderId || 'founder_demo',
+      fileName: `${startupData.startupName.replace(/\s+/g, '_')}_Legal_Checklist.json`,
+      fileType: 'JSON',
+      fileSize: '0.1 MB',
+      fileData: JSON.stringify(data),
+      category: 'Legal Document',
+      documentType: '__checklist__',
+      documentLabel: `Legal Checklist — ${data.detectedCategory || 'AI Generated'}`,
+      status: 'Pending',
+      aiLegalData: data,
+      sharedWith: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
 
-  const handleUploadSubmit = () => {
-    if (!uploadFile) return alert('Please select a file.');
-    setIsUploading(true);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const newDoc = {
-        id: `doc_${Date.now()}`,
+    // Save individual pending documents from the checklist
+    const addPendingDoc = (name: string, description: string, required: boolean, section: string) => {
+      allDocs.push({
+        id: `doc_legal_${Date.now()}_${Math.random().toString(36).substring(7)}`,
         startupId: startupData.startupId,
-        founderId: user?.id || "founder_demo",
-        fileName: uploadFile.name,
-        fileType: (uploadFile.name.split('.').pop() || 'file').toUpperCase(),
-        fileSize: (uploadFile.size / (1024 * 1024)).toFixed(1) + ' MB',
-        fileData: reader.result as string, // Save as Base64 for persistence
+        founderId: user?.id || startupData.founderId || 'founder_demo',
+        fileName: `${startupData.startupName.replace(/\s+/g, '_')}_${name.replace(/\s+/g, '_')}`,
+        fileType: 'PENDING',
+        fileSize: '—',
+        fileData: '',
         category: 'Legal Document',
-        documentType: uploadDocType,
-        status: 'Pending Verification',
-        notes: uploadNotes,
+        documentType: name,
+        documentLabel: name,
+        documentDescription: description,
+        documentSection: section,
+        required: required,
+        status: 'Pending',
         sharedWith: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      };
-      
-      saveDocument(newDoc);
-      setDocuments(getDocuments());
-      setIsUploading(false);
-      setIsModalOpen(false);
+      });
     };
-    reader.readAsDataURL(uploadFile);
+
+    // Founder documents
+    data.founderDocuments?.forEach((doc: any) => addPendingDoc(doc.name, doc.description, true, 'Founder Documents'));
+
+    // Business address documents
+    data.businessAddressDocuments?.forEach((doc: any) => {
+      if (doc.applicable) addPendingDoc(doc.name, doc.description, true, 'Business Address');
+    });
+
+    // Registrations
+    data.registrationsNeeded?.forEach((reg: any) => addPendingDoc(reg.name, reg.description, reg.mandatory, 'Registrations'));
+
+    // Industry licenses
+    data.industryLicenses?.forEach((lic: any) => addPendingDoc(lic.name, lic.description, lic.mandatory, 'Industry Licenses'));
+
+    // Investor-ready docs
+    data.investorReadyDocs?.forEach((doc: any) => addPendingDoc(doc.name, doc.description, false, 'Investor Documents'));
+
+    // Save all at once
+    allDocs.forEach(doc => saveDocument(doc));
+    setSavedToDocs(true);
   };
 
-  const Section = ({ id, title, icon: Icon, children }: { id: string; title: string; icon: any; children: React.ReactNode }) => (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-all">
+  if (!legalData && !loading && !error) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 text-center">
+        <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-5">
+          <Scale size={28} className="text-[#5B21B6]" />
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">Legal & Documents Generator</h3>
+        <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
+          AI will analyze your business and generate category-specific legal documents, registrations, and compliance checklist. All documents will be saved to your Documents page.
+        </p>
+        <div className="bg-purple-50 rounded-xl p-4 mb-6 border border-purple-100 text-left max-w-md mx-auto">
+          <p className="text-xs font-bold text-purple-900 mb-1">For: {startupData.startupName}</p>
+          <p className="text-xs text-purple-700 line-clamp-2">{startupData.startupIdea}</p>
+        </div>
+        <button
+          onClick={handleGenerate}
+          className="inline-flex items-center px-6 py-3 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl transition-all shadow-md active:scale-95"
+        >
+          <Scale size={18} className="mr-2" />
+          Generate Legal Documents
+        </button>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
+        <Loader2 size={40} className="animate-spin text-[#5B21B6] mx-auto mb-4" />
+        <h3 className="text-lg font-bold text-gray-900 mb-2">Generating Legal Documents...</h3>
+        <p className="text-gray-500 text-sm">AI is analyzing your business category and generating compliance checklist.</p>
+      </div>
+    );
+  }
+
+  if (error && !legalData) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 text-center">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
+          <AlertTriangle size={28} className="text-red-500" />
+        </div>
+        <h3 className="text-lg font-bold text-gray-900 mb-2">Generation Failed</h3>
+        <p className="text-red-600 text-sm mb-6">{error}</p>
+        <button
+          onClick={handleGenerate}
+          className="inline-flex items-center px-6 py-3 bg-[#5B21B6] hover:bg-[#7C3AED] text-white font-bold rounded-xl transition-all shadow-md active:scale-95"
+        >
+          <RefreshCw size={18} className="mr-2" /> Try Again
+        </button>
+      </div>
+    );
+  }
+
+  const Section = ({ id, title, icon: Icon, count, children }: { id: string; title: string; icon: any; count?: number; children: React.ReactNode }) => (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <button onClick={() => toggle(id)} className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center">
-            <Icon size={20} className="text-indigo-600" />
+          <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center">
+            <Icon size={18} className="text-[#5B21B6]" />
           </div>
-          <span className="font-bold text-gray-900">{title}</span>
+          <span className="font-bold text-gray-900 text-sm">{title}</span>
+          {count !== undefined && <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold">{count}</span>}
         </div>
-        {expandedSections[id] ? <ChevronDown size={20} className="text-gray-400" /> : <ChevronRight size={20} className="text-gray-400" />}
+        {expandedSections[id] ? <ChevronDown size={18} className="text-gray-400" /> : <ChevronRight size={18} className="text-gray-400" />}
       </button>
       {expandedSections[id] && <div className="px-5 pb-5 border-t border-gray-100">{children}</div>}
     </div>
   );
 
-  const DocumentCard = ({ doc }: { doc: any }) => {
-    const status = getDocStatus(doc.type);
-    return (
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-xl gap-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-bold text-gray-900 text-sm">{doc.name}</h4>
-            {doc.required ? (
-              <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase">Required</span>
-            ) : (
-              <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-bold uppercase">Optional</span>
-            )}
-            {getStatusBadge(status)}
-          </div>
-          <p className="text-xs text-gray-500">{doc.reason}</p>
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900">Legal & Compliance Report</h3>
+          <p className="text-gray-500 text-sm">Generated for {startupData.startupName}</p>
         </div>
-        <div className="shrink-0">
-          <button 
-            onClick={() => handleOpenModal(doc.type)}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 text-indigo-700 font-semibold rounded-lg text-sm transition-colors shadow-sm"
-          >
-            <UploadCloud size={16} /> Upload
+        <div className="flex items-center gap-3">
+          {savedToDocs && (
+            <span className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-lg font-bold flex items-center gap-1">
+              <CheckCircle2 size={12} /> Saved to Documents
+            </span>
+          )}
+          <button onClick={handleGenerate} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm flex items-center transition-colors">
+            <RefreshCw size={14} className="mr-1.5" /> Regenerate
           </button>
         </div>
       </div>
-    );
-  };
 
-  return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-10">
-      <div className="mb-6">
-        <h3 className="text-2xl font-black text-gray-900 tracking-tight">Legal & Documents</h3>
-        <p className="text-gray-500 text-sm mt-1">Simplified checklist and document management for <span className="font-semibold text-indigo-600">{startupData.startupName}</span></p>
-      </div>
-
-      {/* 1. Detected Business Category */}
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-5 flex items-start gap-4 shadow-sm">
-        <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-indigo-100 flex items-center justify-center shrink-0">
-          <Scale size={24} className="text-indigo-600" />
-        </div>
-        <div>
-          <p className="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-1">Detected Category</p>
-          <p className="text-lg font-bold text-gray-900">{detectedCategory}</p>
-          <p className="text-sm text-gray-600 mt-0.5">Based on your idea, we've simplified your required legal checklist.</p>
-        </div>
-      </div>
-
-      {/* 2. Top Required Documents */}
-      <Section id="required" title="Top Required Documents" icon={FileCheck}>
-        <div className="pt-4 space-y-3">
-          {requiredDocs.map((doc, i) => <DocumentCard key={i} doc={doc} />)}
-        </div>
-      </Section>
-
-      {/* 3. Optional Documents */}
-      <Section id="optional" title="Advanced & Optional Documents" icon={Shield}>
-        <div className="pt-4 space-y-3">
-          {optionalDocs.map((doc, i) => <DocumentCard key={i} doc={doc} />)}
-        </div>
-      </Section>
-
-      {/* 4. Investor-Ready Documents */}
-      <Section id="investor" title="Investor-Ready Documents" icon={FileText}>
-        <div className="pt-4 space-y-3">
-          {investorDocs.map((doc, i) => <DocumentCard key={i} doc={doc} />)}
-        </div>
-      </Section>
-
-      {/* 5. Compliance Timeline */}
-      <Section id="timeline" title="Compliance Timeline" icon={Clock}>
-        <div className="pt-4 px-2">
-          <div className="space-y-4 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-indigo-200 before:to-transparent">
-            {timelineSteps.map((step, i) => (
-              <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                <div className="flex items-center justify-center w-5 h-5 rounded-full border-4 border-white bg-indigo-500 text-white shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm relative z-10" />
-                <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] bg-white border border-gray-100 p-4 rounded-xl shadow-sm">
-                  <p className="text-sm font-semibold text-gray-800">{step}</p>
-                </div>
-              </div>
-            ))}
+      {/* 1. Detected Category */}
+      <Section id="category" title="Detected Business Category" icon={Building2}>
+        <div className="pt-4">
+          <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
+            <p className="text-sm font-bold text-purple-900">{legalData.detectedCategory}</p>
+            <p className="text-xs text-purple-700 mt-1">{legalData.categoryReason}</p>
           </div>
         </div>
       </Section>
 
-      {/* 6. Disclaimer */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-3 shadow-sm">
-        <AlertTriangle size={20} className="text-amber-600 shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-bold text-amber-900">Important Disclaimer</p>
-          <p className="text-sm text-amber-800 mt-1">This is an AI-generated checklist. Please verify with a CA, lawyer, or local municipal authority before proceeding with registrations and compliance.</p>
+      {/* 2. Recommended Structure */}
+      <Section id="structure" title="Recommended Business Structure" icon={Scale}>
+        <div className="pt-4">
+          <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+            <p className="text-sm font-bold text-blue-900">{legalData.recommendedStructure?.type}</p>
+            <p className="text-xs text-blue-700 mt-1">{legalData.recommendedStructure?.reason}</p>
+          </div>
         </div>
-      </div>
+      </Section>
 
-      {/* Upload Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h3 className="font-bold text-gray-900 text-lg">Upload Document</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-200 transition-colors">
-                <X size={20} />
-              </button>
+      {/* 3. Founder Documents */}
+      <Section id="founder" title="Founder Documents" icon={UserCheck} count={legalData.founderDocuments?.length}>
+        <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {legalData.founderDocuments?.map((doc: any, i: number) => (
+            <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+              <CheckCircle2 size={16} className="text-green-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-gray-900">{doc.name}</p>
+                <p className="text-xs text-gray-500">{doc.description}</p>
+              </div>
             </div>
-            
-            <div className="p-6 space-y-5">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Startup Name</label>
-                <input 
-                  type="text" 
-                  readOnly 
-                  value={startupData.startupName} 
-                  className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 cursor-not-allowed"
-                />
-              </div>
+          ))}
+        </div>
+      </Section>
 
+      {/* 4. Business Address Documents */}
+      <Section id="address" title="Business Address Documents" icon={MapPin} count={legalData.businessAddressDocuments?.length}>
+        <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {legalData.businessAddressDocuments?.map((doc: any, i: number) => (
+            <div key={i} className={`flex items-start gap-3 p-3 rounded-xl ${doc.applicable ? 'bg-gray-50' : 'bg-gray-50 opacity-50'}`}>
+              {doc.applicable ? <CheckCircle2 size={16} className="text-green-500 mt-0.5 shrink-0" /> : <XCircle size={16} className="text-gray-400 mt-0.5 shrink-0" />}
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Document Type</label>
-                <select 
-                  value={uploadDocType}
-                  onChange={(e) => setUploadDocType(e.target.value)}
-                  className="w-full px-4 py-3 bg-white border border-gray-200 hover:border-gray-300 rounded-xl text-sm font-semibold text-gray-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all appearance-none"
-                >
-                  {DOCUMENT_TYPES.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
+                <p className="text-sm font-bold text-gray-900">{doc.name}</p>
+                <p className="text-xs text-gray-500">{doc.description}</p>
               </div>
+            </div>
+          ))}
+        </div>
+      </Section>
 
+      {/* 5. Registrations Needed */}
+      <Section id="registrations" title="Registrations Needed" icon={FileCheck} count={legalData.registrationsNeeded?.length}>
+        <div className="pt-4 space-y-2">
+          {legalData.registrationsNeeded?.map((reg: any, i: number) => (
+            <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+              <div className={`shrink-0 mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold border ${reg.mandatory ? 'bg-red-50 text-red-700 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                {reg.mandatory ? 'MANDATORY' : 'OPTIONAL'}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-gray-900">{reg.name}</p>
+                <p className="text-xs text-gray-500">{reg.description}</p>
+                {reg.portal && <p className="text-[10px] text-purple-600 mt-0.5 font-mono">{reg.portal}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* 6. Industry-Specific Licenses */}
+      <Section id="licenses" title="Industry-Specific Licenses" icon={Shield} count={legalData.industryLicenses?.length}>
+        <div className="pt-4 space-y-2">
+          {legalData.industryLicenses?.map((lic: any, i: number) => (
+            <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+              <div className={`shrink-0 mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold border ${lic.mandatory ? 'bg-red-50 text-red-700 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                {lic.mandatory ? 'MANDATORY' : 'OPTIONAL'}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-gray-900">{lic.name}</p>
+                <p className="text-xs text-gray-500">{lic.description}</p>
+                {lic.authority && <p className="text-[10px] text-gray-400 mt-0.5">Authority: {lic.authority}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* 7. Investor-Ready Documents */}
+      <Section id="investor" title="Investor-Ready Documents" icon={TrendingUp} count={legalData.investorReadyDocs?.length}>
+        <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {legalData.investorReadyDocs?.map((doc: any, i: number) => (
+            <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+              <Clock size={16} className="text-yellow-500 mt-0.5 shrink-0" />
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Select File</label>
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-indigo-400 transition-all">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    {uploadFile ? (
-                      <>
-                        <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-2">
-                          <File size={20} />
-                        </div>
-                        <p className="text-sm font-bold text-gray-700">{uploadFile.name}</p>
-                        <p className="text-xs text-gray-500 mt-1">{(uploadFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                      </>
-                    ) : (
-                      <>
-                        <div className="w-10 h-10 bg-white border border-gray-200 text-gray-400 shadow-sm rounded-full flex items-center justify-center mb-2">
-                          <UploadCloud size={20} />
-                        </div>
-                        <p className="text-sm font-semibold text-gray-600">Click to browse file</p>
-                        <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG, DOCX (Max 10MB)</p>
-                      </>
-                    )}
+                <p className="text-sm font-bold text-gray-900">{doc.name}</p>
+                <p className="text-xs text-gray-500">{doc.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* 8. Compliance Timeline */}
+      <Section id="timeline" title="Compliance Timeline" icon={Calendar}>
+        <div className="pt-4 space-y-4">
+          {Object.entries(legalData.complianceTimeline || {}).map(([phase, items]: [string, any]) => (
+            <div key={phase}>
+              <p className="text-xs font-bold text-[#5B21B6] uppercase tracking-wider mb-2">
+                {phase.replace(/([A-Z])/g, ' $1').trim()}
+              </p>
+              <div className="space-y-1">
+                {items?.map((item: string, i: number) => (
+                  <div key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                    <span className="w-1.5 h-1.5 bg-[#5B21B6] rounded-full mt-1.5 shrink-0" />
+                    {item}
                   </div>
-                  <input type="file" className="hidden" onChange={handleFileChange} />
-                </label>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Notes (Optional)</label>
-                <textarea 
-                  value={uploadNotes}
-                  onChange={(e) => setUploadNotes(e.target.value)}
-                  placeholder="e.g., Renewed certificate for 2026"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 hover:border-gray-300 rounded-xl text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all min-h-[80px]"
-                />
-              </div>
-
-              <div className="pt-2 flex gap-3">
-                <button 
-                  onClick={() => setIsModalOpen(false)} 
-                  className="flex-1 py-3 px-4 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-bold rounded-xl text-sm transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleUploadSubmit}
-                  disabled={!uploadFile || isUploading}
-                  className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-colors shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isUploading ? <Clock size={16} className="animate-spin" /> : <UploadCloud size={16} />}
-                  {isUploading ? 'Uploading...' : 'Upload Document'}
-                </button>
+                ))}
               </div>
             </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* 9. Missing Documents Checklist */}
+      <Section id="checklist" title="Documents Checklist" icon={ClipboardCheck} count={legalData.missingDocumentsChecklist?.length}>
+        <div className="pt-4 overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                <th className="pb-2 font-bold">Document</th>
+                <th className="pb-2 font-bold">Priority</th>
+                <th className="pb-2 font-bold hidden sm:table-cell">Why Needed</th>
+                <th className="pb-2 font-bold hidden sm:table-cell">Issued By</th>
+                <th className="pb-2 font-bold">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {legalData.missingDocumentsChecklist?.map((item: any, i: number) => {
+                const statusColors: Record<string, string> = {
+                  Pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+                  Uploaded: 'bg-blue-50 text-blue-700 border-blue-200',
+                  Verified: 'bg-green-50 text-green-700 border-green-200',
+                };
+                const reqColors: Record<string, string> = {
+                  Required: 'bg-red-50 text-red-700 border-red-200',
+                  Optional: 'bg-blue-50 text-blue-700 border-blue-200',
+                  'Not Applicable': 'bg-gray-50 text-gray-500 border-gray-200',
+                };
+                return (
+                  <tr key={i} className="border-b border-gray-50 last:border-0">
+                    <td className="py-3 font-bold text-gray-900">{item.documentName}</td>
+                    <td className="py-3">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${reqColors[item.required] || 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                        {item.required}
+                      </span>
+                    </td>
+                    <td className="py-3 text-xs text-gray-500 hidden sm:table-cell">{item.whyNeeded}</td>
+                    <td className="py-3 text-xs text-gray-500 hidden sm:table-cell">{item.issuedBy}</td>
+                    <td className="py-3">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${statusColors[item.status] || 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                        {item.status}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
+      {/* Saved to Documents notice */}
+      {savedToDocs && (
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-5 flex items-start gap-3">
+          <CheckCircle2 size={20} className="text-green-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-bold text-green-800">Documents saved to your Documents page</p>
+            <p className="text-xs text-green-700 mt-1">
+              All required and optional legal documents have been added as pending entries.
+              Go to <strong>Documents</strong> in the sidebar to upload and manage each document.
+            </p>
           </div>
         </div>
       )}
+
+      {/* Disclaimer */}
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-3">
+        <AlertTriangle size={20} className="text-amber-600 shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-bold text-amber-800">Disclaimer</p>
+          <p className="text-xs text-amber-700 mt-1">{legalData.disclaimer}</p>
+        </div>
+      </div>
     </div>
   );
 };
