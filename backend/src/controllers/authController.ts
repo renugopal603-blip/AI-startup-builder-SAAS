@@ -223,7 +223,99 @@ export const verifyPhoneOTP = async (req: Request, res: Response) => {
   }
 };
 
-// 5. Login
+// 5. Complete Signup via Phone Verification (skips email OTP)
+export const completePhoneSignup = async (req: Request, res: Response) => {
+  try {
+    const {
+      email, password, role, fullName,
+      mobile, currentRole, startupName, startupStage, industry, agreedToTerms,
+      ...otherData
+    } = req.body;
+
+    if (!email || !password || !role || !fullName) {
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+
+    // Hash Password
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    const approvalStatus = (role === 'founder' || role === 'admin') ? 'approved' : 'pending';
+
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    const founderFields = role === 'founder' ? { mobile, currentRole, startupName, startupStage, industry, agreedToTerms } : {};
+
+    if (user) {
+      user.fullName = fullName;
+      user.passwordHash = passwordHash;
+      user.role = role;
+      user.isVerified = true;
+      user.approvalStatus = approvalStatus;
+      Object.assign(user, founderFields, otherData);
+      await user.save();
+    } else {
+      user = await User.create({
+        fullName,
+        email: email.toLowerCase(),
+        passwordHash,
+        role,
+        isVerified: true,
+        approvalStatus,
+        mobile,
+        ...founderFields,
+        ...otherData
+      });
+    }
+
+    // Initialize Subscription
+    let planName: 'free_trial' | 'pro' | 'premium_startup_builder' | 'none' = 'none';
+    let status: 'active' | 'expired' | 'pending_verification' | 'cancelled' | 'none' = 'none';
+    let paymentStatus: 'not_required' | 'pending' | 'approved' | 'rejected' = 'not_required';
+    let trialUsed = false;
+    let startDate: Date | undefined;
+    let endDate: Date | undefined;
+
+    if (role === 'founder') {
+      planName = 'free_trial';
+      status = 'active';
+      paymentStatus = 'not_required';
+      trialUsed = true;
+      startDate = new Date();
+      endDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    }
+
+    await Subscription.create({
+      userId: user._id,
+      planName,
+      status,
+      paymentStatus,
+      billingCycle: 'trial',
+      trialUsed,
+      startDate,
+      endDate
+    });
+
+    const token = generateToken(user._id.toString(), user.role);
+
+    res.status(201).json({
+      success: true,
+      message: 'Account created successfully.',
+      token,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Error in completePhoneSignup:', error);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+};
+
+// 6. Login
 export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;

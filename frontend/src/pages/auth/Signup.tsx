@@ -165,17 +165,12 @@ const FounderSignup: React.FC = () => {
   const navigate = useNavigate();
   const { checkAuth } = useAuth();
 
-  const [step, setStep] = useState<'form' | 'phone_otp' | 'email_otp'>('form');
+  const [step, setStep] = useState<'form' | 'phone_otp'>('form');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
-  const [formEmail, setFormEmail] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [watchedPassword, setWatchedPassword] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [otpError, setOtpError] = useState('');
-  const [resendCooldown, setResendCooldown] = useState(0);
 
   const [savedFormData, setSavedFormData] = useState<FounderFormData | null>(null);
 
@@ -186,6 +181,9 @@ const FounderSignup: React.FC = () => {
   const [phoneOtpError, setPhoneOtpError] = useState('');
   const [generatedPhoneOtp, setGeneratedPhoneOtp] = useState('');
   const [phoneOtpCooldown, setPhoneOtpCooldown] = useState(0);
+
+  // Success popup
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const form = useForm<FounderFormData>({
     resolver: zodResolver(founderSchema),
@@ -199,7 +197,6 @@ const FounderSignup: React.FC = () => {
     setIsSubmitting(true);
     setApiError('');
     try {
-      // Send phone OTP
       const res = await fetch(`${API_URL}/auth/send-phone-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -208,13 +205,11 @@ const FounderSignup: React.FC = () => {
       const json = await res.json();
       if (json.success) {
         setSavedFormData(data);
-        setFormEmail(data.email);
         setGeneratedPhoneOtp(json.otp || '');
         setPhoneOtp(['', '', '', '', '', '']);
         setPhoneOtpError('');
         setPhoneOtpCooldown(60);
         setStep('phone_otp');
-        // Start cooldown
         const interval = setInterval(() => {
           setPhoneOtpCooldown(prev => {
             if (prev <= 1) { clearInterval(interval); return 0; }
@@ -229,30 +224,6 @@ const FounderSignup: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const startResendCooldown = () => {
-    setResendCooldown(60);
-    const interval = setInterval(() => {
-      setResendCooldown(prev => {
-        if (prev <= 1) { clearInterval(interval); return 0; }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
-  const handleResend = async () => {
-    if (resendCooldown > 0 || !formEmail) return;
-    try {
-      await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formEmail }),
-      });
-      setOtp(['', '', '', '', '', '']);
-      setOtpError('');
-      startResendCooldown();
-    } catch { /* silent */ }
   };
 
   const handleResendPhoneOtp = async () => {
@@ -287,8 +258,6 @@ const FounderSignup: React.FC = () => {
     }
   };
 
-  // ── Phone OTP handler ─────────────────────────────────────────────────────
-
   const handleVerifyPhoneOtp = async () => {
     const code = phoneOtp.join('');
     if (code.length !== 6) {
@@ -306,21 +275,35 @@ const FounderSignup: React.FC = () => {
       });
       const json = await res.json();
       if (json.success) {
-        // Phone verified — now send email OTP and move to email verification step
-        const emailRes = await fetch(`${API_URL}/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: formEmail }),
-        });
-        const emailJson = await emailRes.json();
-        if (emailJson.success) {
-          setOtp(['', '', '', '', '', '']);
-          setOtpError('');
-          setStep('email_otp');
-          startResendCooldown();
-        } else {
-          setPhoneOtpError(emailJson.error || 'Failed to send email OTP.');
-        }
+        // Phone verified — show success popup, then create account
+        setShowSuccess(true);
+        setTimeout(async () => {
+          try {
+            const signupRes = await fetch(`${API_URL}/auth/complete-phone-signup`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: savedFormData!.email,
+                password: savedFormData!.password,
+                role: 'founder',
+                fullName: savedFormData!.fullName,
+                mobile: savedFormData!.mobile,
+              }),
+            });
+            const signupJson = await signupRes.json();
+            if (signupJson.success && signupJson.token) {
+              localStorage.setItem('ai_startup_builder_jwt', signupJson.token);
+              await checkAuth();
+              navigate('/dashboard/founder', { replace: true });
+            } else {
+              setShowSuccess(false);
+              setPhoneOtpError(signupJson.error || 'Failed to create account.');
+            }
+          } catch {
+            setShowSuccess(false);
+            setPhoneOtpError('Network error. Please try again.');
+          }
+        }, 2500);
       } else {
         setPhoneOtpError(json.error || 'Invalid OTP. Please try again.');
       }
@@ -331,53 +314,12 @@ const FounderSignup: React.FC = () => {
     }
   };
 
-  const handleVerifyOTP = async () => {
-    const code = otp.join('');
-    if (code.length !== 6) {
-      setOtpError('Please enter the complete 6-digit OTP.');
-      return;
-    }
-    if (!savedFormData) return;
-
-    setOtpLoading(true);
-    setOtpError('');
-    try {
-      const res = await fetch(`${API_URL}/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email:           savedFormData.email,
-          otp:             code,
-          password:        savedFormData.password,
-          role:            'founder',
-          fullName:        savedFormData.fullName,
-          mobile:          savedFormData.mobile,
-        }),
-      });
-      const json = await res.json();
-      if (json.success && json.token) {
-        localStorage.setItem('ai_startup_builder_jwt', json.token);
-        await checkAuth();
-        navigate('/dashboard/founder', { replace: true });
-      } else {
-        setOtpError(json.error || 'Invalid OTP. Please try again.');
-      }
-    } catch {
-      setOtpError('Network error. Please try again.');
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
   const steps = [
     { num: 1, label: 'Account Details' },
     { num: 2, label: 'Verify Phone' },
-    { num: 3, label: 'Verify Email' },
   ];
 
-  // Helper: which step index we're on (0, 1, 2)
-  const currentStepIdx = step === 'form' ? 0 : step === 'phone_otp' ? 1 : 2;
-  // Helper: is a given step completed?
+  const currentStepIdx = step === 'form' ? 0 : 1;
   const isStepComplete = (n: number) => n < currentStepIdx;
 
   return (
@@ -648,62 +590,28 @@ const FounderSignup: React.FC = () => {
               </div>
             )}
 
-            {step === 'email_otp' && (
-              <div className="flex flex-col items-center text-center animate-in fade-in slide-in-from-right-4 duration-500">
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-5 ring-4 ring-primary/5">
-                  <Mail size={32} className="text-primary" />
-                </div>
-                <h2 className="text-2xl font-extrabold mb-2">Verify your email</h2>
-                <p className="text-muted-foreground text-sm mb-1">
-                  We sent a 6-digit OTP to
-                </p>
-                <p className="font-bold text-foreground text-sm mb-8">{formEmail}</p>
-
-                <div className="w-full mb-6">
-                  <OTPInput value={otp} onChange={setOtp} />
-                </div>
-
-                {otpError && (
-                  <div className="w-full mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded-xl flex items-start gap-2 text-destructive text-sm font-medium">
-                    <AlertCircle size={16} className="shrink-0 mt-0.5" />
-                    <span>{otpError}</span>
-                  </div>
-                )}
-
-                <Button 
-                  onClick={handleVerifyOTP} 
-                  disabled={otpLoading || otp.join('').length !== 6}
-                  className="w-full h-12 text-base font-bold rounded-xl shadow-md mb-6"
-                >
-                  {otpLoading ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...</>
-                  ) : (
-                    <><CheckCircle2 className="mr-2 h-5 w-5" /> Verify & Create Account</>
-                  )}
-                </Button>
-
-                <p className="text-sm text-muted-foreground">
-                  Didn't receive the code?{' '}
-                  {resendCooldown > 0 ? (
-                    <span className="font-medium opacity-60">Resend in {resendCooldown}s</span>
-                  ) : (
-                    <button onClick={handleResend} className="font-bold text-primary hover:underline transition-colors">
-                      Resend OTP
-                    </button>
-                  )}
-                </p>
-
-                <button
-                  onClick={() => { setStep('phone_otp'); setOtp(['','','','','','']); setOtpError(''); }}
-                  className="mt-6 text-sm text-muted-foreground hover:text-foreground font-medium transition-colors"
-                >
-                  ← Go back to phone verification
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
+
+      {/* ── Success Popup ─────────────────────────────────────────────── */}
+      {showSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-card rounded-3xl shadow-2xl border p-10 w-full max-w-sm animate-in fade-in zoom-in-95 duration-200 flex flex-col items-center text-center">
+            <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-5 animate-bounce">
+              <CheckCircle2 size={44} className="text-emerald-600" />
+            </div>
+            <h3 className="text-xl font-extrabold text-foreground mb-2">Phone Verified Successfully!</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              Your phone number has been verified. Creating your account...
+            </p>
+            <div className="flex items-center gap-2 text-primary text-sm font-semibold">
+              <Loader2 size={16} className="animate-spin" />
+              <span>Setting up your account</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
