@@ -24,6 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // API Routes
 app.use('/api', apiRoutes);
+app.use('/', apiRoutes); // Fallback for frontend requests missing the /api prefix
 
 // Root endpoint
 app.get('/', (_req: express.Request, res: express.Response) => {
