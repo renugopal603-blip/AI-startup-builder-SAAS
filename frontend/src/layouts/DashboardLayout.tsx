@@ -12,7 +12,7 @@ import {
 import NotificationDropdown from '../components/shared/NotificationDropdown';
 
 // ─── Types ──────────────────────────────────────────────────────
-type NavItem = { name: string; icon: React.ElementType; path: string };
+type NavItem = { name: string; icon: React.ElementType; path: string; plans?: string[] };
 type SidebarSection = { items: NavItem[] };
 
 // ─── Simplified Sidebar Config ──────────────────────────────────
@@ -23,10 +23,10 @@ const SIDEBAR_CONFIG: Record<string, SidebarSection[]> = {
         { name: 'Overview',         icon: LayoutDashboard, path: '/dashboard/founder' },
         { name: 'My Startups',      icon: Rocket,          path: '/dashboard/founder/startups' },
         { name: 'AI Builder',       icon: Lightbulb,       path: '/dashboard/founder/ai-builder' },
-        { name: 'Roadmap & Tasks',  icon: Map,             path: '/dashboard/founder/roadmap-tasks' },
-        { name: 'Mentors',          icon: Users,           path: '/dashboard/founder/mentors' },
-        { name: 'Funding',          icon: Wallet,           path: '/dashboard/founder/funding' },
-        { name: 'Subscription',      icon: CreditCard,       path: '/dashboard/founder/billing' },
+        { name: 'Roadmap & Tasks',  icon: Map,             path: '/dashboard/founder/roadmap-tasks', plans: ['pro', 'premium_startup_builder'] },
+        { name: 'Mentors',          icon: Users,           path: '/dashboard/founder/mentors', plans: ['pro', 'premium_startup_builder'] },
+        { name: 'Funding',          icon: Wallet,          path: '/dashboard/founder/funding', plans: ['premium_startup_builder'] },
+        { name: 'Subscription',     icon: CreditCard,      path: '/dashboard/founder/billing' },
         { name: 'Documents',        icon: File,            path: '/dashboard/founder/documents' },
         { name: 'Learning Videos',  icon: Film,            path: '/dashboard/founder/learning-videos' },
         { name: 'Founder Support',  icon: Inbox,           path: '/dashboard/founder/inbox' },
@@ -91,7 +91,8 @@ const SidebarInner: React.FC<{
   onLogout: () => void;
   userName: string;
   userRole: string;
-}> = ({ isCollapsed, onLinkClick, onLogout, userName, userRole }) => {
+  userPlan: string;
+}> = ({ isCollapsed, onLinkClick, onLogout, userName, userRole, userPlan }) => {
   const location = useLocation();
   const sections = SIDEBAR_CONFIG[userRole] ?? [];
   const navigate = useNavigate();
@@ -139,38 +140,40 @@ const SidebarInner: React.FC<{
       <div className="flex-1 overflow-y-auto px-3 py-2 min-h-0" style={{ scrollbarWidth: 'none' }}>
         {sections.map((section, si) => (
           <div key={si} className="space-y-0.5">
-            {section.items.map((item) => {
-              const isActive = item.path === `/dashboard/${userRole}`
-                ? location.pathname === item.path
-                : location.pathname.startsWith(item.path);
+            {section.items
+              .filter((item) => !item.plans || item.plans.includes(userPlan))
+              .map((item) => {
+                const isActive = item.path === `/dashboard/${userRole}`
+                  ? location.pathname === item.path
+                  : location.pathname.startsWith(item.path);
 
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  end={item.path === `/dashboard/${userRole}`}
-                  onClick={onLinkClick}
-                  title={isCollapsed ? item.name : undefined}
-                  className={`relative group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-[#4C1D95] to-[#6D28D9] text-white shadow-lg shadow-purple-900/30'
-                      : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                  } ${isCollapsed ? 'justify-center' : ''}`}
-                >
-                  <item.icon
-                    size={17}
-                    className={`flex-shrink-0 transition-colors ${isActive ? 'text-[#FBBF24]' : 'text-gray-500 group-hover:text-gray-300'}`}
-                  />
-                  {!isCollapsed && <span className="truncate text-[13px]">{item.name}</span>}
-                  {isActive && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[#FBBF24]" />}
-                  {isCollapsed && (
-                    <span className="absolute left-full ml-3 px-3 py-1.5 bg-[#1a1f2e] border border-white/10 text-white text-xs font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-xl">
-                      {item.name}
-                    </span>
-                  )}
-                </NavLink>
-              );
-            })}
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    end={item.path === `/dashboard/${userRole}`}
+                    onClick={onLinkClick}
+                    title={isCollapsed ? item.name : undefined}
+                    className={`relative group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                      isActive
+                        ? 'bg-gradient-to-r from-[#4C1D95] to-[#6D28D9] text-white shadow-lg shadow-purple-900/30'
+                        : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                    } ${isCollapsed ? 'justify-center' : ''}`}
+                  >
+                    <item.icon
+                      size={17}
+                      className={`flex-shrink-0 transition-colors ${isActive ? 'text-[#FBBF24]' : 'text-gray-500 group-hover:text-gray-300'}`}
+                    />
+                    {!isCollapsed && <span className="truncate text-[13px]">{item.name}</span>}
+                    {isActive && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[#FBBF24]" />}
+                    {isCollapsed && (
+                      <span className="absolute left-full ml-3 px-3 py-1.5 bg-[#1a1f2e] border border-white/10 text-white text-xs font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-xl">
+                        {item.name}
+                      </span>
+                    )}
+                  </NavLink>
+                );
+              })}
           </div>
         ))}
         <div className="h-4" />
@@ -212,6 +215,7 @@ const DashboardLayout: React.FC = () => {
     onLogout: handleLogout,
     userName: user?.fullName ?? '',
     userRole: user?.role ?? '',
+    userPlan: user?.plan ?? 'none',
   };
 
   return (

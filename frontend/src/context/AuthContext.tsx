@@ -28,7 +28,7 @@ interface AuthContextType {
   subscription: SubscriptionData | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; role?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; role?: string; subscriptionStatus?: string }>;
   logout: () => void;
   checkAuth: () => Promise<void>;
   getToken: () => string | null;
@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     checkAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string; role?: string }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string; role?: string; subscriptionStatus?: string }> => {
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -125,7 +125,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (data.success && data.token) {
         setToken(data.token);
         await checkAuth(); // Fetch full user & subscription data
-        return { success: true, role: data.user?.role };
+        return { success: true, role: data.user?.role, subscriptionStatus: data.user?.subscriptionStatus };
       } else {
         return { success: false, error: data.error || 'Login failed' };
       }

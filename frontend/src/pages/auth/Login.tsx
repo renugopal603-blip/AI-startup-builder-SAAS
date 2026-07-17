@@ -39,7 +39,13 @@ const Login: React.FC = () => {
           if (targetRole === 'admin') navigate('/dashboard/admin');
           else if (targetRole === 'mentor') navigate('/dashboard/mentor');
           else if (targetRole === 'investor') navigate('/dashboard/investor');
-          else navigate('/dashboard/founder');
+          else {
+            if (result.subscriptionStatus === 'expired') {
+              navigate('/dashboard/founder/billing');
+            } else {
+              navigate('/dashboard/founder');
+            }
+          }
         }, 1000);
       } else {
         setError(result.error || 'Login failed. Please try again.');

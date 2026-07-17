@@ -19,11 +19,13 @@ const PLANS = [
     iconColor: 'text-gray-600',
     desc: '1 day to explore the platform fully.',
     features: [
-      'Basic AI idea generation',
-      'Basic business plan',
-      'Basic pitch deck',
-      'Limited AI reports',
-      'Limited document export',
+      'Basic AI Startup Idea Generator',
+      'Basic Business Plan',
+      'Basic Pitch Deck',
+      'Basic Market Research',
+      'Limited AI Reports',
+      'Limited Document Export',
+      'Trial countdown display',
     ],
     buttonText: 'Current Plan',
     buttonStyle: 'bg-gray-100 text-gray-400 cursor-default',
@@ -39,15 +41,18 @@ const PLANS = [
     iconColor: 'text-purple-700',
     desc: 'For serious founders scaling up.',
     features: [
-      'Full AI Startup Builder',
-      'Business Plan Generator',
-      'Pitch Deck Generator',
-      'Market Research',
-      'AI Reports (unlimited)',
+      'Full AI Startup Idea Generator',
+      'Detailed Business Plan Generator',
+      'Detailed Pitch Deck Generator',
+      'Full Market Research',
+      'AI Reports',
       'Roadmap & Tasks',
       'Logo & Branding Suggestions',
-      'PDF and Word export',
-      'Mentor request access',
+      'PDF Export',
+      'Word Export',
+      'Mentor Request Access',
+      'AI Chat Assistant',
+      'Save Multiple Startup Ideas',
     ],
     buttonText: 'Upgrade to Pro',
     buttonStyle: 'bg-purple-700 hover:bg-purple-800 text-white shadow-lg shadow-purple-500/20',
@@ -55,7 +60,7 @@ const PLANS = [
   },
   {
     id: 'premium_startup_builder',
-    name: 'Premium Startup Builder',
+    name: 'Premium Startup Business Builder',
     price: 2999,
     badge: 'Most Popular',
     icon: Crown,
@@ -63,15 +68,18 @@ const PLANS = [
     iconColor: 'text-amber-600',
     desc: 'The complete funding accelerator.',
     features: [
-      'Everything in Pro',
-      'Investor Marketplace access',
+      'Everything in Pro Plan',
+      'Investor Marketplace Access',
+      'AI Investor Matching',
       'Funding Readiness Score',
       'AI Due Diligence Report',
-      'Investor Matching',
       'Advanced Pitch Deck',
-      'ZIP document export',
-      'Mentor session booking',
-      'Priority support',
+      'ZIP Document Export',
+      'Mentor Session Booking',
+      'Investor Meeting Requests',
+      'Funding Progress Tracking',
+      'Priority Support',
+      'Advanced Startup Growth Dashboard',
     ],
     buttonText: 'Upgrade to Premium',
     buttonStyle: 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/25',
@@ -85,6 +93,30 @@ const PAYMENT_APPS = [
   { id: 'Google Pay', name: 'Google Pay', emoji: '📱' },
   { id: 'PhonePe', name: 'PhonePe', emoji: '💜' },
   { id: 'Paytm', name: 'Paytm', emoji: '💙' },
+];
+
+// ── Feature Comparison Table Data ─────────────────────────────────────────────
+const FEATURES = [
+  { name: 'AI Startup Idea Generator', free: 'Basic', pro: 'Full', premium: 'Full' },
+  { name: 'Business Plan', free: 'Basic', pro: 'Detailed', premium: 'Detailed' },
+  { name: 'Pitch Deck', free: 'Basic', pro: 'Detailed', premium: 'Advanced' },
+  { name: 'Market Research', free: 'Basic', pro: 'Full', premium: 'Full' },
+  { name: 'AI Reports', free: 'Limited', pro: 'Yes', premium: 'Advanced' },
+  { name: 'Document Export', free: 'Limited', pro: 'PDF & Word', premium: 'ZIP Export' },
+  { name: 'Mentor Request Access', free: false, pro: true, premium: true },
+  { name: 'Roadmap & Tasks', free: false, pro: true, premium: true },
+  { name: 'Logo & Branding', free: false, pro: true, premium: true },
+  { name: 'AI Chat Assistant', free: false, pro: true, premium: true },
+  { name: 'Save Multiple Ideas', free: false, pro: true, premium: true },
+  { name: 'Investor Marketplace', free: false, pro: false, premium: true },
+  { name: 'AI Investor Matching', free: false, pro: false, premium: true },
+  { name: 'Funding Readiness Score', free: false, pro: false, premium: true },
+  { name: 'AI Due Diligence Report', free: false, pro: false, premium: true },
+  { name: 'Mentor Session Booking', free: false, pro: false, premium: true },
+  { name: 'Investor Meeting Requests', free: false, pro: false, premium: true },
+  { name: 'Funding Progress Tracking', free: false, pro: false, premium: true },
+  { name: 'Priority Support', free: false, pro: false, premium: true },
+  { name: 'Advanced Startup Dashboard', free: false, pro: false, premium: true },
 ];
 
 // ── Helper: Time remaining ──────────────────────────────────────────────────────
@@ -203,11 +235,11 @@ const FounderBilling: React.FC = () => {
   const planLabel: Record<string, string> = {
     free_trial: 'Free Trial',
     pro: 'Pro Plan',
-    premium_startup_builder: 'Premium Startup Builder',
+    premium_startup_builder: 'Premium Startup Business Builder',
     none: 'No Active Plan',
   };
   return (
-    <div className="animate-fade-in-up pb-10">
+    <div className="animate-fade-in-up pb-10 max-w-6xl mx-auto">
       <div className="mb-8">
         <h1 className="font-['Poppins'] text-2xl font-bold text-[#1F2937]">Subscription & Billing</h1>
         <p className="text-[#6B7280] mt-1">Manage your plan, upgrade, and payment history.</p>
@@ -284,7 +316,7 @@ const FounderBilling: React.FC = () => {
       </div>
 
       {/* Plan Cards */}
-      <div className="grid md:grid-cols-3 gap-6 mb-10">
+      <div className="grid md:grid-cols-3 gap-6 mb-12">
         {PLANS.map((plan) => {
           const isCurrent = currentPlanName === plan.id;
           const Icon = plan.icon;
@@ -298,7 +330,7 @@ const FounderBilling: React.FC = () => {
               } ${isCurrent ? 'ring-2 ring-purple-500 ring-offset-2' : ''}`}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold px-4 py-1.5 rounded-full tracking-wider shadow-sm">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold px-4 py-1.5 rounded-full tracking-wider shadow-sm text-center whitespace-nowrap">
                   MOST POPULAR
                 </div>
               )}
@@ -350,6 +382,60 @@ const FounderBilling: React.FC = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* Feature Comparison Table */}
+      <div className="bg-white rounded-[20px] shadow-sm border border-gray-200 overflow-hidden mb-10">
+        <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+          <h3 className="text-lg font-bold text-[#1F2937]">Compare Plan Features</h3>
+          <p className="text-sm text-[#6B7280] mt-1">Detailed comparison of what's included in each plan.</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-50/80 border-b border-gray-200 text-gray-500 uppercase text-xs font-bold">
+              <tr>
+                <th className="px-6 py-4">Feature</th>
+                <th className="px-6 py-4 text-center">Free Trial</th>
+                <th className="px-6 py-4 text-center text-purple-700">Pro</th>
+                <th className="px-6 py-4 text-center text-amber-600">Premium Builder</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {FEATURES.map((feature, idx) => (
+                <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-6 py-4 font-medium text-gray-900">{feature.name}</td>
+                  
+                  {/* Free Trial Column */}
+                  <td className="px-6 py-4 text-center text-gray-600">
+                    {typeof feature.free === 'boolean' ? (
+                      feature.free ? <Check size={18} className="mx-auto text-emerald-500" /> : <span className="text-gray-300">-</span>
+                    ) : (
+                      feature.free
+                    )}
+                  </td>
+                  
+                  {/* Pro Column */}
+                  <td className="px-6 py-4 text-center text-purple-700 font-medium">
+                    {typeof feature.pro === 'boolean' ? (
+                      feature.pro ? <Check size={18} className="mx-auto text-purple-600" /> : <span className="text-gray-300">-</span>
+                    ) : (
+                      feature.pro
+                    )}
+                  </td>
+                  
+                  {/* Premium Column */}
+                  <td className="px-6 py-4 text-center text-amber-600 font-medium">
+                    {typeof feature.premium === 'boolean' ? (
+                      feature.premium ? <Check size={18} className="mx-auto text-amber-500" /> : <span className="text-gray-300">-</span>
+                    ) : (
+                      feature.premium
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Payment Modal */}
