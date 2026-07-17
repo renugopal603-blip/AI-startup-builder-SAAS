@@ -6,6 +6,7 @@ import {
   RefreshCw, CheckCircle2, FileText, Wand2, Star, Zap
 } from 'lucide-react';
 import { saveLogo, getLogosByStartupId, saveDocument, addNotification } from '../../../utils/localStorageHelper';
+import { API_URL } from '../../../config/api';
 
 interface FounderBrandingProps {
   startupData?: any;
@@ -169,7 +170,7 @@ const FounderBranding: React.FC<FounderBrandingProps> = ({ startupData }) => {
 
     try {
       // Attempt real API call first (will fail in demo mode without backend)
-      const response = await fetch('/api/generate-logo', {
+      const response = await fetch(`${API_URL}/generate-logo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

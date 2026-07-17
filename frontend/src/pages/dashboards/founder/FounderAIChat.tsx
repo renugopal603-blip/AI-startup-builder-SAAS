@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, RefreshCw } from 'lucide-react';
+import { API_URL } from '../../../config/api';
 
 interface Props {
   startupData?: any;
@@ -40,7 +41,7 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
     setLoading(true);
     
     try {
-      const response = await fetch(`http://localhost:5000/api/ai-builder/chat`, {
+      const response = await fetch(`${API_URL}/ai-builder/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
