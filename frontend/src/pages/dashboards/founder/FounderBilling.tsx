@@ -214,16 +214,27 @@ const FounderBilling: React.FC = () => {
       </div>
 
       {/* Expired Banner */}
-      {expiredBanner && (
+      {(expiredBanner || currentStatus === 'expired') && currentStatus !== 'pending_verification' && (
         <div className="mb-6 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-2xl">
           <AlertTriangle size={20} className="shrink-0 mt-0.5" />
           <div>
             <p className="font-bold">Your free trial has expired.</p>
-            <p className="text-sm mt-0.5">Please choose a plan below to continue using all AI features.</p>
+            <p className="text-sm mt-0.5">Please choose a plan below to continue using all AI features. You will regain full access after your payment is approved by admin.</p>
           </div>
           <button onClick={() => setExpiredBanner(false)} className="ml-auto text-red-400 hover:text-red-600">
             <X size={18} />
           </button>
+        </div>
+      )}
+
+      {/* Payment Pending Verification Banner */}
+      {currentStatus === 'pending_verification' && (
+        <div className="mb-6 flex items-start gap-3 bg-amber-50 border border-amber-300 text-amber-800 px-5 py-4 rounded-2xl">
+          <Clock size={20} className="shrink-0 mt-0.5 text-amber-600" />
+          <div>
+            <p className="font-bold">Payment submitted — Awaiting admin approval.</p>
+            <p className="text-sm mt-0.5">Your payment proof has been received. Our admin team will verify and activate your plan within 24 hours. You will receive full access once approved.</p>
+          </div>
         </div>
       )}
 

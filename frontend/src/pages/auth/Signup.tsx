@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Rocket, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight,
-  Loader2, Mail, User, Phone, Lock, Check
+  Loader2, Mail, User, Phone, Lock, Check, Gift, Zap
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -18,8 +18,20 @@ import { API_URL } from '../../config/api';
 // ── Zod Schema ─────────────────────────────────────────────────────────────────
 const founderSchema = z.object({
   fullName:        z.string().min(2, 'Full name must be at least 2 characters'),
-  email:           z.string().email('Please enter a valid email address'),
-  mobile:          z.string().regex(/^\+?[0-9]{7,15}$/, 'Please enter a valid mobile number'),
+  email:           z
+    .string()
+    .min(1, 'Email is required')
+    .refine(
+      (val) => /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(val),
+      'Please enter a valid email address (e.g. name@gmail.com)'
+    ),
+  mobile:          z
+    .string()
+    .min(1, 'Mobile number is required')
+    .refine(
+      (val) => /^[0-9]{10}$/.test(val),
+      'Mobile number must be exactly 10 digits (numbers only, no spaces or symbols)'
+    ),
   password:        z.string().min(8, 'Password must be at least 8 characters')
                    .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
                    .regex(/[0-9]/, 'Must contain at least one number')
@@ -34,7 +46,6 @@ type FounderFormData = z.infer<typeof founderSchema>;
 
 // ── Password Strength ──────────────────────────────────────────────────────────
 const getPasswordStrength = (password: string) => {
-  let score = 0;
   const checks = {
     length:   password.length >= 8,
     upper:    /[A-Z]/.test(password),
@@ -42,14 +53,14 @@ const getPasswordStrength = (password: string) => {
     special:  /[^A-Za-z0-9]/.test(password),
     long:     password.length >= 12,
   };
-  score = Object.values(checks).filter(Boolean).length;
+  const score = Object.values(checks).filter(Boolean).length;
   return { score, checks };
 };
 
 const strengthLabels = ['', 'Very Weak', 'Weak', 'Fair', 'Strong', 'Very Strong'];
-const strengthColors = ['', 'bg-destructive', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400', 'bg-emerald-500'];
+const strengthColors  = ['', 'bg-destructive', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400', 'bg-emerald-500'];
 
-// ── OTP Input Component ────────────────────────────────────────────────────────
+// ── OTP Input ─────────────────────────────────────────────────────────────────
 const OTPInput: React.FC<{ value: string[]; onChange: (val: string[]) => void }> = ({ value, onChange }) => {
   const refs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -101,15 +112,59 @@ const OTPInput: React.FC<{ value: string[]; onChange: (val: string[]) => void }>
   );
 };
 
-// ── Left Panel Illustration ────────────────────────────────────────────────────
+// ── Free Trial Welcome Screen ─────────────────────────────────────────────────
+const FreeTrialWelcome: React.FC<{ name: string; onContinue: () => void }> = ({ name, onContinue }) => (
+  <div className="flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500 py-4">
+    <div className="w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-purple-500/25">
+      <Gift size={40} className="text-white" />
+    </div>
+    <h2 className="text-2xl font-extrabold text-foreground mb-2">🎉 Welcome, {name.split(' ')[0]}!</h2>
+    <p className="text-muted-foreground text-sm mb-6 max-w-xs">
+      Your account is ready. We've activated your <strong className="text-primary">1-Day Free Trial</strong> — explore everything AI Startup Builder has to offer!
+    </p>
+
+    <div className="w-full bg-primary/5 border border-primary/20 rounded-2xl p-5 mb-6 text-left">
+      <p className="text-xs font-bold text-primary uppercase tracking-wider mb-3 flex items-center gap-1.5">
+        <Zap size={12} /> Free Trial Includes
+      </p>
+      <ul className="space-y-2">
+        {[
+          'Basic AI Startup Idea Generator',
+          'Basic Business Plan',
+          'Basic Pitch Deck',
+          'Basic Market Research',
+          'Limited AI Reports',
+          'Limited Document Export',
+          'Live trial countdown display',
+        ].map(f => (
+          <li key={f} className="flex items-center gap-2 text-sm text-foreground">
+            <Check size={14} className="text-emerald-500 shrink-0" />
+            <span>{f}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div className="w-full bg-amber-50 border border-amber-200 rounded-xl p-3 mb-6 flex items-center gap-2 text-left">
+      <AlertCircle size={16} className="text-amber-600 shrink-0" />
+      <p className="text-xs text-amber-700 font-medium">
+        Your free trial lasts <strong>24 hours</strong>. After it expires, choose a Pro or Premium plan to continue.
+      </p>
+    </div>
+
+    <Button onClick={onContinue} className="w-full h-12 text-base font-bold rounded-xl shadow-md">
+      Go to My Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+    </Button>
+  </div>
+);
+
+// ── Left Panel ─────────────────────────────────────────────────────────────────
 const LeftPanel: React.FC = () => (
   <div className="hidden lg:flex flex-col justify-between bg-primary rounded-3xl p-10 text-primary-foreground relative overflow-hidden shadow-2xl">
-    {/* Background patterns */}
     <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
     <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
     <div className="absolute top-1/2 right-0 w-32 h-32 bg-white/5 rounded-full translate-x-1/2" />
 
-    {/* Logo */}
     <div className="relative z-10">
       <div className="flex items-center gap-3 mb-12">
         <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 shadow-sm">
@@ -120,14 +175,13 @@ const LeftPanel: React.FC = () => (
 
       <h1 className="text-4xl font-extrabold leading-tight mb-4 text-white">
         Build the next big<br />
-        <span className="text-accent-light opacity-90">startup with AI.</span>
+        <span className="opacity-90">startup with AI.</span>
       </h1>
       <p className="text-primary-foreground/80 text-base leading-relaxed max-w-xs">
         Turn your startup idea into a successful business with AI-powered guidance, expert mentors, and investor connections.
       </p>
     </div>
 
-    {/* Feature Cards */}
     <div className="relative z-10 space-y-3 mt-8">
       {[
         { icon: '🤖', title: 'AI Business Plan Generator', desc: 'Create investor-ready plans instantly' },
@@ -144,7 +198,6 @@ const LeftPanel: React.FC = () => (
       ))}
     </div>
 
-    {/* Stats row */}
     <div className="relative z-10 grid grid-cols-3 gap-4 mt-8">
       {[
         { val: '10K+', label: 'Founders' },
@@ -160,18 +213,19 @@ const LeftPanel: React.FC = () => (
   </div>
 );
 
-// ── Main Component ─────────────────────────────────────────────────────────────
+// ── Main Component ──────────────────────────────────────────────────────────────
+type Step = 'form' | 'phone_otp' | 'trial_welcome';
+
 const FounderSignup: React.FC = () => {
   const navigate = useNavigate();
   const { checkAuth } = useAuth();
 
-  const [step, setStep] = useState<'form' | 'phone_otp'>('form');
+  const [step, setStep] = useState<Step>('form');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [watchedPassword, setWatchedPassword] = useState('');
-
   const [savedFormData, setSavedFormData] = useState<FounderFormData | null>(null);
 
   // Phone OTP state
@@ -182,9 +236,6 @@ const FounderSignup: React.FC = () => {
   const [generatedPhoneOtp, setGeneratedPhoneOtp] = useState('');
   const [phoneOtpCooldown, setPhoneOtpCooldown] = useState(0);
 
-  // Success popup
-  const [showSuccess, setShowSuccess] = useState(false);
-
   const form = useForm<FounderFormData>({
     resolver: zodResolver(founderSchema),
     mode: 'onBlur',
@@ -192,6 +243,16 @@ const FounderSignup: React.FC = () => {
 
   const passwordValue = form.watch('password', '');
   const strength = getPasswordStrength(passwordValue || watchedPassword);
+
+  const startCooldown = () => {
+    setPhoneOtpCooldown(60);
+    const interval = setInterval(() => {
+      setPhoneOtpCooldown(prev => {
+        if (prev <= 1) { clearInterval(interval); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const onFormSubmit = async (data: FounderFormData) => {
     setIsSubmitting(true);
@@ -208,14 +269,8 @@ const FounderSignup: React.FC = () => {
         setGeneratedPhoneOtp(json.otp || '');
         setPhoneOtp(['', '', '', '', '', '']);
         setPhoneOtpError('');
-        setPhoneOtpCooldown(60);
+        startCooldown();
         setStep('phone_otp');
-        const interval = setInterval(() => {
-          setPhoneOtpCooldown(prev => {
-            if (prev <= 1) { clearInterval(interval); return 0; }
-            return prev - 1;
-          });
-        }, 1000);
       } else {
         setApiError(json.error || 'Failed to send OTP. Please try again.');
       }
@@ -241,13 +296,7 @@ const FounderSignup: React.FC = () => {
         setGeneratedPhoneOtp(json.otp || '');
         setPhoneOtp(['', '', '', '', '', '']);
         setPhoneOtpError('');
-        setPhoneOtpCooldown(60);
-        const interval = setInterval(() => {
-          setPhoneOtpCooldown(prev => {
-            if (prev <= 1) { clearInterval(interval); return 0; }
-            return prev - 1;
-          });
-        }, 1000);
+        startCooldown();
       } else {
         setPhoneOtpError(json.error || 'Failed to resend OTP.');
       }
@@ -267,45 +316,40 @@ const FounderSignup: React.FC = () => {
     setPhoneOtpLoading(true);
     setPhoneOtpError('');
     try {
-      const phone = savedFormData?.mobile || '';
-      const res = await fetch(`${API_URL}/auth/verify-phone-otp`, {
+      // Step 1: Verify phone OTP
+      const verifyRes = await fetch(`${API_URL}/auth/verify-phone-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, otp: code }),
+        body: JSON.stringify({ phone: savedFormData?.mobile, otp: code }),
       });
-      const json = await res.json();
-      if (json.success) {
-        // Phone verified — show success popup, then create account
-        setShowSuccess(true);
-        setTimeout(async () => {
-          try {
-            const signupRes = await fetch(`${API_URL}/auth/complete-phone-signup`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: savedFormData!.email,
-                password: savedFormData!.password,
-                role: 'founder',
-                fullName: savedFormData!.fullName,
-                mobile: savedFormData!.mobile,
-              }),
-            });
-            const signupJson = await signupRes.json();
-            if (signupJson.success && signupJson.token) {
-              localStorage.setItem('ai_startup_builder_jwt', signupJson.token);
-              await checkAuth();
-              navigate('/dashboard/founder', { replace: true });
-            } else {
-              setShowSuccess(false);
-              setPhoneOtpError(signupJson.error || 'Failed to create account.');
-            }
-          } catch {
-            setShowSuccess(false);
-            setPhoneOtpError('Network error. Please try again.');
-          }
-        }, 2500);
+      const verifyJson = await verifyRes.json();
+
+      if (!verifyJson.success) {
+        setPhoneOtpError(verifyJson.error || 'Invalid OTP. Please try again.');
+        return;
+      }
+
+      // Step 2: Create account + auto-activate free trial
+      const signupRes = await fetch(`${API_URL}/auth/complete-phone-signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: savedFormData!.email,
+          password: savedFormData!.password,
+          role: 'founder',
+          fullName: savedFormData!.fullName,
+          mobile: savedFormData!.mobile,
+        }),
+      });
+      const signupJson = await signupRes.json();
+
+      if (signupJson.success && signupJson.token) {
+        localStorage.setItem('ai_startup_builder_jwt', signupJson.token);
+        await checkAuth();
+        // Step 3: Show free trial welcome screen before going to dashboard
+        setStep('trial_welcome');
       } else {
-        setPhoneOtpError(json.error || 'Invalid OTP. Please try again.');
+        setPhoneOtpError(signupJson.error || 'Failed to create account. Please try again.');
       }
     } catch {
       setPhoneOtpError('Network error. Please try again.');
@@ -314,13 +358,18 @@ const FounderSignup: React.FC = () => {
     }
   };
 
+  const handleGoToDashboard = () => {
+    navigate('/dashboard/founder', { replace: true });
+  };
+
   const steps = [
     { num: 1, label: 'Account Details' },
     { num: 2, label: 'Verify Phone' },
+    { num: 3, label: 'Free Trial' },
   ];
 
-  const currentStepIdx = step === 'form' ? 0 : 1;
-  const isStepComplete = (n: number) => n < currentStepIdx;
+  const currentStepIdx = step === 'form' ? 0 : step === 'phone_otp' ? 1 : 2;
+  const isStepComplete = (n: number) => n <= currentStepIdx;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 font-sans text-foreground">
@@ -336,33 +385,40 @@ const FounderSignup: React.FC = () => {
           </div>
 
           <div className="bg-card text-card-foreground rounded-3xl shadow-xl shadow-primary/5 border p-8 flex-1">
+            {/* Step indicator */}
             <div className="flex items-center gap-2 mb-8">
               {steps.map((s, idx) => (
                 <React.Fragment key={s.num}>
                   <div className="flex items-center gap-2">
                     <div className={cn(
                       'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300',
-                      isStepComplete(s.num) ? 'bg-emerald-500 text-white' :
-                      currentStepIdx === idx ? 'bg-primary text-primary-foreground' :
-                      'bg-muted text-muted-foreground'
+                      isStepComplete(s.num) && currentStepIdx > idx
+                        ? 'bg-emerald-500 text-white'
+                        : currentStepIdx === idx
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
                     )}>
-                      {isStepComplete(s.num) ? <Check size={13} /> : s.num}
+                      {isStepComplete(s.num) && currentStepIdx > idx ? <Check size={13} /> : s.num}
                     </div>
                     <span className={cn(
                       'text-xs font-semibold hidden sm:block',
                       currentStepIdx === idx ? 'text-primary' :
-                      isStepComplete(s.num) ? 'text-emerald-600' : 'text-muted-foreground'
+                      isStepComplete(s.num) && currentStepIdx > idx ? 'text-emerald-600' : 'text-muted-foreground'
                     )}>
                       {s.label}
                     </span>
                   </div>
                   {idx < steps.length - 1 && (
-                    <div className={cn('flex-1 h-0.5 rounded-full transition-all duration-500', isStepComplete(s.num + 1) || currentStepIdx > idx ? 'bg-emerald-400' : 'bg-muted')} />
+                    <div className={cn(
+                      'flex-1 h-0.5 rounded-full transition-all duration-500',
+                      currentStepIdx > idx ? 'bg-emerald-400' : 'bg-muted'
+                    )} />
                   )}
                 </React.Fragment>
               ))}
             </div>
 
+            {/* ── STEP 1: Form ─────────────────────────────────────────── */}
             {step === 'form' && (
               <>
                 <div className="mb-6">
@@ -379,112 +435,133 @@ const FounderSignup: React.FC = () => {
 
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-6">
-                    {/* Personal Information */}
-                    <div>
-                      <p className="text-xs font-bold text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <span className="w-4 h-0.5 bg-primary rounded-full inline-block" />
-                        Personal Information
-                      </p>
-                      <div className="space-y-4">
-                        <FormField control={form.control} name="fullName" render={({ field }) => (
+                    <div className="space-y-4">
+                      {/* Full Name */}
+                      <FormField control={form.control} name="fullName" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Full Name *</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                              <Input className="pl-9 bg-muted/50" placeholder="John Doe" {...field} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        {/* Email */}
+                        <FormField control={form.control} name="email" render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Full Name *</FormLabel>
+                            <FormLabel>Email Address *</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input className="pl-9 bg-muted/50" placeholder="John Doe" {...field} />
+                                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  type="email"
+                                  className="pl-9 bg-muted/50"
+                                  placeholder="name@gmail.com"
+                                  autoComplete="email"
+                                  {...field}
+                                  onChange={(e) => {
+                                    // Strip leading/trailing whitespace
+                                    field.onChange(e.target.value.trim());
+                                  }}
+                                />
                               </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
-                        
-                        <div className="grid sm:grid-cols-2 gap-4">
-                          <FormField control={form.control} name="email" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Email Address *</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                  <Input type="email" className="pl-9 bg-muted/50" placeholder="john@example.com" {...field} />
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                          <FormField control={form.control} name="mobile" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Mobile Number *</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                  <Input type="tel" className="pl-9 bg-muted/50" placeholder="+91 9876543210" {...field} />
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                        </div>
 
-                        <div className="grid sm:grid-cols-2 gap-4">
-                          <FormField control={form.control} name="password" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Password *</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                  <Input 
-                                    type={showPassword ? "text" : "password"} 
-                                    className="pl-9 pr-9 bg-muted/50" 
-                                    placeholder="Min. 8 characters" 
-                                    {...field}
-                                    onChange={(e) => {
-                                      field.onChange(e);
-                                      setWatchedPassword(e.target.value);
-                                    }}
-                                  />
-                                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors">
-                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                  </button>
+                        {/* Mobile */}
+                        <FormField control={form.control} name="mobile" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Mobile Number *</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  type="tel"
+                                  inputMode="numeric"
+                                  maxLength={10}
+                                  className="pl-9 bg-muted/50"
+                                  placeholder="10-digit number"
+                                  {...field}
+                                  onChange={(e) => {
+                                    // Allow only digits, max 10
+                                    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                    field.onChange(digits);
+                                  }}
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        {/* Password */}
+                        <FormField control={form.control} name="password" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password *</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  type={showPassword ? 'text' : 'password'}
+                                  className="pl-9 pr-9 bg-muted/50"
+                                  placeholder="Min. 8 characters"
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                    setWatchedPassword(e.target.value);
+                                  }}
+                                />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors">
+                                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                              </div>
+                            </FormControl>
+                            {(passwordValue || watchedPassword) && (
+                              <div className="mt-2 space-y-1">
+                                <div className="flex gap-1">
+                                  {[1, 2, 3, 4, 5].map(n => (
+                                    <div key={n} className={cn('h-1 flex-1 rounded-full transition-all duration-300', strength.score >= n ? strengthColors[strength.score] : 'bg-muted')} />
+                                  ))}
                                 </div>
-                              </FormControl>
-                              {(passwordValue || watchedPassword) && (
-                                <div className="mt-2 space-y-1">
-                                  <div className="flex gap-1">
-                                    {[1, 2, 3, 4, 5].map(n => (
-                                      <div key={n} className={cn('h-1 flex-1 rounded-full transition-all duration-300', strength.score >= n ? strengthColors[strength.score] : 'bg-muted')} />
-                                    ))}
-                                  </div>
-                                  <p className={cn('text-[10px] font-semibold', strength.score <= 2 ? 'text-destructive' : strength.score <= 3 ? 'text-yellow-600' : 'text-emerald-600')}>
-                                    {strengthLabels[strength.score]}
-                                  </p>
-                                </div>
-                              )}
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                          
-                          <FormField control={form.control} name="confirmPassword" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Confirm Password *</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                  <Input 
-                                    type={showConfirm ? "text" : "password"} 
-                                    className="pl-9 pr-9 bg-muted/50" 
-                                    placeholder="Repeat password" 
-                                    {...field} 
-                                  />
-                                  <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors">
-                                    {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                  </button>
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                        </div>
+                                <p className={cn('text-[10px] font-semibold', strength.score <= 2 ? 'text-destructive' : strength.score <= 3 ? 'text-yellow-600' : 'text-emerald-600')}>
+                                  {strengthLabels[strength.score]}
+                                </p>
+                              </div>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+
+                        {/* Confirm Password */}
+                        <FormField control={form.control} name="confirmPassword" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Confirm Password *</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  type={showConfirm ? 'text' : 'password'}
+                                  className="pl-9 pr-9 bg-muted/50"
+                                  placeholder="Repeat password"
+                                  {...field}
+                                />
+                                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors">
+                                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
                       </div>
                     </div>
 
@@ -514,9 +591,9 @@ const FounderSignup: React.FC = () => {
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     {[
                       { role: 'Founder', email: 'founder@test.com' },
-                      { role: 'Admin', email: 'admin@test.com' },
-                      { role: 'Mentor', email: 'mentor@test.com' },
-                      { role: 'Investor', email: 'investor@test.com' },
+                      { role: 'Admin',   email: 'admin@test.com' },
+                      { role: 'Mentor',  email: 'mentor@test.com' },
+                      { role: 'Investor',email: 'investor@test.com' },
                     ].map(demo => (
                       <div key={demo.email} className="bg-card border border-muted/50 rounded-xl p-2 flex flex-col">
                         <span className="font-bold text-foreground">{demo.role}</span>
@@ -529,6 +606,7 @@ const FounderSignup: React.FC = () => {
               </>
             )}
 
+            {/* ── STEP 2: Phone OTP ─────────────────────────────────────── */}
             {step === 'phone_otp' && (
               <div className="flex flex-col items-center text-center animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-5 ring-4 ring-primary/5">
@@ -564,7 +642,7 @@ const FounderSignup: React.FC = () => {
                   className="w-full h-12 text-base font-bold rounded-xl shadow-md mb-6"
                 >
                   {phoneOtpLoading ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...</>
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying & Creating Account...</>
                   ) : (
                     <><CheckCircle2 className="mr-2 h-5 w-5" /> Verify Phone & Continue</>
                   )}
@@ -590,28 +668,16 @@ const FounderSignup: React.FC = () => {
               </div>
             )}
 
+            {/* ── STEP 3: Free Trial Welcome ────────────────────────────── */}
+            {step === 'trial_welcome' && (
+              <FreeTrialWelcome
+                name={savedFormData?.fullName || 'Founder'}
+                onContinue={handleGoToDashboard}
+              />
+            )}
           </div>
         </div>
       </div>
-
-      {/* ── Success Popup ─────────────────────────────────────────────── */}
-      {showSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
-          <div className="bg-card rounded-3xl shadow-2xl border p-10 w-full max-w-sm animate-in fade-in zoom-in-95 duration-200 flex flex-col items-center text-center">
-            <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-5 animate-bounce">
-              <CheckCircle2 size={44} className="text-emerald-600" />
-            </div>
-            <h3 className="text-xl font-extrabold text-foreground mb-2">Phone Verified Successfully!</h3>
-            <p className="text-muted-foreground text-sm mb-4">
-              Your phone number has been verified. Creating your account...
-            </p>
-            <div className="flex items-center gap-2 text-primary text-sm font-semibold">
-              <Loader2 size={16} className="animate-spin" />
-              <span>Setting up your account</span>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
