@@ -303,78 +303,103 @@ export const regenerateStartup = async (req: Request, res: Response) => {
 
 // ── Legal Documents Generation ──────────────────────────────────────────────────
 
-const LEGAL_DOCS_PROMPT = `You are an expert Indian legal consultant, business compliance advisor, and startup registration specialist.
+const LEGAL_DOCS_PROMPT = `Generate idea-specific important documents for the startup.
 
-The founder gives:
-1. Startup Name
-2. Startup Idea / Short Description
-3. Location/Country (default: India)
+Input:
+Startup Name: {startupName}
+Startup Idea: {startupIdea}
+Country: India
 
-TASK:
-Analyze the startup idea. First detect the business category, then generate startup-specific legal documents, registrations, licenses, and compliance checklist.
+Task:
+Analyze the startup idea and detect the business category.
 
-Detect ONE category from:
-- Food / Restaurant / Cafe
+Possible categories:
+- Food / Cafe / Restaurant
 - SaaS / Software / AI
-- Healthcare / Hospital / Clinic
+- Healthcare / Clinic / Hospital
 - E-commerce
 - Education / Training
 - Manufacturing
-- Retail / Shop
-- Transport
+- Retail / Local Shop
+- Transport / Delivery
 - Finance / FinTech
 - Service Business
 - Other
 
-RULES for category-specific documents:
-- Food, restaurant, cafe, tea, coffee, snacks: MUST include FSSAI, Shop & Establishment, Trade License, rent agreement, GST if applicable.
-- Restaurant/cafe/shop: Shop & Establishment, Trade License, rent agreement, GST if applicable.
-- SaaS/software/AI: Privacy Policy, Terms & Conditions, GST if applicable, software agreement, DPIIT optional, trademark optional.
-- Healthcare/hospital/clinic: Healthcare-specific approvals, doctor/medical registration proof, biomedical waste permission, fire safety if applicable.
-- E-commerce: GST, Privacy Policy, Refund Policy, Terms & Conditions, vendor agreement, payment gateway documents.
-- Manufacturing: Factory/trade license, fire safety, pollution approval if applicable, GST, Udyam/MSME.
-- Education/training: Business registration, GST if applicable, refund policy, course terms, certificate policy.
-- Retail/shop: Shop & Establishment, Trade License, GST if applicable, rent agreement.
-- Finance/FinTech: Company registration, privacy policy, terms, data protection, compliance review, RBI/financial compliance note if applicable.
+Important rule:
+Do not generate the same documents for every startup.
+Generate documents based on the detected category only.
+Show only important documents by default.
+Show maximum 8 essential documents.
+Move optional documents under "View Optional Documents".
 
-Output JSON structure:
+Output sections:
+1. Detected Business Category
+2. Essential Documents
+3. Optional Documents
+4. Investor Documents
+5. Disclaimer
+
+For each document show:
+- Document Name
+- Required / Optional
+- Short Reason
+- Upload Required: Yes / No
+- Status: Pending / Uploaded / Verified / Rejected
+
+Rules:
+- Food business must include FSSAI.
+- Cafe/restaurant/shop must include Shop & Establishment, Trade License, GST if applicable, Rent Agreement/NOC.
+- SaaS/software must include Privacy Policy, Terms & Conditions, GST if applicable, software agreement.
+- Healthcare must include healthcare-specific approval if applicable, biomedical waste permission if applicable, fire safety if required.
+- E-commerce must include GST, Privacy Policy, Refund Policy, Terms & Conditions, vendor/payment gateway documents.
+- Manufacturing must include GST, Udyam/MSME, trade/factory license if applicable, fire/pollution approval if applicable.
+- Retail shop must include Shop & Establishment, Trade License, GST if applicable.
+- Transport business must include vehicle RC, insurance, permit if applicable.
+- FinTech must include company registration, privacy policy, terms, compliance review, financial regulatory note if applicable.
+
+Investor Documents:
+- Business Plan
+- Pitch Deck
+- Financial Projection
+- Funding Ask
+- Use of Funds
+- Founder Profile
+- Market Research Report
+
+Disclaimer:
+"This is an AI-generated checklist. Please verify with a CA, lawyer, or local authority before registration."
+
+Return clean JSON only.
+
+JSON output structure:
 {
   "detectedCategory": "",
   "categoryReason": "",
-  "recommendedStructure": {
-    "type": "",
-    "reason": ""
-  },
-  "founderDocuments": [
-    { "name": "", "description": "" }
-  ],
-  "businessAddressDocuments": [
-    { "name": "", "description": "", "applicable": true }
-  ],
-  "registrationsNeeded": [
-    { "name": "", "description": "", "mandatory": true, "portal": "" }
-  ],
-  "industryLicenses": [
-    { "name": "", "description": "", "authority": "", "mandatory": true }
-  ],
-  "investorReadyDocs": [
-    { "name": "", "description": "", "status": "Pending" }
-  ],
-  "complianceTimeline": {
-    "beforeLaunch": [],
-    "duringLaunch": [],
-    "afterLaunch": [],
-    "monthly": [],
-    "yearly": []
-  },
-  "missingDocumentsChecklist": [
+  "essentialDocuments": [
     {
-      "documentName": "",
+      "name": "",
       "required": "Required",
-      "whyNeeded": "",
-      "whenToSubmit": "",
-      "issuedBy": "",
-      "uploadRequired": true,
+      "reason": "",
+      "uploadRequired": "Yes",
+      "status": "Pending"
+    }
+  ],
+  "optionalDocuments": [
+    {
+      "name": "",
+      "required": "Optional",
+      "reason": "",
+      "uploadRequired": "No",
+      "status": "Pending"
+    }
+  ],
+  "investorDocuments": [
+    {
+      "name": "",
+      "required": "Optional",
+      "reason": "",
+      "uploadRequired": "No",
       "status": "Pending"
     }
   ],
