@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx tsx watch src/server.ts",
+    "seed": "npx tsx src/seed.ts",
     "start": "node dist/server.js",
     "build": "npm install --include=dev && tsc"
   },
