@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   Scale, Building2, FileCheck, Shield, ChevronDown, ChevronRight,
-  CheckCircle2, Clock, Loader2, RefreshCw, AlertTriangle, XCircle
+  CheckCircle2, Clock, Loader2, RefreshCw, AlertTriangle, XCircle,
+  ExternalLink
 } from 'lucide-react';
 import { API_URL } from '../../../config/api';
 import { saveDocument, getDocuments } from '../../../utils/localStorageHelper';
@@ -139,32 +140,92 @@ const FounderLegalDocs: React.FC<Props> = ({ startupData }) => {
     </div>
   );
 
+  const officialLinks: Record<string, string> = {
+    "FSSAI License": "https://foscos.fssai.gov.in/apply-for-lic-and-reg",
+    "Shop & Establishment Act Registration": "https://labour.tn.gov.in/services/users/login",
+    "Trade License": "https://tnurbanepay.tn.gov.in/",
+    "GST Registration": "https://www.gst.gov.in/",
+    "Rent Agreement / No-Objection Certificate (NOC)": "https://tnreginet.gov.in/portal/",
+    "Fire Safety Certificate": "https://tnswp.com/DIGIGOV/swp-tnswp.jsp",
+    "Health Trade License": "https://tnswp.com/DIGIGOV/listOfClearances.jsp",
+    "PAN Card (Proprietor/Company)": "https://onlineservices.proteantech.in/paam/endUserRegisterContact.html"
+  };
+
+  const handleCardClick = (name: string) => {
+    const url = officialLinks[name];
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
+
   const DocList = ({ docs }: { docs: any[] }) => (
     <div className="space-y-2 pt-3">
-      {docs?.map((doc: any, i: number) => (
-        <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-          <div className="flex items-start gap-3 flex-1 min-w-0">
-            {doc.status === 'Verified' ? <CheckCircle2 size={16} className="text-green-500 mt-0.5 shrink-0" />
-            : doc.status === 'Rejected' ? <XCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
-            : doc.status === 'Uploaded' ? <Clock size={16} className="text-blue-500 mt-0.5 shrink-0" />
-            : <Clock size={16} className="text-yellow-500 mt-0.5 shrink-0" />}
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-gray-900">{doc.name}</p>
-              <p className="text-xs text-gray-500">{doc.reason}</p>
+      {docs?.map((doc: any, i: number) => {
+        const link = officialLinks[doc.name];
+        const isClickable = !!link;
+        return (
+          <div
+            key={i}
+            onClick={() => isClickable && handleCardClick(doc.name)}
+            className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-gray-50 rounded-xl transition-all duration-200 relative group ${
+              isClickable ? 'cursor-pointer hover:bg-gray-100 hover:shadow-sm border border-transparent hover:border-purple-200' : 'border border-transparent'
+            }`}
+            aria-label={isClickable ? `Apply for ${doc.name} (Opens in new tab)` : undefined}
+            role={isClickable ? "button" : undefined}
+            tabIndex={isClickable ? 0 : undefined}
+            onKeyDown={(e) => {
+              if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                handleCardClick(doc.name);
+              }
+            }}
+          >
+            <div className="flex items-start gap-3 flex-1 min-w-0">
+              {doc.status === 'Verified' ? <CheckCircle2 size={16} className="text-green-500 mt-0.5 shrink-0" />
+              : doc.status === 'Rejected' ? <XCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
+              : doc.status === 'Uploaded' ? <Clock size={16} className="text-blue-500 mt-0.5 shrink-0" />
+              : <Clock size={16} className="text-yellow-500 mt-0.5 shrink-0" />}
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5 flex-wrap">
+                  {doc.name}
+                  {isClickable && <ExternalLink size={12} className="text-gray-400 group-hover:text-[#5B21B6] transition-colors" />}
+                </p>
+                <p className="text-xs text-gray-500">{doc.reason}</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0 ml-3">
-            {doc.uploadRequired === 'Yes' && (
-              <span className="text-[10px] font-bold text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full">
-                Upload Required
+            <div className="flex items-center gap-2 shrink-0 mt-3 sm:mt-0 sm:ml-3 flex-wrap" onClick={(e) => e.stopPropagation()}>
+              {isClickable && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCardClick(doc.name);
+                  }}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#5B21B6] hover:bg-[#7C3AED] text-white text-[10px] font-bold rounded-full transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  aria-label={`Apply Online for ${doc.name}`}
+                >
+                  Apply Online ↗
+                </button>
+              )}
+              {doc.uploadRequired === 'Yes' && (
+                <span className="text-[10px] font-bold text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full">
+                  Upload Required
+                </span>
+              )}
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusStyle(doc.status)}`}>
+                {doc.status}
               </span>
+            </div>
+
+            {/* Custom Tooltip */}
+            {isClickable && (
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-950 text-white text-[11px] font-medium rounded py-1 px-2.5 whitespace-nowrap z-10 shadow-lg pointer-events-none transition-opacity duration-150">
+                You will be redirected to the official government portal.
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-width border-4 border-transparent border-t-gray-950"></div>
+              </div>
             )}
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusStyle(doc.status)}`}>
-              {doc.status}
-            </span>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 
