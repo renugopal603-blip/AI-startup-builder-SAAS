@@ -73,6 +73,42 @@ export const addNotification = (notification: any) => {
   return updated;
 };
 
+export const detectStartupCategory = (startup: any): string => {
+  const text = (startup.startupIdea || startup.startupName || '').toLowerCase();
+
+  if (/restaurant|cafe|coffee|tea|snacks|bakery|food|cook|kitchen|dining|bar|pub|pizza|burger|bistro|hotel|salon|spa|gym|fitness|clinic|hospital|pharmacy/.test(text)) {
+    return 'Food / Cafe / Restaurant';
+  }
+  if (/saas|software|ai|app|platform|cloud|api|data|analytics|automation|machine learning|deep learning|blockchain|web3|iot|cyber/.test(text)) {
+    return 'SaaS / Software / AI';
+  }
+  if (/health|medical|doctor|nurse|dental|therapy|wellness|telemedicine|diagnostic/.test(text)) {
+    return 'Healthcare / Clinic / Hospital';
+  }
+  if (/ecommerce|e-commerce|online store|marketplace|shopping|retail online|dropship/.test(text)) {
+    return 'E-commerce';
+  }
+  if (/education|training|learning|school|college|course|tutor|academy|edtech|lms/.test(text)) {
+    return 'Education / Training';
+  }
+  if (/manufactur|factory|production|supply chain|warehouse|logistics|industrial/.test(text)) {
+    return 'Manufacturing';
+  }
+  if (/retail|shop|store|boutique|supermarket|grocery|convenience/.test(text)) {
+    return 'Retail / Local Shop';
+  }
+  if (/transport|delivery|ride|cab|bike|logistics|fleet|shipping|courier/.test(text)) {
+    return 'Transport / Delivery';
+  }
+  if (/finance|fintech|banking|payment|invest|insur|loan|credit|wealth|crypto/.test(text)) {
+    return 'Finance / FinTech';
+  }
+  if (/service|consulting|agency|freelanc|coaching|cleaning|maintenance|repair/.test(text)) {
+    return 'Service Business';
+  }
+  return 'Other';
+};
+
 export const generateStartupOutput = (startup: any) => {
   const isPhysical = /tea|coffee|snacks|restaurant|salon|hotel|shop|cafe|retail|bakery/i.test(startup.startupIdea || startup.startupName);
   

@@ -1,11 +1,25 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Upload, FileText, File, Image, Search, Download, Trash2, X, Eye, Scale, CheckCircle2, Clock, ChevronDown, ChevronRight, UploadCloud, RefreshCw } from 'lucide-react';
-import { getDocuments, saveDocument, deleteDocument, getStartups, getStartupById } from '../../../utils/localStorageHelper';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Upload, FileText, File, Image, Search, Download, Trash2, X, Eye, Scale, CheckCircle2, Clock, ChevronDown, ChevronRight, UploadCloud, RefreshCw, Building2, Utensils, Monitor, ShoppingCart, GraduationCap, Factory, Store, Truck, Banknote, Wrench, HelpCircle } from 'lucide-react';
+import { getDocuments, saveDocument, deleteDocument, getStartups, getStartupById, detectStartupCategory } from '../../../utils/localStorageHelper';
 import jsPDF from 'jspdf';
 import { Document as DocxDocument, Packer, Paragraph, TextRun } from 'docx';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+
+const CATEGORY_CONFIG: Record<string, { icon: any; color: string; bgColor: string; label: string }> = {
+  'Food / Cafe / Restaurant': { icon: Utensils, color: 'text-orange-600', bgColor: 'bg-orange-100', label: 'Restaurant & Food' },
+  'SaaS / Software / AI': { icon: Monitor, color: 'text-blue-600', bgColor: 'bg-blue-100', label: 'IT / Software Startup' },
+  'Healthcare / Clinic / Hospital': { icon: Building2, color: 'text-red-600', bgColor: 'bg-red-100', label: 'Healthcare' },
+  'E-commerce': { icon: ShoppingCart, color: 'text-green-600', bgColor: 'bg-green-100', label: 'E-commerce' },
+  'Education / Training': { icon: GraduationCap, color: 'text-indigo-600', bgColor: 'bg-indigo-100', label: 'Education' },
+  'Manufacturing': { icon: Factory, color: 'text-gray-600', bgColor: 'bg-gray-100', label: 'Manufacturing' },
+  'Retail / Local Shop': { icon: Store, color: 'text-pink-600', bgColor: 'bg-pink-100', label: 'Retail / Local Shop' },
+  'Transport / Delivery': { icon: Truck, color: 'text-cyan-600', bgColor: 'bg-cyan-100', label: 'Transport & Delivery' },
+  'Finance / FinTech': { icon: Banknote, color: 'text-yellow-600', bgColor: 'bg-yellow-100', label: 'Finance / FinTech' },
+  'Service Business': { icon: Wrench, color: 'text-teal-600', bgColor: 'bg-teal-100', label: 'Service Business' },
+  'Other': { icon: HelpCircle, color: 'text-gray-500', bgColor: 'bg-gray-50', label: 'Other' },
+};
 
 const getFileIcon = (type: string) => {
   switch (type.toLowerCase()) {
@@ -31,7 +45,8 @@ const getFileColor = (type: string) => {
 };
 
 const FounderDocuments: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const startupId = searchParams.get('id') || searchParams.get('startupId');
 
   const [documents, setDocuments] = useState<any[]>([]);
@@ -40,18 +55,27 @@ const FounderDocuments: React.FC = () => {
   const [downloadDropdown, setDownloadDropdown] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<'legal' | null>('legal');
   const [selectedStartup, setSelectedStartup] = useState<any>(null);
+  const [allStartups, setAllStartups] = useState<any[]>([]);
+  const [category, setCategory] = useState<string>('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const refreshDocs = useCallback(() => {
+    const allStartupsList = getStartups() || [];
+    setAllStartups(allStartupsList);
+
     const allDocs = getDocuments() || [];
     if (startupId) {
       setDocuments(allDocs.filter((d: any) => d.startupId === startupId));
       const info = getStartupById(startupId);
       setSelectedStartup(info);
+      if (info) {
+        setCategory(detectStartupCategory(info));
+      }
     } else {
       setDocuments(allDocs);
       setSelectedStartup(null);
+      setCategory('');
     }
   }, [startupId]);
 
@@ -188,6 +212,9 @@ const FounderDocuments: React.FC = () => {
     setPreviewDoc(doc);
   };
 
+  const categoryConfig = category ? CATEGORY_CONFIG[category] || CATEGORY_CONFIG['Other'] : null;
+  const CategoryIcon = categoryConfig?.icon || HelpCircle;
+
   const filteredDocs = documents.filter(d =>
     d.fileName.toLowerCase().includes(search.toLowerCase()) ||
     d.category?.toLowerCase().includes(search.toLowerCase()) ||
@@ -225,15 +252,90 @@ const FounderDocuments: React.FC = () => {
                 : 'Upload and manage all your startup documents securely.'}
             </p>
           </div>
-          {legalPendingDocs.length > 0 && (
-            <button
-              onClick={refreshDocs}
-              className="px-3 py-1.5 text-xs font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-1 transition-colors"
-            >
-              <RefreshCw size={12} /> Refresh
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {legalPendingDocs.length > 0 && (
+              <button
+                onClick={refreshDocs}
+                className="px-3 py-1.5 text-xs font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-1 transition-colors"
+              >
+                <RefreshCw size={12} /> Refresh
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Startup Selector */}
+        {allStartups.length > 0 && (
+          <div className="mb-6 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <Building2 size={20} className="text-[#5B21B6]" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Select Startup</p>
+                  <select
+                    value={startupId || ''}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setSearchParams({ startupId: e.target.value });
+                      } else {
+                        setSearchParams({});
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#5B21B6] bg-gray-50 focus:bg-white transition-colors cursor-pointer"
+                  >
+                    <option value="">All Startups (No Filter)</option>
+                    {allStartups.map((s: any) => (
+                      <option key={s.startupId} value={s.startupId}>
+                        {s.startupName} — {detectStartupCategory(s)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Category Badge */}
+              {category && categoryConfig && (
+                <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border ${categoryConfig.bgColor} ${categoryConfig.color} border-current/20`}>
+                  <CategoryIcon size={18} />
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">Category</p>
+                    <p className="text-sm font-bold">{categoryConfig.label}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Navigate to AI Builder */}
+              {startupId && (
+                <button
+                  onClick={() => navigate(`/dashboard/founder/ai-builder?startupId=${startupId}`)}
+                  className="px-4 py-2.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white text-sm font-bold rounded-xl transition-colors flex items-center gap-2 shadow-sm"
+                >
+                  <Building2 size={16} />
+                  View in AI Builder
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Empty State when no startups */}
+        {allStartups.length === 0 && (
+          <div className="mb-6 bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+            <div className="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Building2 size={24} className="text-[#5B21B6]" />
+            </div>
+            <h3 className="text-base font-bold text-gray-900 mb-1">No Startups Found</h3>
+            <p className="text-sm text-gray-500 mb-4">Create a startup idea first to see category-specific documents.</p>
+            <button
+              onClick={() => navigate('/dashboard/founder/startups')}
+              className="px-5 py-2 bg-[#5B21B6] hover:bg-[#7C3AED] text-white text-sm font-bold rounded-xl transition-colors"
+            >
+              Create Startup
+            </button>
+          </div>
+        )}
 
         {/* Legal Pending Documents Section */}
         {legalPendingDocs.length > 0 && (
@@ -247,9 +349,17 @@ const FounderDocuments: React.FC = () => {
                   <Scale size={20} className="text-[#5B21B6]" />
                 </div>
                 <div className="text-left">
-                  <h3 className="text-sm font-bold text-gray-900">Legal & Compliance Documents</h3>
+                  <h3 className="text-sm font-bold text-gray-900">
+                    Legal & Compliance Documents
+                    {category && categoryConfig && (
+                      <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${categoryConfig.bgColor} ${categoryConfig.color}`}>
+                        {categoryConfig.label}
+                      </span>
+                    )}
+                  </h3>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {pendingCount} pending · {uploadedCount} uploaded
+                    {category && ` · Category: ${category}`}
                   </p>
                 </div>
               </div>
@@ -362,10 +472,32 @@ const FounderDocuments: React.FC = () => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search documents..."
+            placeholder={`Search documents${category ? ` in ${categoryConfig?.label || category}` : ''}...`}
             className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5B21B6] text-sm"
           />
         </div>
+
+        {/* Document Count Summary */}
+        {startupId && (
+          <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm">
+              <p className="text-2xl font-black text-gray-900">{filteredDocs.length}</p>
+              <p className="text-xs font-bold text-gray-500 mt-1">Total Documents</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm">
+              <p className="text-2xl font-black text-yellow-600">{pendingCount}</p>
+              <p className="text-xs font-bold text-gray-500 mt-1">Pending</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm">
+              <p className="text-2xl font-black text-green-600">{uploadedCount}</p>
+              <p className="text-xs font-bold text-gray-500 mt-1">Uploaded</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm">
+              <p className="text-2xl font-black text-blue-600">{regularDocs.length}</p>
+              <p className="text-xs font-bold text-gray-500 mt-1">AI Generated</p>
+            </div>
+          </div>
+        )}
 
         {/* Documents table */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -374,6 +506,7 @@ const FounderDocuments: React.FC = () => {
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">File</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Category</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Size</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
@@ -382,10 +515,22 @@ const FounderDocuments: React.FC = () => {
               <tbody className="divide-y divide-gray-100">
                 {regularDocs.length === 0 && legalChecklistDocs.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-10 text-center text-gray-400 text-sm">
-                      {legalPendingDocs.length > 0
-                        ? 'No regular uploaded documents yet. Upload legal documents above or drop files here.'
-                        : 'No documents found. Upload files or generate legal documents in the AI Builder.'}
+                    <td colSpan={5} className="px-6 py-10 text-center text-gray-400 text-sm">
+                      {selectedStartup ? (
+                        <div>
+                          <p className="font-bold text-gray-600 mb-1">No documents yet for {selectedStartup.startupName}</p>
+                          <p className="text-gray-400">Upload legal documents above or generate documents in the AI Builder.</p>
+                          {category && categoryConfig && (
+                            <p className="mt-2 text-xs text-gray-400">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${categoryConfig.bgColor} ${categoryConfig.color}`}>
+                                <CategoryIcon size={12} /> {categoryConfig.label}
+                              </span>
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        'No documents found. Select a startup or upload files above.'
+                      )}
                     </td>
                   </tr>
                 ) : (
@@ -400,9 +545,13 @@ const FounderDocuments: React.FC = () => {
                             <span className="text-sm font-semibold text-gray-800">
                               {doc.documentLabel || doc.fileName}
                             </span>
-                            <span className="text-xs text-gray-400">{doc.category}</span>
                           </div>
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-xs font-bold px-2.5 py-1 rounded-full border bg-purple-50 text-purple-600 border-purple-100">
+                          {doc.category || 'Uncategorized'}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">{doc.fileSize}</td>
                       <td className="px-6 py-4">
