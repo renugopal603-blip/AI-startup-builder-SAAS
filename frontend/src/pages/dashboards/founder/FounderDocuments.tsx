@@ -386,50 +386,57 @@ const FounderDocuments: React.FC = () => {
             {expandedSection === 'essential' && (
               <div className="px-5 pb-5 border-t border-gray-100 space-y-3">
                 {essentialDocs.map((doc: any) => (
-                  <div key={doc.id} className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${
+                  <div key={doc.id} className={`p-4 rounded-xl border transition-colors ${
                     doc.status === 'Verified' ? 'bg-green-50/50 border-green-200' :
                     doc.status === 'Uploaded' || doc.status === 'Pending Verification' ? 'bg-blue-50/50 border-blue-200' :
                     doc.status === 'Rejected' ? 'bg-red-50/50 border-red-200' :
                     'bg-yellow-50/50 border-yellow-200 hover:bg-yellow-50'
                   }`}>
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      {getStatusIcon(doc.status)}
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-bold text-gray-900 truncate">{doc.documentLabel}</p>
-                          {doc.required && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-600 border border-red-200">Required</span>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        {getStatusIcon(doc.status)}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-bold text-gray-900">{doc.documentLabel}</p>
+                            {doc.required && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-600 border border-red-200">Required</span>
+                            )}
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusStyle(doc.status)}`}>
+                              {doc.status}
+                            </span>
+                          </div>
+                          {doc.documentDescription && (
+                            <p className="text-xs text-gray-500 mt-1">{doc.documentDescription}</p>
                           )}
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
+                            {doc.applyLink && (
+                              <a href={doc.applyLink} target="_blank" rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white text-xs font-bold rounded-lg transition-colors shadow-sm">
+                                <ExternalLink size={12} /> Apply Now
+                              </a>
+                            )}
+                            {!doc.applyLink && (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-500 text-xs font-bold rounded-lg">
+                                <Building2 size={12} /> Contact Local Authority
+                              </span>
+                            )}
+                            {(doc.status === 'Uploaded' || doc.status === 'Verified') && doc.fileData && (
+                              <button onClick={() => handleDownload(doc.fileName)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-bold rounded-lg transition-colors border border-green-200">
+                                <Download size={12} /> Download
+                              </button>
+                            )}
+                            {(doc.status === 'Pending' || doc.status === 'Rejected') && (
+                              <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-[#5B21B6] text-xs font-bold rounded-lg cursor-pointer transition-colors border border-purple-200">
+                                <UploadCloud size={12} /> Upload Document
+                                <input type="file" className="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => handleLegalFileChange(e, doc)} />
+                              </label>
+                            )}
+                            <button onClick={() => handleDelete(doc.id)} title="Remove" className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
-                        {doc.documentDescription && (
-                          <p className="text-xs text-gray-500 truncate mt-0.5">{doc.documentDescription}</p>
-                        )}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0 ml-3">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusStyle(doc.status)}`}>
-                        {doc.status}
-                      </span>
-                      {doc.applyLink && (
-                        <a href={doc.applyLink} target="_blank" rel="noopener noreferrer"
-                          className="p-1.5 text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 rounded-lg transition-colors" title="Apply Online">
-                          <ExternalLink size={14} />
-                        </a>
-                      )}
-                      {(doc.status === 'Uploaded' || doc.status === 'Verified') && doc.fileData && (
-                        <button onClick={() => handleDownload(doc.fileName)} className="p-1.5 text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 rounded-lg transition-colors" title="Download">
-                          <Download size={14} />
-                        </button>
-                      )}
-                      {(doc.status === 'Pending' || doc.status === 'Rejected') && (
-                        <label className="px-3 py-1.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white text-xs font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-1">
-                          <UploadCloud size={12} /> Upload
-                          <input type="file" className="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => handleLegalFileChange(e, doc)} />
-                        </label>
-                      )}
-                      <button onClick={() => handleDelete(doc.id)} title="Remove" className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                        <Trash2 size={14} />
-                      </button>
                     </div>
                   </div>
                 ))}
@@ -459,48 +466,55 @@ const FounderDocuments: React.FC = () => {
             {showOptional && (
               <div className="px-5 pb-5 border-t border-gray-100 space-y-3">
                 {optionalDocs.map((doc: any) => (
-                  <div key={doc.id} className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${
+                  <div key={doc.id} className={`p-4 rounded-xl border transition-colors ${
                     doc.status === 'Verified' ? 'bg-green-50/50 border-green-200' :
                     doc.status === 'Uploaded' || doc.status === 'Pending Verification' ? 'bg-blue-50/50 border-blue-200' :
                     doc.status === 'Rejected' ? 'bg-red-50/50 border-red-200' :
                     'bg-gray-50/50 border-gray-200 hover:bg-gray-50'
                   }`}>
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      {getStatusIcon(doc.status)}
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-bold text-gray-900 truncate">{doc.documentLabel}</p>
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200">Optional</span>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        {getStatusIcon(doc.status)}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-bold text-gray-900">{doc.documentLabel}</p>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200">Optional</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusStyle(doc.status)}`}>
+                              {doc.status}
+                            </span>
+                          </div>
+                          {doc.documentDescription && (
+                            <p className="text-xs text-gray-500 mt-1">{doc.documentDescription}</p>
+                          )}
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
+                            {doc.applyLink && (
+                              <a href={doc.applyLink} target="_blank" rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 hover:bg-gray-800 text-white text-xs font-bold rounded-lg transition-colors shadow-sm">
+                                <ExternalLink size={12} /> Apply Now
+                              </a>
+                            )}
+                            {!doc.applyLink && (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-500 text-xs font-bold rounded-lg">
+                                <Building2 size={12} /> Contact Local Authority
+                              </span>
+                            )}
+                            {(doc.status === 'Uploaded' || doc.status === 'Verified') && doc.fileData && (
+                              <button onClick={() => handleDownload(doc.fileName)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-bold rounded-lg transition-colors border border-green-200">
+                                <Download size={12} /> Download
+                              </button>
+                            )}
+                            {(doc.status === 'Pending' || doc.status === 'Rejected') && (
+                              <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-[#5B21B6] text-xs font-bold rounded-lg cursor-pointer transition-colors border border-purple-200">
+                                <UploadCloud size={12} /> Upload Document
+                                <input type="file" className="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => handleLegalFileChange(e, doc)} />
+                              </label>
+                            )}
+                            <button onClick={() => handleDelete(doc.id)} title="Remove" className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
-                        {doc.documentDescription && (
-                          <p className="text-xs text-gray-500 truncate mt-0.5">{doc.documentDescription}</p>
-                        )}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0 ml-3">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusStyle(doc.status)}`}>
-                        {doc.status}
-                      </span>
-                      {doc.applyLink && (
-                        <a href={doc.applyLink} target="_blank" rel="noopener noreferrer"
-                          className="p-1.5 text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 rounded-lg transition-colors" title="Apply Online">
-                          <ExternalLink size={14} />
-                        </a>
-                      )}
-                      {(doc.status === 'Uploaded' || doc.status === 'Verified') && doc.fileData && (
-                        <button onClick={() => handleDownload(doc.fileName)} className="p-1.5 text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 rounded-lg transition-colors" title="Download">
-                          <Download size={14} />
-                        </button>
-                      )}
-                      {(doc.status === 'Pending' || doc.status === 'Rejected') && (
-                        <label className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-1">
-                          <UploadCloud size={12} /> Upload
-                          <input type="file" className="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => handleLegalFileChange(e, doc)} />
-                        </label>
-                      )}
-                      <button onClick={() => handleDelete(doc.id)} title="Remove" className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                        <Trash2 size={14} />
-                      </button>
                     </div>
                   </div>
                 ))}
@@ -603,7 +617,7 @@ const FounderDocuments: React.FC = () => {
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-gray-800 truncate">{doc.documentLabel || doc.fileName}</p>
-                            {doc.documentDescription && <p className="text-xs text-gray-400 truncate">{doc.documentDescription}</p>}
+                            {doc.documentDescription && <p className="text-xs text-gray-400 truncate max-w-xs">{doc.documentDescription}</p>}
                           </div>
                         </div>
                       </td>
@@ -618,11 +632,14 @@ const FounderDocuments: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => setPreviewDoc(doc)} title="Preview" className="p-1.5 text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 rounded-lg transition-colors"><Eye size={16} /></button>
+                        <div className="flex items-center justify-end gap-2">
                           {doc.applyLink && (
-                            <a href={doc.applyLink} target="_blank" rel="noopener noreferrer" title="Apply Online" className="p-1.5 text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 rounded-lg transition-colors"><ExternalLink size={16} /></a>
+                            <a href={doc.applyLink} target="_blank" rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#5B21B6] hover:bg-[#7C3AED] text-white text-xs font-bold rounded-lg transition-colors shadow-sm">
+                              <ExternalLink size={12} /> Apply
+                            </a>
                           )}
+                          <button onClick={() => setPreviewDoc(doc)} title="Preview" className="p-1.5 text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 rounded-lg transition-colors"><Eye size={16} /></button>
                           {(doc.status === 'Uploaded' || doc.status === 'Verified') && doc.fileData && (
                             <button onClick={() => handleDownload(doc.fileName)} title="Download" className="p-1.5 text-gray-400 hover:text-[#5B21B6] hover:bg-purple-50 rounded-lg transition-colors"><Download size={16} /></button>
                           )}
