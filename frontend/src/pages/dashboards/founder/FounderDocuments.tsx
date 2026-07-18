@@ -43,18 +43,7 @@ const DOCUMENT_CATEGORY_OPTIONS = [
   'AI Generated',
 ];
 
-const STATUS_OPTIONS = ['All', 'Pending', 'Uploaded', 'Pending Verification', 'Verified', 'Rejected'];
-
-const getStatusStyle = (status: string) => {
-  switch (status?.toLowerCase()) {
-    case 'verified': return 'bg-green-50 text-green-700 border-green-200';
-    case 'uploaded': return 'bg-blue-50 text-blue-700 border-blue-200';
-    case 'pending verification': return 'bg-orange-50 text-orange-700 border-orange-200';
-    case 'rejected': return 'bg-red-50 text-red-700 border-red-200';
-    case 'pending': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-    default: return 'bg-gray-100 text-gray-600 border-gray-200';
-  }
-};
+const STATUS_OPTIONS = ['All', 'Uploaded', 'Pending Verification', 'Verified', 'Rejected'];
 
 const getStatusIcon = (status: string) => {
   switch (status?.toLowerCase()) {
@@ -216,9 +205,6 @@ const FounderDocuments: React.FC = () => {
 
   const pendingCount = essentialDocs.filter(d => d.status === 'Pending').length;
   const uploadedCount = essentialDocs.filter(d => d.status !== 'Pending').length;
-  const verifiedCount = documents.filter(d => d.verificationStatus === 'verified').length;
-  const rejectedCount = documents.filter(d => d.verificationStatus === 'rejected').length;
-  const pendingVerifyCount = documents.filter(d => d.verificationStatus === 'pending_verification' || d.status === 'Pending Verification').length;
 
   return (
     <>
@@ -372,12 +358,6 @@ const FounderDocuments: React.FC = () => {
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-bold text-gray-900">{doc.documentLabel}</p>
-                            {doc.required && (
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-600 border border-red-200">Required</span>
-                            )}
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusStyle(doc.status)}`}>
-                              {doc.status}
-                            </span>
                           </div>
                           {doc.documentDescription && (
                             <p className="text-xs text-gray-500 mt-1">{doc.documentDescription}</p>
@@ -443,10 +423,6 @@ const FounderDocuments: React.FC = () => {
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-bold text-gray-900">{doc.documentLabel}</p>
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200">Optional</span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusStyle(doc.status)}`}>
-                              {doc.status}
-                            </span>
                           </div>
                           {doc.documentDescription && (
                             <p className="text-xs text-gray-500 mt-1">{doc.documentDescription}</p>
@@ -507,32 +483,6 @@ const FounderDocuments: React.FC = () => {
           </div>
         )}
 
-        {/* Stats Summary */}
-        {startupId && documents.length > 0 && (
-          <div className="mb-6 grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <div className="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm">
-              <p className="text-2xl font-black text-gray-900">{documents.length}</p>
-              <p className="text-xs font-bold text-gray-500 mt-1">Total</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm">
-              <p className="text-2xl font-black text-yellow-600">{pendingCount}</p>
-              <p className="text-xs font-bold text-gray-500 mt-1">Pending</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm">
-              <p className="text-2xl font-black text-orange-600">{pendingVerifyCount}</p>
-              <p className="text-xs font-bold text-gray-500 mt-1">Under Review</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm">
-              <p className="text-2xl font-black text-green-600">{verifiedCount}</p>
-              <p className="text-xs font-bold text-gray-500 mt-1">Verified</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 p-4 text-center shadow-sm">
-              <p className="text-2xl font-black text-red-600">{rejectedCount}</p>
-              <p className="text-xs font-bold text-gray-500 mt-1">Rejected</p>
-            </div>
-          </div>
-        )}
-
         {/* All Documents Table */}
         {startupId && filteredDocs.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -545,7 +495,6 @@ const FounderDocuments: React.FC = () => {
                   <tr className="bg-gray-50 border-b border-gray-100">
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Document</th>
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Type</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
@@ -566,11 +515,6 @@ const FounderDocuments: React.FC = () => {
                       <td className="px-6 py-4">
                         <span className="text-xs font-bold px-2.5 py-1 rounded-full border bg-purple-50 text-purple-600 border-purple-100">
                           {doc.documentSection || doc.category || 'General'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${getStatusStyle(doc.status)}`}>
-                          {doc.status || 'Private'}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -618,7 +562,7 @@ const FounderDocuments: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-gray-900">{previewDoc.documentLabel || previewDoc.fileName}</h3>
-                  <p className="text-xs text-gray-500">{previewDoc.documentSection || previewDoc.category} - {previewDoc.status}</p>
+                  <p className="text-xs text-gray-500">{previewDoc.documentSection || previewDoc.category}</p>
                 </div>
               </div>
               <button onClick={() => setPreviewDoc(null)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
@@ -632,10 +576,6 @@ const FounderDocuments: React.FC = () => {
                   <div>
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Description</p>
                     <p className="text-sm text-gray-700">{previewDoc.documentDescription || 'No description available.'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Status</p>
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${getStatusStyle(previewDoc.status)}`}>{previewDoc.status}</span>
                   </div>
                   {previewDoc.applyLink && (
                     <div>
