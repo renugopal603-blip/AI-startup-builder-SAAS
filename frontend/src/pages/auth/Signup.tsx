@@ -311,12 +311,19 @@ const Signup: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
 
-  // Email OTP state
   const [emailOtp, setEmailOtp] = useState(['', '', '', '', '', '']);
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState('');
   const [otpCooldown, setOtpCooldown] = useState(0);
   const [generatedOtp, setGeneratedOtp] = useState('');
+
+  // Toast notification state
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const update = (field: keyof FormData, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -385,6 +392,7 @@ const Signup: React.FC = () => {
         setOtpError('');
         startCooldown();
         setStep('email_otp');
+        showToast('Mail notification sent successfully! Please check your email.', 'success');
       } else {
         setApiError(json.error || 'Failed to send OTP. Please try again.');
       }
@@ -460,6 +468,7 @@ const Signup: React.FC = () => {
       if (json.success && json.token) {
         localStorage.setItem('ai_startup_builder_jwt', json.token);
         await checkAuth();
+        showToast('Mail verified successfully! Your free trial starts now.', 'success');
         setStep('welcome');
       } else {
         setOtpError(json.error || 'Failed to create account. Please try again.');
@@ -486,10 +495,15 @@ const Signup: React.FC = () => {
     ? [{ num: 1, label: 'Choose Role' }, { num: 2, label: 'Account Details' }, { num: 3, label: 'Verify Email' }]
     : [{ num: 1, label: 'Choose Role' }, { num: 2, label: 'Account Details' }, { num: 3, label: 'Verify Email' }];
 
-  const currentStepIdx = step === 'role' ? 0 : step === 'form' ? 1 : 2;
-
   return (
-    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-4 font-sans">
+    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-4 font-sans relative">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-xl font-semibold text-sm flex items-center gap-2 animate-in slide-in-from-top-2 ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}>
+          {toast.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />} 
+          {toast.msg}
+        </div>
+      )}
       <div className="w-full max-w-6xl grid lg:grid-cols-[1fr_1.1fr] gap-6 items-stretch">
         <LeftPanel />
 

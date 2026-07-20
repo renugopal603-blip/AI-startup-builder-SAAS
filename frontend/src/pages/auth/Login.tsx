@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Rocket, Mail, Lock, ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import TrialExpiredModal from '../../components/auth/TrialExpiredModal';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -13,7 +12,14 @@ const Login: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [showTrialExpired, setShowTrialExpired] = useState(false);
+  
+  // Toast notification state
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'warning' } | null>(null);
+
+  const showToast = (msg: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -43,20 +49,26 @@ const Login: React.FC = () => {
           return;
         }
 
-        setSuccess('Welcome back! Redirecting...');
+        const isTrialExpired = targetRole === 'founder' && result.subscriptionStatus && result.subscriptionStatus !== 'active';
+
+        if (isTrialExpired) {
+          showToast('Your free trial is completed. Redirecting to subscription page...', 'warning');
+        } else {
+          setSuccess('Welcome back! Redirecting...');
+        }
         
         setTimeout(() => {
           if (targetRole === 'admin') navigate('/dashboard/admin');
           else if (targetRole === 'mentor') navigate('/dashboard/mentor');
           else if (targetRole === 'investor') navigate('/dashboard/investor');
           else {
-            if (result.subscriptionStatus && result.subscriptionStatus !== 'active') {
-              setShowTrialExpired(true);
+            if (isTrialExpired) {
+              navigate('/dashboard/founder/billing');
             } else {
               navigate('/dashboard/founder');
             }
           }
-        }, 1000);
+        }, 1500);
       } else {
         setError(result.error || 'Login failed. Please try again.');
       }
@@ -69,6 +81,14 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-xl font-semibold text-sm flex items-center gap-2 animate-in slide-in-from-top-2 ${toast.type === 'success' ? 'bg-emerald-600 text-white' : toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-amber-600 text-white'}`}>
+          {toast.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />} 
+          {toast.msg}
+        </div>
+      )}
+      
       {/* Background Ornaments */}
       <div className="absolute top-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-[#6C4CF1]/10 blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-[10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#D4AF37]/10 blur-[100px] pointer-events-none"></div>
@@ -184,8 +204,6 @@ const Login: React.FC = () => {
 
         </div>
       </div>
-
-      <TrialExpiredModal isOpen={showTrialExpired} onClose={() => setShowTrialExpired(false)} />
     </div>
   );
 };
