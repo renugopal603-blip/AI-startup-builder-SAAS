@@ -446,6 +446,37 @@ export const loginUser = async (req: Request, res: Response) => {
   }
 };
 
+// Admin: Approve or Reject a user
+export const updateUserApproval = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId, action, status } = req.body;
+    if (!userId || !action) {
+      return res.status(400).json({ success: false, error: 'userId and action are required' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+    if (action === 'approve') {
+      user.approvalStatus = 'approved';
+    } else if (action === 'reject') {
+      user.approvalStatus = 'rejected';
+    } else if (action === 'updateStatus') {
+      user.status = status || 'active';
+    } else if (action === 'delete') {
+      await User.findByIdAndDelete(userId);
+      await Subscription.deleteMany({ userId });
+      return res.json({ success: true, message: 'User deleted' });
+    }
+
+    await user.save();
+    res.json({ success: true, message: `User ${action}d successfully`, user });
+  } catch (error) {
+    console.error('Error in updateUserApproval:', error);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+};
+
 // Admin: Get all users with subscription data
 export const getAllUsersAdmin = async (req: AuthRequest, res: Response) => {
   try {

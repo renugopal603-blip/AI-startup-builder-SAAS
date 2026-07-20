@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Trash2, Download, X, ShieldCheck, Lock, KeyRound, UserX, UserCheck, AlertCircle, CheckCircle } from 'lucide-react';
+import { Search, Eye, Trash2, Download, X, Lock, KeyRound, UserX, UserCheck, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 
 const roleColors: Record<string, string> = {
@@ -26,7 +26,7 @@ const approvalColors: Record<string, string> = {
 };
 
 const AdminUsers: React.FC = () => {
-  const { getAllUsers, deleteUser, approveUser, resetUserPassword, refreshUsers, updateUserStatus } = useAuth();
+  const { getAllUsers, deleteUser, approveUser, rejectUser, resetUserPassword, refreshUsers, updateUserStatus } = useAuth();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
   const [usersList, setUsersList] = useState<any[]>([]);
@@ -72,9 +72,17 @@ const AdminUsers: React.FC = () => {
   };
 
   const handleApproveUser = (id: string, name: string) => {
-    if (window.confirm(`Approve account for ${name}? They will be able to log in to their dashboard.`)) {
-      approveUser(id);
-      setApprovedMsg(`✓ ${name}'s account has been approved. They can now log in.`);
+    approveUser(id);
+    setApprovedMsg(`✓ ${name}'s account has been approved. They can now log in.`);
+    setTimeout(() => setApprovedMsg(''), 5000);
+    if (selectedUser?.id === id) setSelectedUser(null);
+    loadUsers();
+  };
+
+  const handleRejectUser = (id: string, name: string) => {
+    if (window.confirm(`Reject ${name}'s account? They will not be able to log in.`)) {
+      rejectUser(id);
+      setApprovedMsg(`✕ ${name}'s account has been rejected.`);
       setTimeout(() => setApprovedMsg(''), 5000);
       if (selectedUser?.id === id) setSelectedUser(null);
       loadUsers();
@@ -253,13 +261,22 @@ const AdminUsers: React.FC = () => {
                         </button>
                       )}
                       {(u.approvalStatus === 'pending') && (
-                        <button
-                          onClick={() => handleApproveUser(u.id, u.name || u.fullName)}
-                          className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-lg text-xs transition-colors inline-flex items-center gap-1"
-                          title="Approve User"
-                        >
-                          <ShieldCheck size={14} /> Approve
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleApproveUser(u.id, u.name || u.fullName)}
+                            className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-lg text-xs transition-colors inline-flex items-center gap-1"
+                            title="Accept User"
+                          >
+                            <CheckCircle size={14} /> Accept
+                          </button>
+                          <button
+                            onClick={() => handleRejectUser(u.id, u.name || u.fullName)}
+                            className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-xs transition-colors inline-flex items-center gap-1"
+                            title="Reject User"
+                          >
+                            <AlertCircle size={14} /> Reject
+                          </button>
+                        </>
                       )}
                       <button
                         onClick={() => handleDeleteUser(u.id, u.name || u.fullName)}
@@ -468,12 +485,20 @@ const AdminUsers: React.FC = () => {
                   </button>
                 )}
                 {(selectedUser.approvalStatus === 'pending') && (
-                  <button
-                    onClick={() => handleApproveUser(selectedUser.id, selectedUser.name || selectedUser.fullName)}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm inline-flex items-center gap-1.5"
-                  >
-                    <ShieldCheck size={14} /> Approve
-                  </button>
+                  <>
+                    <button
+                      onClick={() => { handleApproveUser(selectedUser.id, selectedUser.name || selectedUser.fullName); }}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm inline-flex items-center gap-1.5"
+                    >
+                      <CheckCircle size={14} /> Accept
+                    </button>
+                    <button
+                      onClick={() => { handleRejectUser(selectedUser.id, selectedUser.name || selectedUser.fullName); }}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm inline-flex items-center gap-1.5"
+                    >
+                      <AlertCircle size={14} /> Reject
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={() => { handleDeleteUser(selectedUser.id, selectedUser.name || selectedUser.fullName); setSelectedUser(null); }}

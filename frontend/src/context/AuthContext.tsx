@@ -198,7 +198,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const token = getToken();
         if (!token) return;
         try {
-          await fetch(`${API_URL}/auth/admin/users`, {
+          await fetch(`${API_URL}/auth/admin/users/action`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ userId, action: 'approve' })
@@ -206,14 +206,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           fetchAllUsers();
         } catch {}
       },
-      rejectUser: (_userId: string) => {},
+      rejectUser: async (userId: string) => {
+        const token = getToken();
+        if (!token) return;
+        try {
+          await fetch(`${API_URL}/auth/admin/users/action`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ userId, action: 'reject' })
+          });
+          fetchAllUsers();
+        } catch {}
+      },
       getLoginLogs: () => [],
       getAllUsers: () => allUsers,
       updateUserStatus: async (userId: string, status: string) => {
         const token = getToken();
         if (!token) return;
         try {
-          await fetch(`${API_URL}/auth/admin/users`, {
+          await fetch(`${API_URL}/auth/admin/users/action`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ userId, action: 'updateStatus', status })
@@ -221,13 +232,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           fetchAllUsers();
         } catch {}
       },
-      deleteUser: async (_userId: string) => {
+      deleteUser: async (userId: string) => {
         const token = getToken();
         if (!token) return;
         try {
-          await fetch(`${API_URL}/auth/admin/users`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` },
+          await fetch(`${API_URL}/auth/admin/users/action`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ userId, action: 'delete' })
           });
           fetchAllUsers();
         } catch {}
