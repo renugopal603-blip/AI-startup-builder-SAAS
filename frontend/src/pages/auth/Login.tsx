@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Rocket, Mail, Lock, ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import TrialExpiredModal from '../../components/auth/TrialExpiredModal';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ const Login: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [showTrialExpired, setShowTrialExpired] = useState(false);
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -49,7 +51,7 @@ const Login: React.FC = () => {
           else if (targetRole === 'investor') navigate('/dashboard/investor');
           else {
             if (result.subscriptionStatus && result.subscriptionStatus !== 'active') {
-              navigate('/dashboard/founder/billing');
+              setShowTrialExpired(true);
             } else {
               navigate('/dashboard/founder');
             }
@@ -182,6 +184,8 @@ const Login: React.FC = () => {
 
         </div>
       </div>
+
+      <TrialExpiredModal isOpen={showTrialExpired} onClose={() => setShowTrialExpired(false)} />
     </div>
   );
 };

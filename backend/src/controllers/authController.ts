@@ -432,6 +432,35 @@ export const loginUser = async (req: Request, res: Response) => {
   }
 };
 
+// Admin: Get all users with subscription data
+export const getAllUsersAdmin = async (req: AuthRequest, res: Response) => {
+  try {
+    const users = await User.find({}).select('-passwordHash').sort({ createdAt: -1 });
+    const usersWithSubs = await Promise.all(
+      users.map(async (user) => {
+        const subscription = await Subscription.findOne({ userId: user._id });
+        const userObj = user.toObject();
+        if (subscription) {
+          Object.assign(userObj, {
+            plan: subscription.planName,
+            subscriptionStatus: subscription.status,
+            paymentStatus: subscription.paymentStatus,
+            trialUsed: subscription.trialUsed,
+            trialEndDate: subscription.endDate,
+            subscriptionStartDate: subscription.startDate,
+            subscriptionEndDate: subscription.endDate,
+          });
+        }
+        return userObj;
+      })
+    );
+    res.json({ success: true, users: usersWithSubs });
+  } catch (error) {
+    console.error('Error in getAllUsersAdmin:', error);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+};
+
 // 4. Get Current User Profile (with Subscription data)
 export const getMe = async (req: AuthRequest, res: Response) => {
   try {

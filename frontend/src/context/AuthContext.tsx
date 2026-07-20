@@ -32,7 +32,6 @@ interface AuthContextType {
   logout: () => void;
   checkAuth: () => Promise<{ subscriptionStatus?: string; role?: string } | null>;
   getToken: () => string | null;
-  // Legacy Admin stubs to prevent build errors
   getPendingApprovals: () => any[];
   approveUser: (userId: string) => void;
   rejectUser: (userId: string) => void;
@@ -52,10 +51,43 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
 
   const getToken = () => localStorage.getItem(TOKEN_KEY);
   const setToken = (token: string) => localStorage.setItem(TOKEN_KEY, token);
   const removeToken = () => localStorage.removeItem(TOKEN_KEY);
+
+  const fetchAllUsers = async () => {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/auth/admin/users`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success && data.users) {
+        const mapped = data.users.map((u: any) => ({
+          id: u._id,
+          name: u.fullName,
+          fullName: u.fullName,
+          email: u.email,
+          role: u.role,
+          status: u.status || 'active',
+          approvalStatus: u.approvalStatus || 'approved',
+          signupDate: u.createdAt,
+          lastLoginAt: u.lastLoginAt || null,
+          loginCount: u.loginCount || 0,
+          plan: u.plan || 'none',
+          subscriptionStatus: u.subscriptionStatus || 'none',
+          trialEndDate: u.trialEndDate || null,
+          subscriptionEndDate: u.subscriptionEndDate || null,
+        }));
+        setAllUsers(mapped);
+      }
+    } catch (err) {
+      console.error('Failed to fetch admin users:', err);
+    }
+  };
 
   const checkAuth = async (): Promise<{ subscriptionStatus?: string; role?: string } | null> => {
     const token = getToken();
@@ -94,11 +126,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (data.subscription) {
           setSubscription(data.subscription);
         }
+        if (data.user.role === 'admin') {
+          fetchAllUsers();
+        }
         return { subscriptionStatus: data.user.subscriptionStatus, role: data.user.role };
       } else {
         removeToken();
         setUser(null);
         setSubscription(null);
+        setAllUsers([]);
         return null;
       }
     } catch (error) {
@@ -157,15 +193,47 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       logout,
       checkAuth,
       getToken,
-      getPendingApprovals: () => [],
-      approveUser: () => {},
-      rejectUser: () => {},
+      getPendingApprovals: () => allUsers.filter((u: any) => u.approvalStatus === 'pending'),
+      approveUser: async (userId: string) => {
+        const token = getToken();
+        if (!token) return;
+        try {
+          await fetch(`${API_URL}/auth/admin/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ userId, action: 'approve' })
+          });
+          fetchAllUsers();
+        } catch {}
+      },
+      rejectUser: (_userId: string) => {},
       getLoginLogs: () => [],
-      getAllUsers: () => [],
-      updateUserStatus: () => {},
-      deleteUser: () => {},
-      resetUserPassword: () => {},
-      refreshUsers: () => {}
+      getAllUsers: () => allUsers,
+      updateUserStatus: async (userId: string, status: string) => {
+        const token = getToken();
+        if (!token) return;
+        try {
+          await fetch(`${API_URL}/auth/admin/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ userId, action: 'updateStatus', status })
+          });
+          fetchAllUsers();
+        } catch {}
+      },
+      deleteUser: async (_userId: string) => {
+        const token = getToken();
+        if (!token) return;
+        try {
+          await fetch(`${API_URL}/auth/admin/users`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          fetchAllUsers();
+        } catch {}
+      },
+      resetUserPassword: (_userId: string) => {},
+      refreshUsers: () => { fetchAllUsers(); }
     }}>
       {children}
     </AuthContext.Provider>

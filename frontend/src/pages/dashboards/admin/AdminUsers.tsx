@@ -13,6 +13,10 @@ const statusColors: Record<string, string> = {
   active: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
   suspended: 'bg-red-50 text-red-600 border border-red-100',
   inactive: 'bg-amber-50 text-amber-600 border border-amber-100',
+  expired: 'bg-red-50 text-red-600 border border-red-100',
+  none: 'bg-gray-50 text-gray-500 border border-gray-100',
+  pending_verification: 'bg-amber-50 text-amber-600 border border-amber-100',
+  cancelled: 'bg-red-50 text-red-600 border border-red-100',
 };
 
 const approvalColors: Record<string, string> = {
@@ -76,11 +80,12 @@ const AdminUsers: React.FC = () => {
       window.alert("No user data available to export.");
       return;
     }
-    const headers = ["User ID", "Name", "Email", "Role", "Status", "Approval", "Signup Date", "Last Login", "Login Count"];
+    const headers = ["User ID", "Name", "Email", "Role", "Status", "Approval", "Signup Date", "Last Login", "Login Count", "Trial Expiry", "Subscription Expiry"];
     const rows = usersList.map(u => [
       u.id, u.name, u.email, u.role, u.status || 'active',
       u.approvalStatus || 'approved', u.signupDate || '',
-      u.lastLoginAt || 'Never', u.loginCount || 0
+      u.lastLoginAt || 'Never', u.loginCount || 0,
+      u.trialEndDate || '', u.subscriptionEndDate || ''
     ]);
     const csvContent = "\uFEFF" + [
       headers.join(","),
@@ -156,6 +161,8 @@ const AdminUsers: React.FC = () => {
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Signup Date</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Last Login</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Login Count</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Trial Expiry</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Subscription Expiry</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Approval</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
@@ -183,6 +190,22 @@ const AdminUsers: React.FC = () => {
                   <td className="px-6 py-4 text-sm text-gray-500">{formatDate(u.signupDate)}</td>
                   <td className="px-6 py-4 text-sm text-gray-500">{u.lastLoginAt ? formatDate(u.lastLoginAt) : <span className="text-gray-400 italic">Never</span>}</td>
                   <td className="px-6 py-4 text-sm font-bold text-gray-700">{u.loginCount || 0}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {u.trialEndDate ? (
+                      <span className={`font-medium ${new Date(u.trialEndDate) < new Date() ? 'text-red-600' : 'text-gray-700'}`}>
+                        {formatDate(u.trialEndDate)}
+                        {new Date(u.trialEndDate) < new Date() && <span className="ml-1 text-[10px] font-bold text-red-500">(Expired)</span>}
+                      </span>
+                    ) : <span className="text-gray-400 italic">—</span>}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {u.subscriptionEndDate ? (
+                      <span className={`font-medium ${new Date(u.subscriptionEndDate) < new Date() ? 'text-red-600' : 'text-gray-700'}`}>
+                        {formatDate(u.subscriptionEndDate)}
+                        {new Date(u.subscriptionEndDate) < new Date() && <span className="ml-1 text-[10px] font-bold text-red-500">(Expired)</span>}
+                      </span>
+                    ) : <span className="text-gray-400 italic">—</span>}
+                  </td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusColors[u.status] || statusColors.active}`}>
                       {u.status || 'active'}
@@ -241,7 +264,7 @@ const AdminUsers: React.FC = () => {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-sm text-gray-500">
+                  <td colSpan={10} className="px-6 py-8 text-center text-sm text-gray-500">
                     No users found.
                   </td>
                 </tr>
@@ -330,10 +353,51 @@ const AdminUsers: React.FC = () => {
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                   <span className="w-1 h-4 rounded-full bg-blue-500"></span> Login Activity
                 </h4>
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Last Login</span>
                     <span className="font-bold text-gray-900">{selectedUser.lastLoginAt ? formatDate(selectedUser.lastLoginAt) : <span className="text-gray-400 italic">Never logged in</span>}</span>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Login Count</span>
+                    <span className="font-bold text-gray-900">{selectedUser.loginCount || 0}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Subscription Information */}
+              <div>
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <span className="w-1 h-4 rounded-full bg-purple-500"></span> Subscription Information
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Free Trial Expiry</span>
+                    <span className={`font-bold ${selectedUser.trialEndDate && new Date(selectedUser.trialEndDate) < new Date() ? 'text-red-600' : 'text-gray-900'}`}>
+                      {selectedUser.trialEndDate ? formatDate(selectedUser.trialEndDate) : <span className="text-gray-400 italic">N/A</span>}
+                    </span>
+                    {selectedUser.trialEndDate && new Date(selectedUser.trialEndDate) < new Date() && (
+                      <span className="text-[10px] font-bold text-red-500 block mt-1">Expired</span>
+                    )}
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Subscription Plan Expiry</span>
+                    <span className={`font-bold ${selectedUser.subscriptionEndDate && new Date(selectedUser.subscriptionEndDate) < new Date() ? 'text-red-600' : 'text-gray-900'}`}>
+                      {selectedUser.subscriptionEndDate ? formatDate(selectedUser.subscriptionEndDate) : <span className="text-gray-400 italic">N/A</span>}
+                    </span>
+                    {selectedUser.subscriptionEndDate && new Date(selectedUser.subscriptionEndDate) < new Date() && (
+                      <span className="text-[10px] font-bold text-red-500 block mt-1">Expired</span>
+                    )}
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Current Plan</span>
+                    <span className="font-bold text-gray-900">{selectedUser.plan || 'none'}</span>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Subscription Status</span>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusColors[selectedUser.subscriptionStatus] || statusColors.none}`}>
+                      {selectedUser.subscriptionStatus || 'none'}
+                    </span>
                   </div>
                 </div>
               </div>
