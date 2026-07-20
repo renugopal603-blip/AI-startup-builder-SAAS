@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Trash2, Download, X, CheckCircle, AlertCircle, ShieldCheck, UserCheck, UserX, Lock, KeyRound } from 'lucide-react';
+import { Search, Eye, Trash2, Download, X, ShieldCheck, Lock, KeyRound } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 
 const roleColors: Record<string, string> = {
@@ -26,7 +26,7 @@ const approvalColors: Record<string, string> = {
 };
 
 const AdminUsers: React.FC = () => {
-  const { getAllUsers, updateUserStatus, deleteUser, approveUser, resetUserPassword, refreshUsers } = useAuth();
+  const { getAllUsers, deleteUser, approveUser, resetUserPassword, refreshUsers } = useAuth();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
   const [usersList, setUsersList] = useState<any[]>([]);
@@ -57,12 +57,6 @@ const AdminUsers: React.FC = () => {
       if (selectedUser?.id === id) setSelectedUser(null);
       loadUsers();
     }
-  };
-
-  const handleToggleStatus = (id: string, currentStatus: string) => {
-    const nextStatus = currentStatus === 'active' ? 'suspended' : 'active';
-    updateUserStatus(id, nextStatus);
-    loadUsers();
   };
 
   const handleApproveUser = (id: string, name: string) => {
