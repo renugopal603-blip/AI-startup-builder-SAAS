@@ -1,9 +1,11 @@
 import { Router, Request, Response } from 'express';
+
 import aiBuilderRoutes from './aiBuilderRoutes.js';
 import notificationRoutes from './notificationRoutes.js';
 import startupRoutes from './startupRoutes.js';
 import authRoutes from './authRoutes.js';
 import paymentRoutes from './paymentRoutes.js';
+import inviteRoutes from './inviteRoutes.js';
 
 const router = Router();
 
@@ -12,6 +14,7 @@ router.use('/startups', startupRoutes);
 router.use('/ai-builder', aiBuilderRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/payments', paymentRoutes);
+router.use('/invites', inviteRoutes);
 
 // Health check endpoint
 router.get('/health', (_req: Request, res: Response) => {
@@ -24,10 +27,6 @@ router.get('/health', (_req: Request, res: Response) => {
 });
 
 // Placeholder routes for future implementation
-router.get('/startups', (_req: Request, res: Response) => {
-  res.json({ message: 'Startups endpoint - Coming soon' });
-});
-
 router.get('/mentors', (_req: Request, res: Response) => {
   res.json({ message: 'Mentors endpoint - Coming soon' });
 });
