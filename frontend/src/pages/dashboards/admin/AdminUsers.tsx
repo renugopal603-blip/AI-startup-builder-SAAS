@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Trash2, Download, X, Lock, KeyRound, UserX, UserCheck, AlertCircle, CheckCircle } from 'lucide-react';
+import { Search, Eye, Trash2, Download, X, Lock, KeyRound, AlertCircle, CheckCircle, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 
 const roleColors: Record<string, string> = {
@@ -9,29 +9,42 @@ const roleColors: Record<string, string> = {
   admin: 'bg-purple-100 text-[#5B21B6] border border-purple-200',
 };
 
-const statusColors: Record<string, string> = {
-  active: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
-  suspended: 'bg-red-50 text-red-600 border border-red-100',
-  inactive: 'bg-amber-50 text-amber-600 border border-amber-100',
-  expired: 'bg-red-50 text-red-600 border border-red-100',
-  none: 'bg-gray-50 text-gray-500 border border-gray-100',
-  pending_verification: 'bg-amber-50 text-amber-600 border border-amber-100',
-  cancelled: 'bg-red-50 text-red-600 border border-red-100',
+const statusDotColors: Record<string, string> = {
+  active: 'bg-emerald-500',
+  inactive: 'bg-gray-400',
+  suspended: 'bg-red-500',
 };
 
-const approvalColors: Record<string, string> = {
-  approved: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
-  pending: 'bg-amber-50 text-amber-600 border border-amber-100',
-  rejected: 'bg-red-50 text-red-600 border border-red-100',
+const statusBgColors: Record<string, string> = {
+  active: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  inactive: 'bg-gray-100 text-gray-600 border-gray-200',
+  suspended: 'bg-red-50 text-red-600 border-red-200',
+};
+
+const approvalDotColors: Record<string, string> = {
+  approved: 'bg-emerald-500',
+  pending: 'bg-amber-400',
+  rejected: 'bg-red-500',
+};
+
+const approvalBgColors: Record<string, string> = {
+  approved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  pending: 'bg-amber-50 text-amber-700 border-amber-200',
+  rejected: 'bg-red-50 text-red-600 border-red-200',
 };
 
 const AdminUsers: React.FC = () => {
-  const { getAllUsers, deleteUser, approveUser, rejectUser, resetUserPassword, refreshUsers, updateUserStatus } = useAuth();
+  const { user: currentUser, getAllUsers, deleteUser, approveUser, rejectUser, updateUserStatus, resetUserPassword, refreshUsers } = useAuth();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
   const [usersList, setUsersList] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
-  const [approvedMsg, setApprovedMsg] = useState('');
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const loadUsers = () => {
     refreshUsers();
@@ -40,15 +53,15 @@ const AdminUsers: React.FC = () => {
 
   useEffect(() => {
     loadUsers();
-    const interval = setInterval(loadUsers, 2000);
+    const interval = setInterval(loadUsers, 3000);
     return () => clearInterval(interval);
   }, []);
 
   const filtered = usersList.filter(u =>
     (roleFilter === 'All' || u.role === roleFilter) &&
-    (u.name.toLowerCase().includes(search.toLowerCase()) ||
-     u.email.toLowerCase().includes(search.toLowerCase()) ||
-     u.fullName?.toLowerCase().includes(search.toLowerCase()))
+    ((u.name || '').toLowerCase().includes(search.toLowerCase()) ||
+     (u.email || '').toLowerCase().includes(search.toLowerCase()) ||
+     (u.fullName || '').toLowerCase().includes(search.toLowerCase()))
   );
 
   const handleDeleteUser = (id: string, name: string) => {
@@ -56,45 +69,44 @@ const AdminUsers: React.FC = () => {
       deleteUser(id);
       if (selectedUser?.id === id) setSelectedUser(null);
       loadUsers();
+      showToast(`User "${name}" deleted successfully.`);
     }
   };
 
-  const handleToggleStatus = (id: string, currentStatus: string) => {
-    const newStatus = (currentStatus === 'suspended' || currentStatus === 'inactive') ? 'active' : 'suspended';
-    const action = newStatus === 'active' ? 'activate' : 'suspend';
-    if (window.confirm(`Are you sure you want to ${action} this user?`)) {
-      updateUserStatus(id, newStatus);
-      if (selectedUser?.id === id) {
-        setSelectedUser({ ...selectedUser, status: newStatus });
+  const handleStatusChange = (userId: string, userName: string, newStatus: string) => {
+    if (newStatus === 'inactive' || newStatus === 'suspended') {
+      if (!window.confirm(`Set ${userName} to "${newStatus}"? They will not be able to access the dashboard.`)) {
+        loadUsers();
+        return;
       }
-      loadUsers();
     }
-  };
-
-  const handleApproveUser = (id: string, name: string) => {
-    approveUser(id);
-    setApprovedMsg(`✓ ${name}'s account has been approved. They can now log in.`);
-    setTimeout(() => setApprovedMsg(''), 5000);
-    if (selectedUser?.id === id) setSelectedUser(null);
+    updateUserStatus(userId, newStatus);
+    if (selectedUser?.id === userId) {
+      setSelectedUser({ ...selectedUser, status: newStatus });
+    }
     loadUsers();
+    showToast(`${userName}'s status updated to "${newStatus}".`);
   };
 
-  const handleRejectUser = (id: string, name: string) => {
-    if (window.confirm(`Reject ${name}'s account? They will not be able to log in.`)) {
-      rejectUser(id);
-      setApprovedMsg(`✕ ${name}'s account has been rejected.`);
-      setTimeout(() => setApprovedMsg(''), 5000);
-      if (selectedUser?.id === id) setSelectedUser(null);
-      loadUsers();
+  const handleApprovalChange = (userId: string, userName: string, newApproval: string) => {
+    if (newApproval === 'rejected') {
+      if (!window.confirm(`Reject ${userName}'s account? They will not be able to log in.`)) {
+        loadUsers();
+        return;
+      }
+      rejectUser(userId);
+      showToast(`${userName}'s account has been rejected.`);
+    } else if (newApproval === 'approved') {
+      approveUser(userId);
+      showToast(`${userName}'s account has been approved.`);
+    } else {
+      approveUser(userId);
+      showToast(`${userName}'s approval set to pending.`);
     }
-  };
-
-  const handleApprovalChange = (id: string, name: string, newStatus: string) => {
-    if (newStatus === 'approved') {
-      handleApproveUser(id, name);
-    } else if (newStatus === 'rejected') {
-      handleRejectUser(id, name);
+    if (selectedUser?.id === userId) {
+      setSelectedUser({ ...selectedUser, approvalStatus: newApproval });
     }
+    loadUsers();
   };
 
   const handleExportCSV = () => {
@@ -104,7 +116,7 @@ const AdminUsers: React.FC = () => {
     }
     const headers = ["User ID", "Name", "Email", "Role", "Status", "Approval", "Signup Date", "Last Login", "Login Count", "Trial Expiry", "Subscription Expiry"];
     const rows = usersList.map(u => [
-      u.id, u.name, u.email, u.role, u.status || 'active',
+      u.id, u.name || u.fullName, u.email, u.role, u.status || 'active',
       u.approvalStatus || 'approved', u.signupDate || '',
       u.lastLoginAt || 'Never', u.loginCount || 0,
       u.trialEndDate || '', u.subscriptionEndDate || ''
@@ -132,19 +144,69 @@ const AdminUsers: React.FC = () => {
     }
   };
 
+  const isSelf = (u: any) => currentUser && u.id === currentUser.id;
+
+  const renderStatusDropdown = (u: any) => {
+    const disabled = isSelf(u) && u.role === 'admin';
+    const currentStatus = u.status || 'active';
+    return (
+      <div className="relative inline-flex">
+        <select
+          value={currentStatus}
+          disabled={disabled}
+          onChange={(e) => handleStatusChange(u.id, u.name || u.fullName, e.target.value)}
+          className={`appearance-none pl-6 pr-6 py-1 rounded-full text-[11px] font-bold border cursor-pointer outline-none transition-all hover:shadow-sm ${
+            disabled ? 'opacity-60 cursor-not-allowed ' : ''
+          }${statusBgColors[currentStatus] || statusBgColors.active}`}
+        >
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <span className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ${statusDotColors[currentStatus] || statusDotColors.active}`} />
+        <ChevronDown size={12} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-current opacity-50 pointer-events-none" />
+      </div>
+    );
+  };
+
+  const renderApprovalDropdown = (u: any) => {
+    const disabled = isSelf(u);
+    const currentApproval = u.approvalStatus || 'approved';
+    return (
+      <div className="relative inline-flex">
+        <select
+          value={currentApproval}
+          disabled={disabled}
+          onChange={(e) => handleApprovalChange(u.id, u.name || u.fullName, e.target.value)}
+          className={`appearance-none pl-6 pr-6 py-1 rounded-full text-[11px] font-bold border cursor-pointer outline-none transition-all hover:shadow-sm ${
+            disabled ? 'opacity-60 cursor-not-allowed ' : ''
+          }${approvalBgColors[currentApproval] || approvalBgColors.approved}`}
+        >
+          <option value="approved">Approved</option>
+          <option value="pending">Pending</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <span className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ${approvalDotColors[currentApproval] || approvalDotColors.approved}`} />
+        <ChevronDown size={12} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-current opacity-50 pointer-events-none" />
+      </div>
+    );
+  };
+
   return (
     <div className="animate-fade-in-up pb-10">
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-6 right-6 z-[200] px-5 py-3 rounded-xl shadow-xl font-semibold text-sm flex items-center gap-2 animate-in slide-in-from-top-2 ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}>
+          {toast.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+          {toast.msg}
+        </div>
+      )}
+
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Manage Users</h1>
           <p className="text-gray-500 mt-1">View and manage all registered platform users.</p>
         </div>
         <div className="flex items-center gap-3">
-          {approvedMsg && (
-            <div className="px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold">
-              {approvedMsg}
-            </div>
-          )}
           <button
             onClick={handleExportCSV}
             className="flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold rounded-xl border border-gray-200 text-sm transition-colors shadow-sm"
@@ -154,7 +216,7 @@ const AdminUsers: React.FC = () => {
           <div className="flex items-center gap-2 text-sm font-bold">
             <span className="px-3 py-1.5 bg-purple-100 text-[#5B21B6] rounded-lg">{usersList.length} Total</span>
             <span className="px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg">{usersList.filter(u => u.status === 'active').length} Active</span>
-            <span className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded-lg">{usersList.filter(u => u.status === 'suspended' || u.status === 'inactive').length} Inactive</span>
+            <span className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg">{usersList.filter(u => u.status === 'inactive').length} Inactive</span>
           </div>
         </div>
       </div>
@@ -233,20 +295,10 @@ const AdminUsers: React.FC = () => {
                     </td>
                   )}
                   <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusColors[u.status] || statusColors.active}`}>
-                      {u.status || 'active'}
-                    </span>
+                    {renderStatusDropdown(u)}
                   </td>
                   <td className="px-6 py-4">
-                    <select
-                      value={u.approvalStatus || 'approved'}
-                      onChange={(e) => handleApprovalChange(u.id, u.name || u.fullName, e.target.value)}
-                      className={`px-2.5 py-1 rounded-full text-xs font-bold outline-none cursor-pointer appearance-none text-center w-[90px] ${approvalColors[u.approvalStatus] || approvalColors.approved}`}
-                    >
-                      <option value="approved">approved</option>
-                      <option value="pending">pending</option>
-                      <option value="rejected">rejected</option>
-                    </select>
+                    {renderApprovalDropdown(u)}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1.5">
@@ -257,48 +309,15 @@ const AdminUsers: React.FC = () => {
                       >
                         <Eye size={14} /> View
                       </button>
-                      {u.status === 'suspended' || u.status === 'inactive' ? (
+                      {!isSelf(u) && (
                         <button
-                          onClick={() => handleToggleStatus(u.id, u.status)}
-                          className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                          title="Activate User"
+                          onClick={() => handleDeleteUser(u.id, u.name || u.fullName)}
+                          className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-xs transition-colors inline-flex items-center gap-1"
+                          title="Delete User"
                         >
-                          <UserCheck size={15} />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleToggleStatus(u.id, u.status)}
-                          className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                          title="Suspend User"
-                        >
-                          <UserX size={15} />
+                          <Trash2 size={14} /> Delete
                         </button>
                       )}
-                      {(u.approvalStatus === 'pending') && (
-                        <>
-                          <button
-                            onClick={() => handleApproveUser(u.id, u.name || u.fullName)}
-                            className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-lg text-xs transition-colors inline-flex items-center gap-1"
-                            title="Accept User"
-                          >
-                            <CheckCircle size={14} /> Accept
-                          </button>
-                          <button
-                            onClick={() => handleRejectUser(u.id, u.name || u.fullName)}
-                            className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-xs transition-colors inline-flex items-center gap-1"
-                            title="Reject User"
-                          >
-                            <AlertCircle size={14} /> Reject
-                          </button>
-                        </>
-                      )}
-                      <button
-                        onClick={() => handleDeleteUser(u.id, u.name || u.fullName)}
-                        className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-xs transition-colors inline-flex items-center gap-1"
-                        title="Delete User"
-                      >
-                        <Trash2 size={14} /> Delete
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -378,15 +397,11 @@ const AdminUsers: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Status</span>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusColors[selectedUser.status] || statusColors.active}`}>
-                      {selectedUser.status || 'active'}
-                    </span>
+                    {renderStatusDropdown(selectedUser)}
                   </div>
                   <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Approval Status</span>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${approvalColors[selectedUser.approvalStatus] || approvalColors.approved}`}>
-                      {selectedUser.approvalStatus || 'approved'}
-                    </span>
+                    {renderApprovalDropdown(selectedUser)}
                   </div>
                 </div>
               </div>
@@ -442,7 +457,7 @@ const AdminUsers: React.FC = () => {
                   </div>
                   <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Subscription Status</span>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusColors[selectedUser.subscriptionStatus] || statusColors.none}`}>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusBgColors[selectedUser.subscriptionStatus] || statusBgColors.inactive}`}>
                       {selectedUser.subscriptionStatus || 'none'}
                     </span>
                   </div>
@@ -468,7 +483,7 @@ const AdminUsers: React.FC = () => {
                     onClick={() => {
                       if (window.confirm(`Reset password for ${selectedUser.name || selectedUser.fullName}? The new password will be "reset123".`)) {
                         resetUserPassword(selectedUser.id);
-                        window.alert(`✅ Password for ${selectedUser.name || selectedUser.fullName} has been reset to "reset123".`);
+                        showToast(`Password for ${selectedUser.name || selectedUser.fullName} has been reset to "reset123".`);
                         loadUsers();
                       }
                     }}
@@ -483,43 +498,14 @@ const AdminUsers: React.FC = () => {
             {/* Footer actions */}
             <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between gap-3 shrink-0 bg-gray-50/60 rounded-b-3xl">
               <div className="flex flex-wrap items-center gap-2">
-                {selectedUser.status === 'suspended' || selectedUser.status === 'inactive' ? (
+                {!isSelf(selectedUser) && (
                   <button
-                    onClick={() => { handleToggleStatus(selectedUser.id, selectedUser.status); setSelectedUser(null); }}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm inline-flex items-center gap-1.5"
+                    onClick={() => { handleDeleteUser(selectedUser.id, selectedUser.name || selectedUser.fullName); setSelectedUser(null); }}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm inline-flex items-center gap-1.5"
                   >
-                    <CheckCircle size={14} /> Activate
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => { handleToggleStatus(selectedUser.id, selectedUser.status); setSelectedUser(null); }}
-                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm inline-flex items-center gap-1.5"
-                  >
-                    <AlertCircle size={14} /> Suspend
+                    <Trash2 size={14} /> Delete User
                   </button>
                 )}
-                {(selectedUser.approvalStatus === 'pending') && (
-                  <>
-                    <button
-                      onClick={() => { handleApproveUser(selectedUser.id, selectedUser.name || selectedUser.fullName); }}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm inline-flex items-center gap-1.5"
-                    >
-                      <CheckCircle size={14} /> Accept
-                    </button>
-                    <button
-                      onClick={() => { handleRejectUser(selectedUser.id, selectedUser.name || selectedUser.fullName); }}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm inline-flex items-center gap-1.5"
-                    >
-                      <AlertCircle size={14} /> Reject
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={() => { handleDeleteUser(selectedUser.id, selectedUser.name || selectedUser.fullName); setSelectedUser(null); }}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm inline-flex items-center gap-1.5"
-                >
-                  <Trash2 size={14} /> Delete
-                </button>
               </div>
               <button
                 onClick={() => setSelectedUser(null)}
