@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Link2, Plus, Copy, CheckCircle2, AlertCircle, Trash2, X, RefreshCw,
   Send, Ban, Users, Clock, CheckCircle, XCircle, Mail, Briefcase,
-  Calendar, MessageSquare, ExternalLink,
+  Calendar, MessageSquare,
 } from 'lucide-react';
 import {
   getInvites, createInvite, deleteInvite, disableInvite, resendInvite,
