@@ -365,7 +365,21 @@ export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    // Auto-create Admin if it doesn't exist (for demo purposes)
+    if (!user && email.toLowerCase() === 'selva@gmail.com' && password === 'Selva@143') {
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(password, salt);
+      user = await User.create({
+        fullName: 'Admin Selva',
+        email: email.toLowerCase(),
+        passwordHash,
+        role: 'admin',
+        isVerified: true,
+        approvalStatus: 'approved'
+      });
+    }
 
     if (!user) {
       return res.status(401).json({ success: false, error: 'Invalid email or password' });
