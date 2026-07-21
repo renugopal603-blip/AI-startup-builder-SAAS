@@ -53,12 +53,68 @@ async function extractText(
 
   // PDF
   if (mimetype === 'application/pdf' || ext === 'pdf') {
-    const pdfImport = await import('pdf-parse');
-    const pdfParse = ((pdfImport as any).default || pdfImport) as any;
-    const data = await pdfParse(buffer);
-    // Split by form-feed character (\f) to get per-page text
-    const pages = data.text.split('\f').filter((p: string) => p.trim().length > 0);
-    return { text: data.text, pages: pages.length ? pages : [data.text] };
+    let text = '';
+    let pages: string[] = [];
+    let parserInstance: any = null;
+
+    try {
+      // 1. Try PDFParse (v2 class API)
+      try {
+        await import('pdf-parse/worker');
+        const pdfModule: any = await import('pdf-parse');
+        const PDFParseClass = pdfModule.PDFParse || (pdfModule.default && pdfModule.default.PDFParse);
+        if (typeof PDFParseClass === 'function') {
+          const uint8 = new Uint8Array(buffer);
+          parserInstance = new PDFParseClass(uint8);
+          const result = await parserInstance.getText();
+          text = result.text || '';
+          if (result.pages && Array.isArray(result.pages)) {
+            pages = result.pages.map((p: any) => p.text).filter((t: string) => t && t.trim().length > 0);
+          }
+        }
+      } catch (v2Err: any) {
+        console.warn('⚠️ PDFParse v2 class extraction failed, falling back to v1 function:', v2Err?.message);
+      }
+
+      // 2. Fallback to pdf-parse (v1 function API) if v2 didn't extract text
+      if (!text.trim()) {
+        const pdfImport: any = await import('pdf-parse');
+        const pdfFn = pdfImport.default || pdfImport;
+        if (typeof pdfFn === 'function') {
+          const data = await pdfFn(buffer);
+          text = data.text || '';
+          pages = text.split('\f').filter((p: string) => p.trim().length > 0);
+        } else if (typeof pdfImport === 'function') {
+          const data = await pdfImport(buffer);
+          text = data.text || '';
+          pages = text.split('\f').filter((p: string) => p.trim().length > 0);
+        }
+      }
+
+      if (!text.trim()) {
+        throw new Error('Extracted text is empty. The PDF might be scanned/image-only (requires OCR), corrupted, or blank.');
+      }
+
+      return { text, pages: pages.length ? pages : [text] };
+    } catch (err: any) {
+      let message = err.message || 'Unknown PDF parsing error';
+      if (message.includes('Password') || message.includes('password') || err.name === 'PasswordException') {
+        message = 'Failed to parse PDF: The document is encrypted or password-protected.';
+      } else if (message.includes('empty') || buffer.length === 0) {
+        message = 'Failed to parse PDF: The document is empty (0 bytes).';
+      } else if (message.includes('structure') || message.includes('Invalid') || err.name === 'InvalidPDFException') {
+        message = 'Failed to parse PDF: The document is corrupted or has an invalid structure.';
+      }
+      throw new Error(message);
+    } finally {
+      if (parserInstance && typeof parserInstance.destroy === 'function') {
+        try {
+          await parserInstance.destroy();
+        } catch (e) {
+          // ignore destroy errors
+        }
+      }
+    }
   }
 
   // DOCX
@@ -241,38 +297,38 @@ async function processFile(
   startupId: string,
   userId: string
 ) {
-  // Mark as processing
-  await KnowledgeDoc.updateOne({ docId }, { status: 'processing' });
+  try {
+    // Mark as processing
+    await KnowledgeDoc.updateOne({ docId }, { status: 'processing' });
 
-  // 1. Extract text
-  const { text, pages } = await extractText(
-    file.buffer,
-    file.mimetype,
-    file.originalname
-  );
-
-  if (!text.trim()) {
-    await KnowledgeDoc.updateOne(
-      { docId },
-      { status: 'error', errorMessage: 'No extractable text found in document.' }
+    // 1. Extract text
+    const { text, pages } = await extractText(
+      file.buffer,
+      file.mimetype,
+      file.originalname
     );
-    return;
-  }
 
-  // 2. Chunk (page-aware: chunk within each page, track page number)
-  const allChunks: { text: string; page: number; index: number }[] = [];
-  let globalIndex = 0;
-  for (let p = 0; p < pages.length; p++) {
-    const pageChunks = chunkText(pages[p], 1000, 200);
-    for (const chunk of pageChunks) {
-      allChunks.push({ text: chunk, page: p + 1, index: globalIndex++ });
+    if (!text.trim()) {
+      await KnowledgeDoc.updateOne(
+        { docId },
+        { status: 'error', errorMessage: 'No extractable text found in document.' }
+      );
+      return;
     }
-  }
 
-  // 3. Embed each chunk and save to MongoDB
-  const savedChunks: any[] = [];
-  for (const chunk of allChunks) {
-    try {
+    // 2. Chunk (page-aware: chunk within each page, track page number)
+    const allChunks: { text: string; page: number; index: number }[] = [];
+    let globalIndex = 0;
+    for (let p = 0; p < pages.length; p++) {
+      const pageChunks = chunkText(pages[p], 1000, 200);
+      for (const chunk of pageChunks) {
+        allChunks.push({ text: chunk, page: p + 1, index: globalIndex++ });
+      }
+    }
+
+    // 3. Embed each chunk and save to MongoDB
+    const savedChunks: any[] = [];
+    for (const chunk of allChunks) {
       const embedding = await getEmbedding(chunk.text);
       savedChunks.push({
         startupId,
@@ -287,28 +343,32 @@ async function processFile(
         embedding,
         charCount: chunk.text.length,
       });
-    } catch (embErr) {
-      console.warn(`⚠️ Embedding failed for chunk ${chunk.index}:`, embErr);
     }
-  }
 
-  if (savedChunks.length === 0) {
+    if (savedChunks.length === 0) {
+      await KnowledgeDoc.updateOne(
+        { docId },
+        { status: 'error', errorMessage: 'Embedding generation failed for all chunks.' }
+      );
+      return;
+    }
+
+    await KnowledgeChunk.insertMany(savedChunks);
     await KnowledgeDoc.updateOne(
       { docId },
-      { status: 'error', errorMessage: 'Embedding generation failed for all chunks.' }
+      { status: 'indexed', chunkCount: savedChunks.length }
     );
-    return;
+
+    console.log(
+      `✅ RAG: ${file.originalname} indexed — ${savedChunks.length} chunks for startup ${startupId}`
+    );
+  } catch (err: any) {
+    console.error(`❌ RAG processing failed for ${file.originalname}:`, err);
+    await KnowledgeDoc.updateOne(
+      { docId },
+      { status: 'error', errorMessage: err.message || 'Unknown processing error' }
+    );
   }
-
-  await KnowledgeChunk.insertMany(savedChunks);
-  await KnowledgeDoc.updateOne(
-    { docId },
-    { status: 'indexed', chunkCount: savedChunks.length }
-  );
-
-  console.log(
-    `✅ RAG: ${file.originalname} indexed — ${savedChunks.length} chunks for startup ${startupId}`
-  );
 }
 
 // GET /api/rag/documents/:startupId
