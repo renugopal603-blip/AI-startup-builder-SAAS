@@ -280,9 +280,10 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
                     </span>
                   )}
                   {doc.status === 'error' && (
-                    <span className="text-[10px] font-medium text-red-500 flex items-center gap-1 mt-0.5" title={doc.errorMessage}>
-                      <AlertCircle size={10} /> Error
-                    </span>
+                    <div className="text-[10px] font-medium text-red-500 mt-0.5">
+                      <span className="flex items-center gap-1"><AlertCircle size={10} /> Indexing Failed</span>
+                      <p className="text-[9px] text-red-400 mt-0.5 font-normal break-all">{doc.errorMessage || 'Unknown error'}</p>
+                    </div>
                   )}
                 </div>
 
