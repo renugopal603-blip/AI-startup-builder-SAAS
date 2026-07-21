@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-});
+} as any);
 
 export const sendOTPEmail = async (to: string, otpCode: string) => {
   // If SMTP is not configured, fallback to console log

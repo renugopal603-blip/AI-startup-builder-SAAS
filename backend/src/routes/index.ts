@@ -6,6 +6,7 @@ import startupRoutes from './startupRoutes.js';
 import authRoutes from './authRoutes.js';
 import paymentRoutes from './paymentRoutes.js';
 import inviteRoutes from './inviteRoutes.js';
+import ragRoutes from './ragRoutes.js';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.use('/ai-builder', aiBuilderRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/payments', paymentRoutes);
 router.use('/invites', inviteRoutes);
+router.use('/rag', ragRoutes);
 
 // Health check endpoint
 router.get('/health', (_req: Request, res: Response) => {
