@@ -156,7 +156,7 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
   };
 
   const send = async (text: string) => {
-    if (!text.trim()) return;
+    if (loading || !text.trim()) return;
     const userMessage: Msg = { role: 'user', text };
     setMessages(m => [...m, userMessage]);
     setInput('');
@@ -168,7 +168,6 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
 
     setLoading(true);
 
-    // Format chat history for backend memory
     const historyPayload = messages
       .filter(m => m.text)
       .map(m => ({ role: m.role === 'user' ? 'user' : 'model', text: m.text }));
@@ -192,10 +191,15 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
 
       const data = await response.json();
       
+      let cleanMsg = data.message || data.error || "AI usage limit reached. Please wait a moment and try again.";
+      if (typeof cleanMsg === 'string' && (cleanMsg.includes('{"error"') || cleanMsg.includes('RESOURCE_EXHAUSTED'))) {
+        cleanMsg = "AI usage limit reached. Please wait a moment and try again.";
+      }
+
       if (data.success) {
         setMessages(m => [...m, { 
           role: 'ai', 
-          text: data.message, 
+          text: cleanMsg, 
           sources: data.sources,
           isRag: data.isRag,
           badge: data.badge,
@@ -204,13 +208,13 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
       } else {
         setMessages(m => [...m, { 
           role: 'ai', 
-          text: data.message || data.error || "Sorry, I had trouble processing that request." 
+          text: cleanMsg
         }]);
       }
     } catch (err: any) {
        setMessages(m => [...m, { 
          role: 'ai', 
-         text: err?.message || "Failed to connect to the AI server. Please make sure the backend is running." 
+         text: "AI usage limit reached. Please wait a moment and try again." 
        }]);
     } finally {
       setLoading(false);
@@ -428,7 +432,7 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
         {/* Starter prompts */}
         <div className="px-5 py-3 border-t border-gray-100 flex gap-2 overflow-x-auto flex-shrink-0" style={{ scrollbarWidth: 'none' }}>
           {starters.map((s, i) => (
-            <button key={i} onClick={() => send(s)} className="flex-shrink-0 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 border border-purple-100 text-[#5B21B6] text-xs font-medium rounded-full transition-colors whitespace-nowrap">
+            <button key={i} onClick={() => send(s)} disabled={loading} className="flex-shrink-0 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 border border-purple-100 text-[#5B21B6] text-xs font-medium rounded-full transition-colors whitespace-nowrap disabled:opacity-50">
               {s}
             </button>
           ))}
@@ -438,12 +442,13 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
         <div className="px-5 py-4 border-t border-gray-100 flex gap-3 flex-shrink-0">
           <input
             value={input}
+            disabled={loading}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && send(input)}
-            placeholder={hasIndexedDocs ? "Ask something about your uploaded documents..." : "Ask your AI co-founder anything..."}
-            className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6]"
+            placeholder={loading ? "AI is processing your query..." : (hasIndexedDocs ? "Ask something about your uploaded documents..." : "Ask your AI co-founder anything...")}
+            className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B21B6] disabled:bg-gray-50"
           />
-          <button onClick={() => send(input)} disabled={loading} className="px-4 py-3 bg-[#5B21B6] hover:bg-[#7C3AED] text-white rounded-xl transition-colors shadow flex items-center gap-2 font-bold text-sm disabled:opacity-50">
+          <button onClick={() => send(input)} disabled={loading || !input.trim()} className="px-4 py-3 bg-[#5B21B6] hover:bg-[#7C3AED] text-white rounded-xl transition-colors shadow flex items-center gap-2 font-bold text-sm disabled:opacity-50">
             <Send size={16} />
           </button>
         </div>

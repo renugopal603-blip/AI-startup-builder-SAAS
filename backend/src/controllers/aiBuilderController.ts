@@ -458,6 +458,81 @@ export const generateLegalDocs = async (req: Request, res: Response) => {
 import { retrieveContext, ChunkResult } from './ragController.js';
 import { KnowledgeDoc } from '../models/KnowledgeChunk.js';
 
+// ─── Response Cache & In-Flight Lock ──────────────────────────────────────────
+const responseCache = new Map<string, { response: any; timestamp: number }>();
+const pendingRequests = new Set<string>();
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes cache
+
+// ─── LLM Generation Helper with Retry + Groq Failover ──────────────────────────
+
+async function generateLLMResponse(prompt: string): Promise<string> {
+  const retries = 3;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      if (!aiClient) throw new Error('Gemini AI client not configured');
+      const response = await aiClient.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt
+      });
+      const text = response.text?.trim();
+      if (text) return text;
+    } catch (err: any) {
+      const is429 = err.status === 'RESOURCE_EXHAUSTED' || 
+                    err.message?.includes('429') || 
+                    err.message?.includes('Quota exceeded') ||
+                    err.message?.includes('RESOURCE_EXHAUSTED');
+
+      if (is429) {
+        let waitMs = attempt === 1 ? 5000 : attempt === 2 ? 15000 : 35000;
+        const match = err.message?.match(/retry in ([0-9.]+)s/i);
+        if (match && match[1]) {
+          waitMs = Math.ceil(parseFloat(match[1]) * 1000) + 1000;
+        }
+        console.warn(`⚠️ Gemini Chat API 429 quota error (attempt ${attempt}/${retries}). Retrying in ${Math.round(waitMs / 1000)}s...`);
+        
+        if (attempt < retries) {
+          await new Promise(resolve => setTimeout(resolve, Math.min(waitMs, 5000)));
+          continue;
+        }
+      } else {
+        console.error(`❌ Gemini generation error (attempt ${attempt}):`, err?.message || err);
+        if (attempt < retries) continue;
+      }
+    }
+  }
+
+  // Automatic Failover to Groq API
+  console.log('🔄 Failing over to Groq API (llama-3.3-70b-versatile)...');
+  const groqKey = process.env.GROQ_API_KEY || process.env.GROQ_API_kEY;
+  if (groqKey) {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${groqKey}`
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7
+        })
+      });
+      const data: any = await response.json();
+      const groqText = data?.choices?.[0]?.message?.content?.trim();
+      if (groqText) {
+        console.log('✅ Groq API response successfully generated!');
+        return groqText;
+      }
+    } catch (groqErr: any) {
+      console.error('❌ Groq API failover error:', groqErr?.message || groqErr);
+    }
+  }
+
+  throw new Error('AI usage limit reached. Please wait a moment and try again.');
+}
+
 export const chatStartup = async (req: Request, res: Response) => {
   try {
     const startupId = req.params.startupId || req.body.startupId;
@@ -466,10 +541,6 @@ export const chatStartup = async (req: Request, res: Response) => {
 
     if (!message || !message.trim()) {
       return res.status(400).json({ success: false, message: 'Message is required' });
-    }
-
-    if (!aiClient) {
-      return res.status(500).json({ success: false, message: 'AI Client not configured' });
     }
 
     let startup = null;
@@ -481,33 +552,53 @@ export const chatStartup = async (req: Request, res: Response) => {
     const effectiveName = startupName || startup?.startupName || 'your startup';
     const effectiveContext = aiContext || startup?.aiGenerated;
 
-    // ── 1. RAG Vector + Keyword Retrieval for current startup ─────────────────
-    let retrievedChunks: ChunkResult[] = [];
-    if (effectiveStartupId) {
-      try {
-        retrievedChunks = await retrieveContext(message, effectiveStartupId, userId, 8, 0.25);
-      } catch (ragErr: any) {
-        console.error('❌ RAG Retrieval Error:', ragErr?.message || ragErr);
+    const cacheKey = `${effectiveStartupId}:${message.trim().toLowerCase()}`;
+
+    // Response Caching
+    const cached = responseCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+      console.log(`⚡ Returning cached response for query: "${message}"`);
+      return res.status(200).json(cached.response);
+    }
+
+    // In-Flight Lock to prevent duplicate simultaneous requests
+    if (pendingRequests.has(cacheKey)) {
+      return res.status(429).json({
+        success: false,
+        message: 'A request for this query is already in progress. Please wait a moment.'
+      });
+    }
+
+    pendingRequests.add(cacheKey);
+
+    try {
+      // ── 1. RAG Vector + Keyword Retrieval ─────────────────────────────────
+      let retrievedChunks: ChunkResult[] = [];
+      if (effectiveStartupId) {
+        try {
+          retrievedChunks = await retrieveContext(message, effectiveStartupId, userId, 8, 0.25);
+        } catch (ragErr: any) {
+          console.error('❌ RAG Retrieval Error:', ragErr?.message || ragErr);
+        }
       }
-    }
 
-    // Format conversation memory
-    let historyContext = '';
-    if (Array.isArray(history) && history.length > 0) {
-      const recentHistory = history.slice(-6);
-      historyContext = '\nRecent Conversation History:\n' + 
-        recentHistory.map((h: any) => `${h.role === 'user' ? 'Founder' : 'Assistant'}: ${h.text}`).join('\n');
-    }
+      // Format conversation memory
+      let historyContext = '';
+      if (Array.isArray(history) && history.length > 0) {
+        const recentHistory = history.slice(-6);
+        historyContext = '\nRecent Conversation History:\n' + 
+          recentHistory.map((h: any) => `${h.role === 'user' ? 'Founder' : 'Assistant'}: ${h.text}`).join('\n');
+      }
 
-    // ── 2. Mode 1: Document Context Exists ────────────────────────────────────
-    if (retrievedChunks.length > 0) {
-      const contextText = retrievedChunks
-        .map((c, i) => `[Excerpt ${i + 1} | Document: ${c.filename} | Page ${c.pageNumber} | Chunk ${c.chunkIndex}]\n${c.text}`)
-        .join('\n\n---\n\n');
+      // ── 2. Mode 1: Document Context Exists ──────────────────────────────────
+      if (retrievedChunks.length > 0) {
+        const contextText = retrievedChunks
+          .map((c, i) => `[Excerpt ${i + 1} | Document: ${c.filename} | Page ${c.pageNumber} | Chunk ${c.chunkIndex}]\n${c.text}`)
+          .join('\n\n---\n\n');
 
-      const uniqueSources = Array.from(new Set(retrievedChunks.map(c => `${c.filename} (Page ${c.pageNumber})`)));
+        const uniqueSources = Array.from(new Set(retrievedChunks.map(c => `${c.filename} (Page ${c.pageNumber})`)));
 
-      const ragPrompt = `You are a Senior Hybrid RAG Business Assistant for ${effectiveName}.
+        const ragPrompt = `You are a Senior Hybrid RAG Business Assistant for ${effectiveName}.
 
 Startup Profile Context:
 ${JSON.stringify(effectiveContext?.ideaAnalysis || {})}
@@ -525,34 +616,26 @@ Instructions:
 2. Synthesize a professional, structured, and practical response.
 3. Keep the tone helpful and founder-focused.`;
 
-      try {
-        const response = await aiClient.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: ragPrompt
-        });
+        const replyText = await generateLLMResponse(ragPrompt);
 
-        return res.status(200).json({
+        const responsePayload = {
           success: true,
-          message: response.text?.trim() || "I couldn't generate a response from the document context.",
+          message: replyText,
           badge: 'Based on your uploaded documents',
           mode: 'document',
           sources: uniqueSources,
           isRag: true,
           retrievedChunksCount: retrievedChunks.length
-        });
-      } catch (llmErr: any) {
-        console.error('❌ LLM Generation Error (Document Mode):', llmErr?.message || llmErr);
-        return res.status(500).json({
-          success: false,
-          message: `AI Generation Error: ${llmErr?.message || 'Failed to generate response'}`
-        });
+        };
+
+        responseCache.set(cacheKey, { response: responsePayload, timestamp: Date.now() });
+        return res.status(200).json(responsePayload);
       }
-    }
 
-    // ── 3. Mode 2: General Business Guidance Fallback ─────────────────────────
-    console.log(`💡 RAG: No document context matched for "${message}". Falling back to General Business Guidance.`);
+      // ── 3. Mode 2: General Business Guidance Fallback ───────────────────────
+      console.log(`💡 RAG: No document context matched for "${message}". Falling back to General Business Guidance.`);
 
-    const fallbackPrompt = `You are an expert AI Co-Founder and Business Consultant for ${effectiveName}.
+      const fallbackPrompt = `You are an expert AI Co-Founder and Business Consultant for ${effectiveName}.
 You specialize in startups, IT, SaaS, manufacturing, banking, finance, food & beverage, construction, real estate, transport, logistics, marketing, sales, pricing, funding, and business strategy.
 
 Startup Profile & Context:
@@ -566,32 +649,30 @@ Instructions:
 2. Cover practical execution steps, industry benchmarks, calculations, and strategic advice.
 3. Structure the response clearly with headings, bullet points, and actionable key takeaways.`;
 
-    try {
-      const response = await aiClient.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: fallbackPrompt
-      });
+      const replyText = await generateLLMResponse(fallbackPrompt);
 
-      return res.status(200).json({
+      const responsePayload = {
         success: true,
-        message: response.text?.trim() || "Unable to generate business response.",
+        message: replyText,
         badge: 'General business guidance',
         mode: 'general',
         sources: [],
         isRag: false
-      });
-    } catch (llmErr: any) {
-      console.error('❌ LLM Generation Error (General Mode):', llmErr?.message || llmErr);
-      return res.status(500).json({
-        success: false,
-        message: `AI Co-Founder Error: ${llmErr?.message || 'Failed to generate business response'}`
-      });
+      };
+
+      responseCache.set(cacheKey, { response: responsePayload, timestamp: Date.now() });
+      return res.status(200).json(responsePayload);
+    } finally {
+      pendingRequests.delete(cacheKey);
     }
   } catch (error: any) {
-    console.error('❌ Error in chatStartup:', error);
-    res.status(500).json({ 
+    console.error('❌ Error in chatStartup:', error?.message || error);
+    const cleanMessage = error?.message?.includes('usage limit')
+      ? error.message
+      : 'AI usage limit reached. Please wait a moment and try again.';
+    res.status(200).json({ 
       success: false, 
-      message: `Server Error: ${error.message || 'Internal processing failure'}`
+      message: cleanMessage
     });
   }
 };
