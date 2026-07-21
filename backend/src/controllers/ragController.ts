@@ -255,32 +255,135 @@ function cosineSimilarity(a: number[], b: number[]): number {
 
 // ─── Public: retrieve top-K chunks for a startup question ─────────────────────
 
+export interface ChunkResult {
+  text: string;
+  filename: string;
+  pageNumber: number;
+  chunkIndex: number;
+  score: number;
+  matchType: 'vector' | 'keyword';
+}
+
+function normalizeText(text: string): string {
+  return text.toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+// ─── Public: retrieve top-K chunks for a startup question ─────────────────────
+
 export async function retrieveContext(
   question: string,
   startupId: string,
-  topK = 5
-): Promise<{ text: string; filename: string; chunkIndex: number; score: number }[]> {
-  const qEmbedding = await getEmbedding(question);
-  // Fetch all indexed chunks for this startup (embedding stored in Mongo)
-  const chunks = await KnowledgeChunk.find(
-    { startupId, status: 'indexed' },
-    { text: 1, embedding: 1, filename: 1, chunkIndex: 1 }
-  ).lean();
+  userId?: string,
+  topK = 8,
+  minThreshold = 0.25
+): Promise<ChunkResult[]> {
+  const normQuestion = normalizeText(question);
+  console.log(`🔍 RAG Query [startupId=${startupId}, userId=${userId || 'any'}]: "${question}"`);
 
-  if (!chunks.length) return [];
+  let results: ChunkResult[] = [];
 
-  const scored = chunks
-    .map(c => ({
-      text: c.text,
-      filename: c.filename,
-      chunkIndex: c.chunkIndex,
-      score: cosineSimilarity(qEmbedding, c.embedding),
-    }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, topK)
-    .filter(c => c.score > 0.3); // minimum relevance threshold
+  // 1. Vector Similarity Search
+  try {
+    const qEmbedding = await getEmbedding(normQuestion);
 
-  return scored;
+    const queryFilter: any = { startupId, status: 'indexed' };
+    if (userId) queryFilter.userId = userId;
+
+    const storedChunks = await KnowledgeChunk.find(
+      queryFilter,
+      { text: 1, embedding: 1, filename: 1, pageNumber: 1, chunkIndex: 1, userId: 1 }
+    ).lean();
+
+    if (storedChunks.length > 0 && qEmbedding.length > 0) {
+      const scored: ChunkResult[] = [];
+      for (const chunk of storedChunks) {
+        // Requirement 8: Verify vector dimensions match
+        if (!chunk.embedding || chunk.embedding.length !== qEmbedding.length) {
+          continue;
+        }
+        const score = cosineSimilarity(qEmbedding, chunk.embedding);
+        if (score >= minThreshold) {
+          scored.push({
+            text: chunk.text,
+            filename: chunk.filename,
+            pageNumber: chunk.pageNumber || 1,
+            chunkIndex: chunk.chunkIndex,
+            score,
+            matchType: 'vector',
+          });
+        }
+      }
+
+      // Sort by similarity score descending
+      scored.sort((a, b) => b.score - a.score);
+
+      // Requirement 9: Remove duplicate chunks, keep highest scoring
+      const seenTexts = new Set<string>();
+      for (const item of scored) {
+        const key = item.text.slice(0, 100);
+        if (!seenTexts.has(key)) {
+          seenTexts.add(key);
+          results.push(item);
+        }
+        if (results.length >= topK) break;
+      }
+    }
+  } catch (vecErr: any) {
+    console.error(`❌ RAG Vector Search Error for query "${question}":`, vecErr?.message || vecErr);
+  }
+
+  // Requirement 10: Fallback Keyword Search if vector search returns no results
+  if (results.length === 0) {
+    console.log(`⚠️ RAG Vector Search yielded 0 chunks for "${question}". Attempting Keyword Fallback...`);
+    try {
+      const stopwords = new Set(['what', 'is', 'a', 'the', 'and', 'or', 'of', 'for', 'in', 'to', 'how', 'explain', 'are', 'main', 'with', 'about']);
+      const keywords = normQuestion
+        .split(/[^a-z0-9]+/i)
+        .filter(w => w.length > 2 && !stopwords.has(w));
+
+      if (keywords.length > 0) {
+        const regexPatterns = keywords.map(kw => new RegExp(kw, 'i'));
+        const queryFilter: any = { 
+          startupId, 
+          status: 'indexed',
+          $or: regexPatterns.map(pattern => ({ text: pattern }))
+        };
+        if (userId) queryFilter.userId = userId;
+
+        const kwChunks = await KnowledgeChunk.find(
+          queryFilter,
+          { text: 1, filename: 1, pageNumber: 1, chunkIndex: 1 }
+        ).limit(topK).lean();
+
+        for (const chunk of kwChunks) {
+          const lowerText = chunk.text.toLowerCase();
+          let hitCount = 0;
+          for (const kw of keywords) {
+            if (lowerText.includes(kw)) hitCount++;
+          }
+          const score = 0.3 + (hitCount / keywords.length) * 0.2;
+          results.push({
+            text: chunk.text,
+            filename: chunk.filename,
+            pageNumber: chunk.pageNumber || 1,
+            chunkIndex: chunk.chunkIndex,
+            score,
+            matchType: 'keyword',
+          });
+        }
+      }
+    } catch (kwErr: any) {
+      console.error(`❌ RAG Keyword Search Error:`, kwErr?.message || kwErr);
+    }
+  }
+
+  // Requirement 4: Log query, scores, document name, page number, and snippet
+  console.log(`📊 RAG Retrieval Complete: ${results.length} chunk(s) matched for "${question}".`);
+  results.forEach((r, idx) => {
+    console.log(`  [Chunk ${idx + 1}] Score: ${r.score.toFixed(3)} | Type: ${r.matchType} | File: ${r.filename} (p.${r.pageNumber}) | Snippet: "${r.text.slice(0, 80)}..."`);
+  });
+
+  return results;
 }
 
 // ─── Route handlers ───────────────────────────────────────────────────────────

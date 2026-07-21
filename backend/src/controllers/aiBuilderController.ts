@@ -455,14 +455,16 @@ export const generateLegalDocs = async (req: Request, res: Response) => {
   }
 };
 
-import { retrieveContext } from './ragController.js';
+import { retrieveContext, ChunkResult } from './ragController.js';
+import { KnowledgeDoc } from '../models/KnowledgeChunk.js';
 
 export const chatStartup = async (req: Request, res: Response) => {
   try {
     const startupId = req.params.startupId || req.body.startupId;
     const { message, startupName, aiContext } = req.body;
+    const userId = (req as any).user?.id;
 
-    if (!message) {
+    if (!message || !message.trim()) {
       return res.status(400).json({ success: false, message: 'Message is required' });
     }
 
@@ -476,55 +478,85 @@ export const chatStartup = async (req: Request, res: Response) => {
     }
 
     const effectiveStartupId = startupId || (startup ? startup._id.toString() : '');
-    
-    // ── 1. Try RAG retrieval if we have a startupId ─────────────────────────────
-    let retrievedChunks: { text: string; filename: string; chunkIndex: number; score: number }[] = [];
+
+    // Check if startup has indexed documents
+    let hasIndexedDocs = false;
+    if (effectiveStartupId) {
+      const docCount = await KnowledgeDoc.countDocuments({ startupId: effectiveStartupId, status: 'indexed' });
+      hasIndexedDocs = docCount > 0;
+    }
+
+    // ── 1. RAG Retrieval if startupId is present ──────────────────────────────
+    let retrievedChunks: ChunkResult[] = [];
     if (effectiveStartupId) {
       try {
-        retrievedChunks = await retrieveContext(message, effectiveStartupId, 5);
-      } catch (ragErr) {
-        console.warn('⚠️ RAG retrieval warning:', ragErr);
+        retrievedChunks = await retrieveContext(message, effectiveStartupId, userId, 8, 0.25);
+      } catch (ragErr: any) {
+        console.error('❌ RAG Retrieval Error:', ragErr?.message || ragErr);
       }
     }
 
     // ── 2. If RAG chunks are found, use strict RAG mode ────────────────────────
     if (retrievedChunks.length > 0) {
       const contextText = retrievedChunks
-        .map((c, i) => `[Source ${i + 1}: ${c.filename} (Chunk ${c.chunkIndex})]\n${c.text}`)
+        .map((c, i) => `[Excerpt ${i + 1} | Document: ${c.filename} | Page ${c.pageNumber} | Chunk ${c.chunkIndex}]\n${c.text}`)
         .join('\n\n---\n\n');
 
-      const sources = Array.from(new Set(retrievedChunks.map(c => c.filename)));
+      const sources = Array.from(new Set(retrievedChunks.map(c => `${c.filename} (Page ${c.pageNumber})`)));
 
-      const ragPrompt = `You are a strict RAG AI assistant for a startup founder.
+      const ragPrompt = `You are a Senior RAG Assistant for a startup founder.
 
 Instructions:
-1. Answer the question using ONLY the retrieved document excerpts provided below.
-2. Do NOT use outside knowledge.
-3. If the answer cannot be found in the provided document excerpts, respond EXACTLY with:
+1. Answer the founder's question using ONLY the retrieved document excerpts provided below.
+2. Synthesize a comprehensive, clear, and professional response based on these excerpts.
+3. If the answer cannot be found in the provided excerpts, respond EXACTLY with:
 "I couldn't find this information in the uploaded documents."
+4. Do NOT use outside knowledge or make up facts.
 
-Retrieved Document Context:
+Retrieved Excerpts:
 ---
 ${contextText}
 ---
 
-Founder's Question: ${message}`;
+Question: ${message}`;
 
-      const response = await aiClient.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: ragPrompt
-      });
+      try {
+        const response = await aiClient.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: ragPrompt
+        });
 
+        const replyText = response.text?.trim() || "I couldn't find this information in the uploaded documents.";
+
+        return res.status(200).json({
+          success: true,
+          message: replyText,
+          sources,
+          isRag: true,
+          retrievedChunksCount: retrievedChunks.length
+        });
+      } catch (llmErr: any) {
+        console.error('❌ LLM Generation Error in RAG mode:', llmErr?.message || llmErr);
+        return res.status(200).json({
+          success: true,
+          message: "I couldn't find this information in the uploaded documents.",
+          sources: [],
+          isRag: true
+        });
+      }
+    }
+
+    // ── 3. If documents ARE uploaded for this startup, but 0 chunks matched ──────
+    if (hasIndexedDocs) {
       return res.status(200).json({
         success: true,
-        message: response.text,
-        sources,
-        isRag: true,
-        retrievedChunksCount: retrievedChunks.length
+        message: "I couldn't find this information in the uploaded documents.",
+        sources: [],
+        isRag: true
       });
     }
 
-    // ── 3. Fallback to general AI chat with startup context ─────────────────────
+    // ── 4. Fallback to general AI co-founder chat if NO documents were uploaded ──
     const effectiveName = startupName || startup?.startupName || 'Startup';
     const effectiveContext = aiContext || startup?.aiGenerated;
 
@@ -547,7 +579,10 @@ Provide a helpful, insightful response as an AI co-founder.`;
       isRag: false
     });
   } catch (error: any) {
-    console.error('Error in chatStartup:', error);
-    res.status(500).json({ success: false, message: error.message || 'Error chatting with AI' });
+    console.error('❌ Error in chatStartup:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: "I couldn't find this information in the uploaded documents."
+    });
   }
 };
