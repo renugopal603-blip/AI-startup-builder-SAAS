@@ -4,11 +4,14 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Create a transporter using SMTP
-// To use Gmail, you'll need to use an App Password if 2FA is enabled.
+// Force IPv4 and short timeouts to prevent hanging on Render (which blocks IPv6 SMTP)
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587', 10),
   secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+  family: 4, // Force IPv4 — prevents ENETUNREACH on Render
+  connectionTimeout: 8000,  // fail fast after 8s (not 40s)
+  socketTimeout: 8000,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,

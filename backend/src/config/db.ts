@@ -6,7 +6,9 @@ const DB_CONFIG = {
 
 export const connectDB = async (): Promise<void> => {
   try {
-    const conn = await mongoose.connect(DB_CONFIG.uri);
+    const conn = await mongoose.connect(DB_CONFIG.uri, {
+      dbName: 'ai-startup-builder', // always use this DB, regardless of URI
+    });
     console.log('');
     console.log('📦 ═══════════════════════════════════════════');
     console.log(`   MongoDB Connected: ${conn.connection.host}`);
