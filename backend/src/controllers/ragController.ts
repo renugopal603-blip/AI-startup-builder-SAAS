@@ -43,22 +43,53 @@ if (process.env.GEMINI_API_KEY) {
   gemini = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 }
 
-async function getEmbedding(text: string): Promise<number[]> {
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function getEmbedding(text: string, retries = 5, delay = 2000): Promise<number[]> {
   if (!gemini) throw new Error('GEMINI_API_KEY not set');
-  try {
-    const res = await gemini.models.embedContent({
-      model: 'gemini-embedding-001',
-      contents: text,
-    });
-    return res.embeddings?.[0]?.values ?? [];
-  } catch (err) {
-    // Fallback to gemini-embedding-2
-    const res = await gemini.models.embedContent({
-      model: 'gemini-embedding-2',
-      contents: text,
-    });
-    return res.embeddings?.[0]?.values ?? [];
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await gemini.models.embedContent({
+        model: 'gemini-embedding-001',
+        contents: text,
+      });
+      return res.embeddings?.[0]?.values ?? [];
+    } catch (err: any) {
+      const isRateLimit = err.status === 'RESOURCE_EXHAUSTED' || 
+                          err.message?.includes('429') || 
+                          err.message?.includes('Quota exceeded') ||
+                          err.message?.includes('RESOURCE_EXHAUSTED');
+
+      if (isRateLimit && attempt < retries) {
+        let waitMs = delay * attempt; // 2s, 4s, 6s, 8s...
+        const match = err.message?.match(/retry in ([0-9.]+)s/i);
+        if (match && match[1]) {
+          waitMs = Math.ceil(parseFloat(match[1]) * 1000) + 1000;
+        }
+        console.warn(`⚠️ Gemini embedding rate limit hit (429). Retrying attempt ${attempt}/${retries} in ${Math.round(waitMs / 1000)}s...`);
+        await sleep(waitMs);
+        continue;
+      }
+
+      if (attempt === retries) {
+        try {
+          const res = await gemini.models.embedContent({
+            model: 'gemini-embedding-2',
+            contents: text,
+          });
+          return res.embeddings?.[0]?.values ?? [];
+        } catch (fallbackErr: any) {
+          if (isRateLimit) {
+            throw new Error('Gemini API rate limit exceeded (100 embeddings/min limit). Please try again in 30 seconds.');
+          }
+          throw fallbackErr;
+        }
+      }
+      throw err;
+    }
   }
+  return [];
 }
 
 // ─── Text extraction ──────────────────────────────────────────────────────────
@@ -349,19 +380,22 @@ async function processFile(
     const savedChunks: any[] = [];
     for (const chunk of allChunks) {
       const embedding = await getEmbedding(chunk.text);
-      savedChunks.push({
-        startupId,
-        userId,
-        docId,
-        filename: file.originalname,
-        fileType: file.mimetype,
-        status: 'indexed',
-        pageNumber: chunk.page,
-        chunkIndex: chunk.index,
-        text: chunk.text,
-        embedding,
-        charCount: chunk.text.length,
-      });
+      if (embedding && embedding.length > 0) {
+        savedChunks.push({
+          startupId,
+          userId,
+          docId,
+          filename: file.originalname,
+          fileType: file.mimetype,
+          status: 'indexed',
+          pageNumber: chunk.page,
+          chunkIndex: chunk.index,
+          text: chunk.text,
+          embedding,
+          charCount: chunk.text.length,
+        });
+      }
+      await sleep(100); // polite rate-limiting throttle (stay under 100 RPM)
     }
 
     if (savedChunks.length === 0) {
