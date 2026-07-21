@@ -461,7 +461,7 @@ import { KnowledgeDoc } from '../models/KnowledgeChunk.js';
 export const chatStartup = async (req: Request, res: Response) => {
   try {
     const startupId = req.params.startupId || req.body.startupId;
-    const { message, startupName, aiContext } = req.body;
+    const { message, startupName, aiContext, history } = req.body;
     const userId = (req as any).user?.id;
 
     if (!message || !message.trim()) {
@@ -478,15 +478,10 @@ export const chatStartup = async (req: Request, res: Response) => {
     }
 
     const effectiveStartupId = startupId || (startup ? startup._id.toString() : '');
+    const effectiveName = startupName || startup?.startupName || 'your startup';
+    const effectiveContext = aiContext || startup?.aiGenerated;
 
-    // Check if startup has indexed documents
-    let hasIndexedDocs = false;
-    if (effectiveStartupId) {
-      const docCount = await KnowledgeDoc.countDocuments({ startupId: effectiveStartupId, status: 'indexed' });
-      hasIndexedDocs = docCount > 0;
-    }
-
-    // ── 1. RAG Retrieval if startupId is present ──────────────────────────────
+    // ── 1. RAG Vector + Keyword Retrieval for current startup ─────────────────
     let retrievedChunks: ChunkResult[] = [];
     if (effectiveStartupId) {
       try {
@@ -496,29 +491,39 @@ export const chatStartup = async (req: Request, res: Response) => {
       }
     }
 
-    // ── 2. If RAG chunks are found, use strict RAG mode ────────────────────────
+    // Format conversation memory
+    let historyContext = '';
+    if (Array.isArray(history) && history.length > 0) {
+      const recentHistory = history.slice(-6);
+      historyContext = '\nRecent Conversation History:\n' + 
+        recentHistory.map((h: any) => `${h.role === 'user' ? 'Founder' : 'Assistant'}: ${h.text}`).join('\n');
+    }
+
+    // ── 2. Mode 1: Document Context Exists ────────────────────────────────────
     if (retrievedChunks.length > 0) {
       const contextText = retrievedChunks
         .map((c, i) => `[Excerpt ${i + 1} | Document: ${c.filename} | Page ${c.pageNumber} | Chunk ${c.chunkIndex}]\n${c.text}`)
         .join('\n\n---\n\n');
 
-      const sources = Array.from(new Set(retrievedChunks.map(c => `${c.filename} (Page ${c.pageNumber})`)));
+      const uniqueSources = Array.from(new Set(retrievedChunks.map(c => `${c.filename} (Page ${c.pageNumber})`)));
 
-      const ragPrompt = `You are a Senior RAG Assistant for a startup founder.
+      const ragPrompt = `You are a Senior Hybrid RAG Business Assistant for ${effectiveName}.
 
-Instructions:
-1. Answer the founder's question using ONLY the retrieved document excerpts provided below.
-2. Synthesize a comprehensive, clear, and professional response based on these excerpts.
-3. If the answer cannot be found in the provided excerpts, respond EXACTLY with:
-"I couldn't find this information in the uploaded documents."
-4. Do NOT use outside knowledge or make up facts.
+Startup Profile Context:
+${JSON.stringify(effectiveContext?.ideaAnalysis || {})}
+${historyContext}
 
-Retrieved Excerpts:
+Uploaded Document Context:
 ---
 ${contextText}
 ---
 
-Question: ${message}`;
+Question: ${message}
+
+Instructions:
+1. Answer the question thoroughly using the uploaded document context provided above.
+2. Synthesize a professional, structured, and practical response.
+3. Keep the tone helpful and founder-focused.`;
 
       try {
         const response = await aiClient.models.generateContent({
@@ -526,63 +531,67 @@ Question: ${message}`;
           contents: ragPrompt
         });
 
-        const replyText = response.text?.trim() || "I couldn't find this information in the uploaded documents.";
-
         return res.status(200).json({
           success: true,
-          message: replyText,
-          sources,
+          message: response.text?.trim() || "I couldn't generate a response from the document context.",
+          badge: 'Based on your uploaded documents',
+          mode: 'document',
+          sources: uniqueSources,
           isRag: true,
           retrievedChunksCount: retrievedChunks.length
         });
       } catch (llmErr: any) {
-        console.error('❌ LLM Generation Error in RAG mode:', llmErr?.message || llmErr);
-        return res.status(200).json({
-          success: true,
-          message: "I couldn't find this information in the uploaded documents.",
-          sources: [],
-          isRag: true
+        console.error('❌ LLM Generation Error (Document Mode):', llmErr?.message || llmErr);
+        return res.status(500).json({
+          success: false,
+          message: `AI Generation Error: ${llmErr?.message || 'Failed to generate response'}`
         });
       }
     }
 
-    // ── 3. If documents ARE uploaded for this startup, but 0 chunks matched ──────
-    if (hasIndexedDocs) {
+    // ── 3. Mode 2: General Business Guidance Fallback ─────────────────────────
+    console.log(`💡 RAG: No document context matched for "${message}". Falling back to General Business Guidance.`);
+
+    const fallbackPrompt = `You are an expert AI Co-Founder and Business Consultant for ${effectiveName}.
+You specialize in startups, IT, SaaS, manufacturing, banking, finance, food & beverage, construction, real estate, transport, logistics, marketing, sales, pricing, funding, and business strategy.
+
+Startup Profile & Context:
+${JSON.stringify(effectiveContext || {})}
+${historyContext}
+
+Founder's Question: ${message}
+
+Instructions:
+1. Provide comprehensive, expert business guidance tailored specifically to ${effectiveName}.
+2. Cover practical execution steps, industry benchmarks, calculations, and strategic advice.
+3. Structure the response clearly with headings, bullet points, and actionable key takeaways.`;
+
+    try {
+      const response = await aiClient.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: fallbackPrompt
+      });
+
       return res.status(200).json({
         success: true,
-        message: "I couldn't find this information in the uploaded documents.",
+        message: response.text?.trim() || "Unable to generate business response.",
+        badge: 'General business guidance',
+        mode: 'general',
         sources: [],
-        isRag: true
+        isRag: false
+      });
+    } catch (llmErr: any) {
+      console.error('❌ LLM Generation Error (General Mode):', llmErr?.message || llmErr);
+      return res.status(500).json({
+        success: false,
+        message: `AI Co-Founder Error: ${llmErr?.message || 'Failed to generate business response'}`
       });
     }
-
-    // ── 4. Fallback to general AI co-founder chat if NO documents were uploaded ──
-    const effectiveName = startupName || startup?.startupName || 'Startup';
-    const effectiveContext = aiContext || startup?.aiGenerated;
-
-    const fallbackPrompt = `You are an AI co-founder assistant for ${effectiveName}.
-Startup Context: ${JSON.stringify(effectiveContext || {})}
-
-Question: ${message}
-
-Provide a helpful, insightful response as an AI co-founder.`;
-
-    const response = await aiClient.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: fallbackPrompt
-    });
-
-    res.status(200).json({
-      success: true,
-      message: response.text,
-      sources: [],
-      isRag: false
-    });
   } catch (error: any) {
     console.error('❌ Error in chatStartup:', error);
     res.status(500).json({ 
       success: false, 
-      message: "I couldn't find this information in the uploaded documents."
+      message: `Server Error: ${error.message || 'Internal processing failure'}`
     });
   }
 };

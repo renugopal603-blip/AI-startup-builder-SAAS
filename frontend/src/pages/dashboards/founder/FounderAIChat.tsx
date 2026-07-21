@@ -8,7 +8,14 @@ interface Props {
   setStartupData?: (data: any) => void;
 }
 
-type Msg = { role: 'user' | 'ai'; text: string; sources?: string[]; isRag?: boolean };
+type Msg = { 
+  role: 'user' | 'ai'; 
+  text: string; 
+  sources?: string[]; 
+  isRag?: boolean; 
+  badge?: string; 
+  mode?: 'document' | 'general' 
+};
 
 interface Document {
   docId: string;
@@ -28,7 +35,7 @@ const starters = [
 ];
 
 const getInitialMessages = (startupName: string): Msg[] => [
-  { role: 'ai', text: `Hi! I'm your AI co-founder for ${startupName ? startupName : 'your startup'}. I have all your business plan and market research context. What would you like to discuss today?` },
+  { role: 'ai', text: `Hi! I'm your Hybrid RAG AI Assistant for ${startupName ? startupName : 'your startup'}. I can answer questions directly from your uploaded documents or provide general business guidance. What would you like to discuss today?` },
 ];
 
 const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
@@ -65,7 +72,6 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
 
   useEffect(() => {
     fetchDocuments();
-    // Poll document statuses if any is uploading or processing
     const interval = setInterval(() => {
       const activeProcessing = documents.some(d => d.status === 'uploading' || d.status === 'processing');
       if (activeProcessing) {
@@ -126,12 +132,10 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
     }
   };
 
-  // Re-index Document (Triggered by upload again)
   const handleReindex = (doc: Document) => {
     alert(`To re-index "${doc.filename}", please delete it and upload the file again.`);
   };
 
-  // Drag & Drop
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -153,7 +157,8 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
 
   const send = async (text: string) => {
     if (!text.trim()) return;
-    setMessages(m => [...m, { role: 'user', text }]);
+    const userMessage: Msg = { role: 'user', text };
+    setMessages(m => [...m, userMessage]);
     setInput('');
     
     if (!startupData || !startupId) {
@@ -162,6 +167,11 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
     }
 
     setLoading(true);
+
+    // Format chat history for backend memory
+    const historyPayload = messages
+      .filter(m => m.text)
+      .map(m => ({ role: m.role === 'user' ? 'user' : 'model', text: m.text }));
     
     try {
       const token = getToken();
@@ -175,7 +185,8 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
           message: text,
           startupId: startupId,
           startupName: startupData.startupName,
-          aiContext: startupData.aiGenerated
+          aiContext: startupData.aiGenerated,
+          history: historyPayload
         })
       });
 
@@ -186,13 +197,21 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
           role: 'ai', 
           text: data.message, 
           sources: data.sources,
-          isRag: data.isRag
+          isRag: data.isRag,
+          badge: data.badge,
+          mode: data.mode
         }]);
       } else {
-        setMessages(m => [...m, { role: 'ai', text: "Sorry, I had trouble processing that request." }]);
+        setMessages(m => [...m, { 
+          role: 'ai', 
+          text: data.message || data.error || "Sorry, I had trouble processing that request." 
+        }]);
       }
-    } catch (err) {
-       setMessages(m => [...m, { role: 'ai', text: "Failed to connect to the AI server. Please make sure the backend is running." }]);
+    } catch (err: any) {
+       setMessages(m => [...m, { 
+         role: 'ai', 
+         text: err?.message || "Failed to connect to the AI server. Please make sure the backend is running." 
+       }]);
     } finally {
       setLoading(false);
     }
@@ -346,20 +365,38 @@ const FounderAIChat: React.FC<Props> = ({ startupData = {} }) => {
                   <Bot size={16} />
                 </div>
               )}
-              <div className="flex flex-col max-w-[75%] gap-1">
-                <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+              <div className="flex flex-col max-w-[80%] gap-1">
+                {/* Mode Badges */}
+                {m.role === 'ai' && (m.badge || m.isRag !== undefined) && (
+                  <div className="flex items-center gap-1.5 px-1">
+                    {(m.mode === 'document' || m.badge === 'Based on your uploaded documents' || m.isRag) ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full shadow-xs">
+                        <FileText size={10} /> Based on your uploaded documents
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shadow-xs">
+                        <Sparkles size={10} /> General business guidance
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                   m.role === 'ai'
                     ? 'bg-gray-50 border border-gray-100 text-gray-800 rounded-tl-sm'
                     : 'bg-gradient-to-br from-[#5B21B6] to-[#7C3AED] text-white rounded-tr-sm shadow'
                 }`}>
                   {m.text}
                 </div>
+                
                 {/* Citations / Sources */}
                 {m.sources && m.sources.length > 0 && (
-                  <div className="flex flex-wrap gap-1 px-2">
-                    <span className="text-[10px] text-gray-400 font-semibold uppercase">Sources:</span>
-                    {m.sources.map((src, idx) => (
-                      <span key={idx} className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-medium border border-purple-100 max-w-[120px] truncate" title={src}>
+                  <div className="flex flex-wrap gap-1 px-2 pt-0.5">
+                    <span className="text-[10px] text-gray-400 font-semibold uppercase flex items-center gap-1">
+                      Sources:
+                    </span>
+                    {Array.from(new Set(m.sources)).map((src, idx) => (
+                      <span key={idx} className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded font-medium border border-purple-100 max-w-[160px] truncate" title={src}>
                         {src}
                       </span>
                     ))}
