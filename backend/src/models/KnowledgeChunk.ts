@@ -53,6 +53,8 @@ export interface IKnowledgeDoc extends mongoose.Document {
   docId: string;
   filename: string;
   fileType: string;
+  fileUrl?: string;
+  cloudinaryPublicId?: string;
   status: 'uploading' | 'processing' | 'indexed' | 'error';
   chunkCount: number;
   errorMessage?: string;
@@ -62,12 +64,14 @@ export interface IKnowledgeDoc extends mongoose.Document {
 
 const knowledgeDocSchema = new mongoose.Schema(
   {
-    startupId:    { type: String, required: true, index: true },
-    userId:       { type: String, required: true },
-    docId:        { type: String, required: true, unique: true },
-    filename:     { type: String, required: true },
-    fileType:     { type: String, required: true },
-    status:       {
+    startupId:          { type: String, required: true, index: true },
+    userId:             { type: String, required: true },
+    docId:              { type: String, required: true, unique: true },
+    filename:           { type: String, required: true },
+    fileType:           { type: String, required: true },
+    fileUrl:            { type: String },
+    cloudinaryPublicId: { type: String },
+    status:             {
       type: String,
       enum: ['uploading', 'processing', 'indexed', 'error'],
       default: 'uploading',

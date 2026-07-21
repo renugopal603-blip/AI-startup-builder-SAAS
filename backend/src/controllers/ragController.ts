@@ -2,8 +2,18 @@ import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import multer from 'multer';
 import { GoogleGenAI } from '@google/genai';
+import { v2 as cloudinary } from 'cloudinary';
 import { KnowledgeChunk, KnowledgeDoc } from '../models/KnowledgeChunk.js';
 import { AuthRequest } from '../middleware/authMiddleware.js';
+
+// ─── Cloudinary setup ────────────────────────────────────────────────────────
+if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME.trim(),
+    api_key: process.env.CLOUDINARY_API_KEY.trim(),
+    api_secret: process.env.CLOUDINARY_API_SECRET.trim(),
+  });
+}
 
 // ─── Multer setup (memory storage — parse immediately, never write to disk) ───
 export const upload = multer({
@@ -362,10 +372,42 @@ async function processFile(
       return;
     }
 
+    // 4. Upload raw document to Cloudinary (if configured)
+    let fileUrl = '';
+    let cloudinaryPublicId = '';
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
+      try {
+        const uploadResult = await new Promise<any>((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              resource_type: 'raw',
+              folder: `startup_knowledge/${startupId}`,
+              public_id: docId,
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          uploadStream.end(file.buffer);
+        });
+        fileUrl = uploadResult?.secure_url || uploadResult?.url || '';
+        cloudinaryPublicId = uploadResult?.public_id || '';
+        console.log(`☁️ Cloudinary upload success for ${file.originalname}: ${fileUrl}`);
+      } catch (cloudErr) {
+        console.warn(`⚠️ Cloudinary upload warning for ${file.originalname}:`, cloudErr);
+      }
+    }
+
     await KnowledgeChunk.insertMany(savedChunks);
     await KnowledgeDoc.updateOne(
       { docId },
-      { status: 'indexed', chunkCount: savedChunks.length }
+      { 
+        status: 'indexed', 
+        chunkCount: savedChunks.length,
+        fileUrl,
+        cloudinaryPublicId
+      }
     );
 
     console.log(
