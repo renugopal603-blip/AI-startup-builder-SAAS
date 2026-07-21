@@ -35,11 +35,20 @@ if (process.env.GEMINI_API_KEY) {
 
 async function getEmbedding(text: string): Promise<number[]> {
   if (!gemini) throw new Error('GEMINI_API_KEY not set');
-  const res = await gemini.models.embedContent({
-    model: 'text-embedding-004',
-    contents: text,
-  });
-  return res.embeddings?.[0]?.values ?? [];
+  try {
+    const res = await gemini.models.embedContent({
+      model: 'gemini-embedding-001',
+      contents: text,
+    });
+    return res.embeddings?.[0]?.values ?? [];
+  } catch (err) {
+    // Fallback to gemini-embedding-2
+    const res = await gemini.models.embedContent({
+      model: 'gemini-embedding-2',
+      contents: text,
+    });
+    return res.embeddings?.[0]?.values ?? [];
+  }
 }
 
 // ─── Text extraction ──────────────────────────────────────────────────────────
