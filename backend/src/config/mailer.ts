@@ -1,10 +1,10 @@
 import nodemailer from "nodemailer";
 
-const MAIL_USER = process.env.MAIL_USER;
-const MAIL_PASS = process.env.MAIL_PASS;
+const MAIL_USER = process.env.MAIL_USER || "";
+const MAIL_PASS = process.env.MAIL_PASS || "";
 
 if (!MAIL_USER || !MAIL_PASS) {
-    throw new Error("MAIL_USER or MAIL_PASS is missing in environment variables");
+    console.warn("⚠️ WARNING: MAIL_USER or MAIL_PASS is missing in environment variables. Email sending will fail.");
 }
 
 export const transporter = nodemailer.createTransport({
