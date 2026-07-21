@@ -376,26 +376,42 @@ async function processFile(
       }
     }
 
-    // 3. Embed each chunk and save to MongoDB
+    // 3. Embed chunks in controlled batch concurrency of 3 for 3x speedup
     const savedChunks: any[] = [];
-    for (const chunk of allChunks) {
-      const embedding = await getEmbedding(chunk.text);
-      if (embedding && embedding.length > 0) {
-        savedChunks.push({
-          startupId,
-          userId,
-          docId,
-          filename: file.originalname,
-          fileType: file.mimetype,
-          status: 'indexed',
-          pageNumber: chunk.page,
-          chunkIndex: chunk.index,
-          text: chunk.text,
-          embedding,
-          charCount: chunk.text.length,
-        });
+    const batchSize = 3;
+    for (let i = 0; i < allChunks.length; i += batchSize) {
+      const batch = allChunks.slice(i, i + batchSize);
+      const results = await Promise.all(
+        batch.map(async chunk => {
+          try {
+            const embedding = await getEmbedding(chunk.text);
+            if (embedding && embedding.length > 0) {
+              return {
+                startupId,
+                userId,
+                docId,
+                filename: file.originalname,
+                fileType: file.mimetype,
+                status: 'indexed',
+                pageNumber: chunk.page,
+                chunkIndex: chunk.index,
+                text: chunk.text,
+                embedding,
+                charCount: chunk.text.length,
+              };
+            }
+          } catch (e: any) {
+            console.warn(`⚠️ Failed to embed chunk ${chunk.index} of ${file.originalname}:`, e?.message);
+          }
+          return null;
+        })
+      );
+
+      for (const item of results) {
+        if (item) savedChunks.push(item);
       }
-      await sleep(100); // polite rate-limiting throttle (stay under 100 RPM)
+
+      await sleep(150); // Rate limit throttle between batches
     }
 
     if (savedChunks.length === 0) {
