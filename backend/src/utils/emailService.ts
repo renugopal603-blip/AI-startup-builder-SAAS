@@ -50,7 +50,9 @@ export const sendOTPEmail = async (to: string, otpCode: string) => {
     console.log(`✉️ Email sent to ${to}: ${info.messageId}`);
     return true;
   } catch (error) {
+    // Do NOT throw — log the error and fall back to console so registration still works
     console.error(`❌ Failed to send email to ${to}:`, error);
-    throw error;
+    console.warn(`🔑 FALLBACK OTP for ${to}: ${otpCode}`);
+    return false; // Caller can decide, but registration won't crash
   }
 };

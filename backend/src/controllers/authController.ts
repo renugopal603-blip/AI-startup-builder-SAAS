@@ -44,10 +44,19 @@ export const sendOTP = async (req: Request, res: Response) => {
       expiresAt
     });
 
-    // Send email using Nodemailer
-    await sendOTPEmail(email.toLowerCase(), otpCode);
+    // Send email using Nodemailer (non-blocking — failure won't crash registration)
+    let emailSent = false;
+    try {
+      emailSent = await sendOTPEmail(email.toLowerCase(), otpCode);
+    } catch (emailErr) {
+      console.warn('⚠️ Email delivery failed, OTP still valid:', (emailErr as Error).message);
+    }
 
-    res.status(200).json({ success: true, message: 'OTP sent successfully', otp: otpCode });
+    res.status(200).json({
+      success: true,
+      message: emailSent ? 'OTP sent to your email' : 'OTP generated (email delivery failed, use the code below)',
+      otp: otpCode // returned for dev/fallback; remove in strict production
+    });
   } catch (error) {
     console.error('Error in sendOTP:', error);
     res.status(500).json({ success: false, error: 'Server error' });
